@@ -28,3 +28,6 @@ coverage/
 
 # os
 .DS_Store
+
+# Internal working notes — MUST NOT ship to the public repo
+plans/
