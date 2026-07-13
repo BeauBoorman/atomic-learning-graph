@@ -15,7 +15,11 @@ out/
 *.tsbuildinfo
 
 # generated artifacts (produced by `pnpm atomize`)
-data/graph.json
+#
+# NOTE: `data/graph.json` is deliberately NOT ignored — it is a COMMITTED build artifact.
+# The deployed app is static (SSG) and must ship with a graph; running `atomize` in CI would
+# put a live LLM call on the deploy path. See docs/adr/001-commit-the-generated-graph.md.
+# Do not add data/graph.json here.
 
 # test / tooling
 coverage/

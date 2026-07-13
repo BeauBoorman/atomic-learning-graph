@@ -5,6 +5,19 @@
 // Invariants (see README):
 //   1. one concept per node   2. no orphans (roots exempt)   3. prereq graph is a DAG
 //   4. goal reachable from a root   5. provenance valid   6. no dangling edges
+//
+// The precise definition of invariant 2 ("orphan", "root", and why roots are exempt) is on
+// `findOrphans` below. Read it before implementing — the test fixture cannot tell a correct
+// implementation from a wrong one, so the definition is the only spec you get.
+//
+// ⚠ OPEN QUESTION — the source of truth for the prerequisite relation is NOT YET SETTLED.
+// The prereq relation is currently expressed TWICE: as `LearningGraph.edges[]` (typed
+// `"prereq" | "method" | "related"`) and as `Concept.prerequisites[]`. Nothing forces the two
+// to agree, and on a generated graph they WILL diverge. This is a `types.ts` decision and it is
+// owned by the type-model pass — do not settle it here by picking one in an implementation.
+// Every function below must read the prereq relation from whichever source that pass makes
+// canonical, and all six must read from THE SAME one. Until it lands, the invariants are
+// under-specified and a green suite does not mean a correct graph.
 
 import type { Concept, ConceptId, Edge, LearningGraph } from "../types";
 
@@ -17,7 +30,49 @@ export function hasCycle(_graph: LearningGraph): boolean {
   return TODO("hasCycle");
 }
 
-/** Concepts with no inbound AND no outbound edges. Roots (no inbound, has outbound) are exempt. */
+/**
+ * ORPHANS — precise definition. Read this before implementing; the fixture does NOT
+ * discriminate between the plausible definitions (it is a fully-connected 5-node chain,
+ * so *every* candidate definition returns `[]` on it). Getting this wrong is invisible
+ * until it fails on the real atomized graph — i.e. during the demo.
+ *
+ * Terms. Consider ONLY the prerequisite relation (edges of type `"prereq"`). A prereq edge
+ * `u -> v` means "u must be understood before v" — it points in the direction of learning
+ * progression. For a concept `c`:
+ *   - inbound(c)  = prereq edges INTO c   = c's own prerequisites
+ *   - outbound(c) = prereq edges OUT of c = the concepts c unlocks (c is their prerequisite)
+ *
+ * Classification:
+ *   ROOT    inbound == 0 && outbound  > 0   foundational entry point (e.g. `vectors`). LEGAL.
+ *   LEAF    inbound  > 0 && outbound == 0   terminal, e.g. the goal `self-attention`.   LEGAL.
+ *   INNER   inbound  > 0 && outbound  > 0                                               LEGAL.
+ *   ORPHAN  inbound == 0 && outbound == 0   isolated — connected to NOTHING.            FAILS.
+ *
+ * So: an orphan is a concept with NO prerequisite edges in either direction.
+ *
+ * Why roots are exempt. The naive reading of "orphan" is "nothing points to it" (inbound == 0).
+ * That would flag every root — but a root having no prerequisites is not a defect, it is the
+ * definition of foundational, and a DAG with no roots is either empty or cyclic, i.e. nothing
+ * could ever be learned from scratch. The exemption is therefore not a loophole; it is the
+ * distinction between a concept that *correctly* has no prerequisites (a root — which still
+ * earns its place by unlocking something) and a concept that has no relationships AT ALL (an
+ * orphan). By symmetry the goal node, which legitimately unlocks nothing, is exempt too.
+ *
+ * Why this invariant exists at all. It catches ATOMIZER FAILURE. The pathfinder is a
+ * deterministic walk over prereq edges, so a degree-0 concept can never appear on any path to
+ * any goal: it is unreachable, un-teachable, and dead weight in the rendered graph. Its real
+ * meaning is that the model extracted a concept and then failed to infer a single relationship
+ * for it — the graph is not a graph at that node, it is a loose bag of nodes. That is precisely
+ * the failure this project claims not to have.
+ *
+ * Two things that do NOT rescue an orphan:
+ *   - `related` / `method` edges. A node reachable only by a `related` edge is still invisible
+ *     to a prerequisite walk. Non-prereq edges MUST NOT be counted here.
+ *   - Being listed in some other concept's array while having no corresponding edge. See the
+ *     source-of-truth note in the header above — read the prereq relation from ONE source.
+ *
+ * Returns the IDs of all orphans; `[]` means the invariant holds.
+ */
 export function findOrphans(_graph: LearningGraph): ConceptId[] {
   return TODO("findOrphans");
 }

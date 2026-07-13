@@ -17,9 +17,24 @@ understand *first*. Established subjects like algebra got hand-built prerequisit
 over years; fast-moving and long-tail subjects never will. So a self-directed learner who wants to
 understand transformers has no path — just a wall of material at the wrong level.
 
-The reflex fix is an AI tutor chatbot. The evidence says that's the weaker bet: Khan Academy's own
-Khanmigo reportedly saw only ~15% engagement, while their *structured, prerequisite-graph*
-intervention moved the needle on actual learning. `[VERIFY these figures before publishing.]`
+The reflex fix is an AI tutor chatbot. Khan Academy's own published numbers suggest the chat window
+is not where the leverage is:
+
+- **A chatbot alone doesn't get used.** Khan reports that "only around 15% of students who have
+  access to Khanmigo engage with it" — [*Learning in the Open: What AI Is (and Isn't) Changing*](https://blog.khanacademy.org/learning-in-the-open-what-ai-is-and-isnt-changing/),
+  Khan Academy, 28 Apr 2026. (That is the share of students *with access* who engage — an adoption
+  rate, not a measure of whether it teaches.)
+- **Structure is what improved it.** When Khan set out to make the tutor measurably better, the
+  gains came from feeding it *prerequisite structure*: "surfacing prerequisite skills the student
+  hasn't yet mastered and offering a brief review before the harder problem improved next-item
+  correctness by 2.7%" — one of two structured-context changes that together produced a 6.1% gain.
+  [*How Khan Academy Is Building a Better AI Tutor*](https://blog.khanacademy.org/how-khan-academy-is-building-a-better-ai-tutor-our-most-recent-learnings/),
+  Khan Academy, May 2026. ("Next-item correctness" = whether the student then solves the next
+  problem *unassisted* — a transfer measure, not engagement.)
+
+Read together: the tutor got better when it was given a prerequisite graph to stand on. The graph is
+the substrate; chat is just one surface over it. So we build the substrate — for a subject that
+doesn't have one.
 
 **Why this isn't just "Khan for AI".** Khan hand-built its graphs. We show an AI *building* the
 prerequisite graph from open resources for a subject **no one has mapped** — the same pipeline works
@@ -71,7 +86,17 @@ ambition; this MVP is the working kernel of the engine.
 ## Run it
 ```bash
 pnpm install
-pnpm atomize   # build the graph from data/oer/ (needs OPENAI_API_KEY)
-pnpm test      # graph invariants must pass
-pnpm dev
+pnpm test      # graph invariants must pass — runs against the committed data/graph.json
+pnpm dev       # no API key needed: the graph is committed, the app makes no LLM call
 ```
+
+Only rebuilding the graph needs an OpenAI key:
+```bash
+cp .env.example .env   # set OPENAI_API_KEY
+pnpm atomize           # re-atomize data/oer/ -> data/graph.json, then commit the result
+```
+
+`data/graph.json` is a **committed build artifact**, deliberately not gitignored: the deployed app
+must ship with a graph, and re-running a non-deterministic LLM atomization in CI could hand the
+judges a different graph than the one whose invariants we verified. It is written **only** by
+`pnpm atomize` — never hand-edited. See [ADR 001](docs/adr/001-commit-the-generated-graph.md).

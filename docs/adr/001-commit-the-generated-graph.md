@@ -1,0 +1,66 @@
+# ADR 001 — Commit the generated `data/graph.json`
+
+**Status:** Accepted · **Date:** 2026-07-13 · **Context:** Build Week, submission 2026-07-21
+
+## Decision
+
+`data/graph.json` — the output of `pnpm atomize` — is **committed to the repo**, not gitignored.
+The deployed app reads the committed graph. `atomize` is **never** run in CI or on the request path.
+
+## Why
+
+The graph is a *generated* artifact, and the reflex is to gitignore generated artifacts. That reflex
+is wrong here, for four reasons in descending order of importance:
+
+1. **Atomization is non-deterministic; the demo depends on specific node IDs.** The golden path
+   (`vectors → dot-product → softmax → qkv → self-attention`) is the demo. If CI re-ran `atomize` on
+   each build, the LLM could emit different concept IDs, a different decomposition, or different
+   edges — so the graph the judges load would not be the graph we tested the invariants and the
+   golden path against. A re-atomized graph can silently break the demo path while every test that
+   ran *before* the deploy was green. Committing the graph makes the artifact under test and the
+   artifact in production **the same bytes**.
+2. **No live-LLM dependency in the demo path.** Running `atomize` at build time puts an OpenAI API
+   call between us and a working deployment. An outage, a rate-limit, or a schema wobble at 16:55 on
+   the 21st would take the demo down at exactly the moment it cannot be down. A committed JSON file
+   cannot fail to respond.
+3. **Cost and speed.** `atomize` calls GPT-5.6 across the whole OER corpus. Vercel builds on every
+   push; paying for a full re-atomization per push is pure waste on an 8-day budget, and it makes
+   every deploy slow.
+4. **It is the artifact, not a byproduct.** The pitch is "an AI *built* this graph and it passes the
+   invariants." The graph is the deliverable — reviewable in a diff, inspectable by a judge, and
+   diffable when we re-atomize. That is an asset, not clutter.
+
+## What we rejected
+
+- **Run `atomize` in Vercel CI with `OPENAI_API_KEY` in env.** Rejected: introduces (1), (2) and (3)
+  above. This is the option the default `.gitignore` was quietly forcing us into.
+- **Atomize at runtime / on request.** Rejected outright — the README promises the deployed app makes
+  no LLM call on the request path, and a per-request LLM call would be slow, costly, and
+  non-deterministic.
+
+## Costs we are accepting (this is not free)
+
+- **The committed graph can go stale** relative to `data/oer/`. Accepted: the corpus is frozen for
+  the demo, and regeneration is a deliberate act.
+- **"The generated graph passes the invariants" is now only as true as our commit discipline.**
+  This is the real risk, and it has teeth: the claim is the entire pitch.
+
+## Rules that keep the above honest
+
+1. **`data/graph.json` is written ONLY by `pnpm atomize`. Never hand-edit it. Never hand-forge it.**
+   A hand-authored graph would make the headline claim false. If you need a graph to develop
+   against, use a *fixture* — clearly named as such (see below) — never a fake `data/graph.json`.
+2. **Regenerate deliberately, then commit the regenerated file** — `pnpm atomize && pnpm test`. The
+   test suite (`generated data/graph.json` describe-block) runs the invariants against the committed
+   file, so a bad or stale-and-invalid graph fails the suite rather than shipping.
+3. **Fixtures are never presented as generated output.** The hand-built 5-node graph in
+   `src/graph/invariants.test.ts` is a *fixture*: it exists to test the invariant functions without
+   an LLM, and it is labelled as such. It is not, and must not be copied to, `data/graph.json`.
+
+## Status right now (2026-07-13)
+
+The atomizer does not exist yet, so **`data/graph.json` does not exist yet.** That is correct and
+expected. `src/graph/load.ts` throws a clear `no graph — run \`pnpm atomize\`` error, and the three
+`generated data/graph.json` tests fail on that throw. This is the intended RED state; the file
+appears, and those tests go green, when the atomizer first runs. Nothing here was pre-created to
+make the suite look greener than it is.
