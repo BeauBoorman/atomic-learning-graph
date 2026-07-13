@@ -21,6 +21,13 @@ out/
 # put a live LLM call on the deploy path. See docs/adr/001-commit-the-generated-graph.md.
 # Do not add data/graph.json here.
 
+# internal working notes — THIS REPO GOES PUBLIC.
+#
+# plans/ holds the review brief, the adversarial review-panel output, the internal risk register,
+# and the honest "what doesn't exist yet" list. None of that is for judges. It was previously only
+# UNTRACKED, which meant a reflexive `git add -A` would have published all of it.
+plans/
+
 # test / tooling
 coverage/
 .vitest/
@@ -30,4 +37,3 @@ coverage/
 .DS_Store
 
 # Internal working notes — MUST NOT ship to the public repo
-plans/
