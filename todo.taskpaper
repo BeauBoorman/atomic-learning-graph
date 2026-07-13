@@ -1,0 +1,18 @@
+Atomic Learning Graph — OpenAI Build Week (submission 2026-07-21 17:00 PT):
+
+Doing:
+	- implement src/graph/invariants.ts to green against the fixture suite @next @priority(1)
+
+To Do:
+	- build the OER -> concept-graph atomizer (src/atomization/atomize.ts -> data/graph.json) @priority(1)
+	- prerequisite-edge inference @priority(1)
+	- Next.js App Router UI + React Flow + dagre graph render @priority(2)
+	- deterministic pathfinder walk over the prereq DAG @priority(2)
+	- algebra correctness-proof run (pipeline reconstructs the known-good ordering) @priority(3)
+	- VERIFY or CUT the Khan Academy / Khanmigo figures in README.md before publishing @me @priority(1)
+	- fill README [CONFIRM] placeholders: demo video URL, Vercel URL, repo URL, Codex Session ID @me
+	- deploy to Vercel @priority(2)
+	- record demo video (<3:00, public) @me @priority(2)
+
+Done:
+	- repo scaffold, TypeScript + vitest toolchain, red invariant suite @done(2026-07-13)

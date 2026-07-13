@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# secrets — never commit an API key (OPENAI_API_KEY etc.)
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# generated artifacts (produced by `pnpm atomize`)
+data/graph.json
+
+# test / tooling
+coverage/
+.vitest/
+.vercel/
+
+# os
+.DS_Store
