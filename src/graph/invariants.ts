@@ -10,14 +10,23 @@
 // `findOrphans` below. Read it before implementing — the test fixture cannot tell a correct
 // implementation from a wrong one, so the definition is the only spec you get.
 //
-// ⚠ OPEN QUESTION — the source of truth for the prerequisite relation is NOT YET SETTLED.
-// The prereq relation is currently expressed TWICE: as `LearningGraph.edges[]` (typed
-// `"prereq" | "method" | "related"`) and as `Concept.prerequisites[]`. Nothing forces the two
-// to agree, and on a generated graph they WILL diverge. This is a `types.ts` decision and it is
-// owned by the type-model pass — do not settle it here by picking one in an implementation.
-// Every function below must read the prereq relation from whichever source that pass makes
-// canonical, and all six must read from THE SAME one. Until it lands, the invariants are
-// under-specified and a green suite does not mean a correct graph.
+// ✅ SETTLED (type-model pass, 2026-07-13) — `LearningGraph.edges[]` is the SINGLE SOURCE OF
+// TRUTH for every relation. `Concept.prerequisites` NO LONGER EXISTS; it was a second,
+// unenforced encoding of the same relation and on a generated graph the two WOULD have diverged,
+// leaving a green suite that proved nothing. Every function below reads the prereq relation from
+// `edges[]` filtered to `type === "prereq"` — all six from the SAME place. Derive a concept's
+// prerequisites from edges; do not reintroduce a field for them.
+//
+// ✅ PROVENANCE IS QUOTE-PRIMARY (see types.ts). `invalidProvenance` must resolve
+// `provenance.sourceId` against `graph.sources[]` and check that `provenance.quotedText`
+// ACTUALLY OCCURS in that source's text.
+//
+// ⚠ MATCH ON NORMALIZED WHITESPACE, NOT RAW SUBSTRING. `source.text.includes(quotedText)` is
+// byte-exact and will FALSE-FAIL whenever the source's whitespace differs from the model's
+// rendering of the quote (a newline mid-sentence in the OER, a collapsed double space). That
+// failure looks exactly like hallucination and is the single most likely way this invariant gets
+// wrongly "fixed" by weakening it. Collapse whitespace runs to a single space and trim BOTH
+// sides before comparing. The fixture deliberately contains this trap — see invariants.test.ts.
 
 import type { Concept, ConceptId, Edge, LearningGraph } from "../types";
 

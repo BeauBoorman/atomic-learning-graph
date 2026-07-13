@@ -20,18 +20,40 @@ import {
 import { loadGraph } from "./load"; // Codex: reads data/graph.json
 
 // --- Small hand-built fixture so the invariant FUNCTIONS can be tested without the LLM ---
+//
+// Relations live ONLY in `edges[]` (Concept carries none — see types.ts). Provenance is
+// quote-primary: each concept quotes SOURCE_TEXT verbatim, and the invariant's job is to prove
+// the quote is really there. Note the deliberate whitespace variety in SOURCE_TEXT (a newline
+// mid-sentence): a byte-exact substring match FAILS on that, so this fixture forces the
+// implementer to normalize whitespace before matching. That is the intended lesson.
+const SOURCE_TEXT = [
+  "A vector is an ordered list of numbers.",
+  "The dot product multiplies two vectors elementwise and sums the result.",
+  "Softmax turns a vector of scores into\na probability distribution that sums to one.",
+  "Query, key and value are three learned projections of the same input.",
+  "Self-attention scores every token against every other token.",
+].join(" ");
+
+const QUOTES: Record<string, string> = {
+  vectors: "A vector is an ordered list of numbers.",
+  "dot-product": "The dot product multiplies two vectors elementwise and sums the result.",
+  // Quoted with collapsed whitespace on purpose — the source has a newline inside it.
+  softmax: "Softmax turns a vector of scores into a probability distribution that sums to one.",
+  qkv: "Query, key and value are three learned projections of the same input.",
+  "self-attention": "Self-attention scores every token against every other token.",
+};
+
 const fixture: LearningGraph = {
   goalId: "self-attention",
+  sources: [{ id: "s1", title: "How LLMs work (primer)", text: SOURCE_TEXT }],
   concepts: (
     ["vectors", "dot-product", "softmax", "qkv", "self-attention"] as const
   ).map(
-    (id, i): Concept => ({
+    (id): Concept => ({
       id,
       title: id,
       summary: `single concept: ${id}`,
-      prerequisites: i === 0 ? [] : [["vectors", "dot-product", "softmax", "qkv"][i - 1]],
-      related: [],
-      provenance: { sourceId: "s1", startOffset: i * 100, endOffset: i * 100 + 80 },
+      provenance: { sourceId: "s1", quotedText: QUOTES[id] },
       tags: ["llm"],
     })
   ),
@@ -61,7 +83,7 @@ describe("invariant functions (fixture)", () => {
     expect(pathExists(fixture, fixture.goalId)).toBe(true);
   });
 
-  it("5. all provenance is valid (start < end, resolvable source)", () => {
+  it("5. all provenance is valid (every quote really occurs in its source)", () => {
     expect(invalidProvenance(fixture)).toEqual([]);
   });
 
@@ -75,6 +97,31 @@ describe("invariant functions (fixture)", () => {
       edges: [...fixture.edges, { from: "self-attention", to: "vectors", type: "prereq" }],
     };
     expect(hasCycle(cyclic)).toBe(true);
+  });
+
+  // --- Provenance must have TEETH. Without these, an implementation that always returns []
+  // passes every test above, and the demo's whole credibility claim is unfalsifiable. ---
+
+  it("catches a FABRICATED quote (the hallucination case — this is the pitch)", () => {
+    const fabricated: LearningGraph = {
+      ...fixture,
+      concepts: fixture.concepts.map((c) =>
+        c.id === "softmax"
+          ? { ...c, provenance: { ...c.provenance, quotedText: "Softmax was invented in 1817." } }
+          : c
+      ),
+    };
+    expect(invalidProvenance(fabricated)).toEqual(["softmax"]);
+  });
+
+  it("catches provenance pointing at a source that does not exist", () => {
+    const unresolvable: LearningGraph = {
+      ...fixture,
+      concepts: fixture.concepts.map((c) =>
+        c.id === "qkv" ? { ...c, provenance: { ...c.provenance, sourceId: "nope" } } : c
+      ),
+    };
+    expect(invalidProvenance(unresolvable)).toEqual(["qkv"]);
   });
 });
 
