@@ -10,6 +10,15 @@
 // `findOrphans` below. Read it before implementing — the test fixture cannot tell a correct
 // implementation from a wrong one, so the definition is the only spec you get.
 //
+// EVERY function here now has ADVERSARIAL tests (invariants.test.ts). They exist because the
+// happy-path fixture is a clean 5-node chain on which `return []` / `() => false` / `() => true`
+// pass EVERY positive assertion — a green suite would have proved nothing. Do not delete or weaken
+// a negative test to make an implementation pass; the negative test IS the invariant.
+//
+// VALIDITY IS NOT THE PRODUCT. A graph can satisfy all six of these and still hand the learner the
+// wrong ROUTE — reachability is not ordering. The ordered deterministic walk (`getPath`) lives in
+// `src/graph/path.ts` and is pinned to the exact golden path by `src/graph/path.test.ts`.
+//
 // ✅ SETTLED (type-model pass, 2026-07-13) — `LearningGraph.edges[]` is the SINGLE SOURCE OF
 // TRUTH for every relation. `Concept.prerequisites` NO LONGER EXISTS; it was a second,
 // unenforced encoding of the same relation and on a generated graph the two WOULD have diverged,
@@ -94,22 +103,102 @@ export function findOrphans(_graph: LearningGraph): ConceptId[] {
   return TODO("findOrphans");
 }
 
-/** Edges whose `from` or `to` does not resolve to a concept in the graph. */
+/**
+ * Edges whose `from` or `to` does not resolve to a concept in the graph.
+ *
+ * REFERENTIAL INTEGRITY, so this checks EVERY edge type — `related` and `method` edges included.
+ * (Contrast `hasCycle`/`findOrphans`/`pathExists`, which are about the prereq relation and filter
+ * to `type === "prereq"`.) A `related` edge pointing at a concept that does not exist is still a
+ * broken graph: the UI will try to render it.
+ *
+ * This is the invariant that catches the atomizer's most predictable failure — the model names a
+ * prerequisite it never emitted a node for (a concept from another chunk, or one it hallucinated).
+ * Returns the offending edges; `[]` means the invariant holds.
+ */
 export function danglingEdges(_graph: LearningGraph): Edge[] {
   return TODO("danglingEdges");
 }
 
-/** True if `target` is reachable from some root of the prerequisite DAG. */
+/**
+ * True if `target` is REACHABLE from some ROOT of the prerequisite DAG.
+ *
+ * Root, as defined on `findOrphans` below: inbound prereq == 0 AND outbound prereq > 0. Reachable
+ * means: there is a chain of `prereq` edges from that root to `target`. A root is trivially
+ * reachable from ITSELF, so `pathExists(g, someRoot) === true`.
+ *
+ * FALSE when:
+ *   - `target` is not a concept in the graph at all;
+ *   - `target` is an isolated node (no prereq edges either way) — no root can walk to it;
+ *   - every chain into `target` originates inside a CYCLE, so the component has no root. Nothing
+ *     could ever be learned from scratch in that component, which is exactly the failure this
+ *     catches.
+ *
+ * NOT "does a concept with this id exist" (that cheat passes every happy-path test), and NOT "does
+ * it have any inbound edge" (that passes for a target fed only by a cycle).
+ */
 export function pathExists(_graph: LearningGraph, _target: ConceptId): boolean {
   return TODO("pathExists");
 }
 
-/** Concepts whose provenance is missing/malformed (startOffset >= endOffset, no sourceId, ...). */
+/**
+ * Concepts whose provenance cannot be VERIFIED against the sources shipped in the graph.
+ * Returns the offending concept IDs; `[]` means every node is grounded.
+ *
+ * This is the credibility invariant — the boolean that goes on camera — so it is specified
+ * exhaustively. `provenance.sourceId` must resolve to exactly one `graph.sources[]` entry, and
+ * `provenance.quotedText` must ACTUALLY OCCUR in that source's `text` after whitespace
+ * normalization (collapse runs of whitespace to one space, trim both ends, both sides).
+ *
+ * A concept is INVALID if ANY of:
+ *   - `sourceId` is missing/empty, or resolves to NO source in `graph.sources[]`;
+ *   - `sourceId` is AMBIGUOUS — two or more sources share that id. `sources.find(s => s.id === x)`
+ *     silently picks the first, so the "verification" would be run against an arbitrary document.
+ *     A duplicate id makes provenance unresolvable, which is not provenance;
+ *   - `quotedText` is missing, empty, or whitespace-only. Note `"".includes()` semantics:
+ *     `text.includes("")` is TRUE for every string, and a whitespace-only quote NORMALIZES to the
+ *     empty string — so the naive implementation reports an empty quote as VALID. An empty quote is
+ *     a citation-shaped string with nothing in it; it is the cheapest possible hallucination;
+ *   - the normalized `quotedText` does not occur in the normalized source `text`.
+ *
+ * OFFSETS ARE NOT VALIDATED. `estimatedStartOffset` / `estimatedEndOffset` are HINTS (see
+ * types.ts): an LLM's character arithmetic is not trusted, is never load-bearing, and MUST NOT be
+ * able to invalidate a node whose quote genuinely occurs in its source. Do NOT reintroduce an
+ * offset check (an earlier draft of this comment said `startOffset >= endOffset` was "malformed" —
+ * that was a leftover from the REJECTED offset-primary model). `provenance-offsets-are-hints` in
+ * invariants.test.ts pins this: garbage offsets on a real quote must still be VALID.
+ *
+ * SCOPE, stated honestly: a quote occurring in the source proves the node was NOT FABRICATED. It
+ * does not prove the node is CORRECT. Do not overclaim it.
+ */
 export function invalidProvenance(_graph: LearningGraph): ConceptId[] {
   return TODO("invalidProvenance");
 }
 
-/** False if the concept describes more than one thing (an "X and Y" summary is the smell). */
+/**
+ * ⚠ UNDER REVIEW — this invariant may be CUT. Read before implementing.
+ *
+ * False if the concept's summary describes more than one thing. The problem is that nobody has
+ * written a defensible AUTOMATED definition of "one concept", and a check that cannot be defined
+ * cannot be trusted. `!summary.includes(" and ")` is a substring ban wearing a proof's clothes: it
+ * passes "matrix multiplication, normalization" and it passes "scaled dot-product attention",
+ * both of which bundle several concepts.
+ *
+ * What IS automatable is narrower than the name claims: detect a summary that ENUMERATES more than
+ * one thing (coordination — "X and Y", "X, Y", "X; Y", "X & Y"). That catches the atomizer's actual
+ * observable failure mode. What is NOT automatable, offline and deterministically, is whether a
+ * single un-coordinated noun phrase is atomic — see the `it.skip` KNOWN LIMIT case in
+ * invariants.test.ts, which names a summary no syntactic rule can catch.
+ *
+ * So the honest options are (Beau decides, not the implementer):
+ *   (a) CUT it from the hard gate — ship five invariants that are true rather than six with a fake
+ *       one — and move "one self-contained concept per node" into the atomizer PROMPT plus a manual
+ *       eyeball of the ~20 demo nodes; or
+ *   (b) KEEP it, renamed to what it actually checks (an enumeration detector), with the scope limit
+ *       stated out loud so it is never presented on camera as proof of atomicity.
+ *
+ * Until that is decided, the negative tests below give it the maximum teeth a syntactic check can
+ * have. Do NOT implement it as `() => true`, and do NOT weaken the tests to make it pass.
+ */
 export function isSingleConcept(_concept: Concept): boolean {
   return TODO("isSingleConcept");
 }

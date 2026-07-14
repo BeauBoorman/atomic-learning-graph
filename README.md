@@ -1,12 +1,13 @@
 # Open Atomic Learning Graph
 
 > ### ⚠ BUILD STATUS — 2026-07-13
-> **This repo is mid-build for OpenAI Build Week (submission Jul 21).** Landed so far: the data
-> model, the graph invariants as a *deliberately failing* test suite, and the architecture decisions.
-> **Not yet built:** the atomizer (`pnpm atomize`), the generated graph (`data/graph.json`), and the
-> web UI (`pnpm dev`). Commands below that depend on those will not work yet.
-> This banner comes down when they land — it is here so the README never claims more than the repo
-> can do.
+> **This repo is mid-build for OpenAI Build Week (submission Jul 21).**
+> **Landed:** the data model, the graph invariants + pathfinder + licence gate as a *deliberately
+> failing* (and deliberately adversarial) test suite, and the architecture decisions.
+> **Not built yet:** the atomizer (`pnpm atomize`), the generated graph (`data/graph.json`), the
+> pathfinder body, and the web UI — there is **no `pnpm dev` script and no app**. See
+> [Run it](#run-it): every command there is marked ✅ works or ❌ not built. Nothing in this README
+> claims more than the repo can do.
 
 **Turn any open educational resource into a navigable graph of one-concept-at-a-time lessons, and
 get a personalized path from where you are to what you want to learn — no grades, no paywall.**
@@ -60,14 +61,39 @@ source passage it was atomized from.
 understood → the path advances and prerequisites unlock.
 
 ## Architecture
-- **Next.js (App Router) + React Flow + dagre**, deployed on Vercel.
-- **Static (SSG). Atomization is build-time** — `pnpm atomize` calls GPT-5.6 offline to produce
-  `graph.json`; the deployed app makes **no LLM call on the request path**.
-- Path routing is a deterministic walk over the prebuilt prerequisite DAG (auditable, not a model call).
-- Provenance (`sourceId` + char offsets) is captured deterministically at atomization time.
+
+**Built and in the repo today:**
+- **The data model** (`src/types.ts`) — concepts, edges, provenance, sources.
+  `LearningGraph.edges[]` is the single source of truth for relations.
+- **The graph invariants** (`src/graph/invariants.ts`) — one concept per node, acyclic prerequisite
+  DAG, no orphans, goal reachable, no dangling edges, **and every node's quote verified against its
+  source**. Currently *deliberately failing stubs*: the tests were written first, and GPT-5.6/Codex
+  implements them (see below).
+- **The licence gate** (`src/atomization/manifest.ts`) — the atomizer refuses any source that is not
+  listed in `data/oer/sources.json` with an allowlisted open licence.
+
+**Decided, not yet built** (dependencies today are only `typescript`, `tsx`, `vitest`):
+- **Atomization is build-time, never request-time** — `pnpm atomize` will call GPT-5.6 offline to
+  produce `data/graph.json`; the deployed app makes **no LLM call on the request path**.
+- **Path routing is a deterministic walk** over the prebuilt prerequisite DAG (`src/graph/path.ts`) —
+  auditable, reproducible, not a model call.
+- **The UI**: a static graph view (Next.js / React Flow / dagre is the intended stack; none of it is
+  installed yet).
+
+**Provenance is quote-primary.** Each node carries the **verbatim quote** it was atomized from
+(`sourceId` + `quotedText`), and the full source text ships inside the graph — so "did the model
+hallucinate this node?" is a *computed boolean* (does the quote actually occur in the source?),
+verifiable offline and on camera. Character offsets are kept as optional *hints* and are never
+trusted or validated against: an LLM's character arithmetic is an unverifiable assertion, a quote is
+a checkable fact.
 
 ## Built with Codex + GPT-5.6
 *(This is the graded section. Two claims, both true and shown, not asserted.)*
+
+> ⚠ **IN PROGRESS — this section is written but not yet EARNED.** The core Codex session has not run
+> yet, so the claims below are the plan, not the record. Nothing here goes in the final README until
+> the invariant bodies, the atomizer, and the pathfinder exist and the tests are green. The
+> placeholders below are the evidence slots they will be filled from.
 
 **1. GPT-5.6 (via Codex) built the hard parts.** Not glue — the structural core: the OER→graph
 atomization pipeline, prerequisite-edge inference, and the pathfinding walk were authored in Codex
@@ -92,16 +118,25 @@ community-improvable. Point the pipeline at any OER corpus and it maps a new sub
 ambition; this MVP is the working kernel of the engine.
 
 ## Run it
+
+**Works today** (no API key needed):
 ```bash
 pnpm install
-pnpm test      # graph invariants must pass — runs against the committed data/graph.json
-pnpm dev       # no API key needed: the graph is committed, the app makes no LLM call
+pnpm typecheck   # tsc --noEmit
+pnpm test        # the graph invariants
 ```
+⚠️ `pnpm test` is **RED right now, on purpose.** The invariant tests were written *first* (TDD): the
+functions in `src/graph/invariants.ts` are stubs that throw `not implemented`, and the tests against
+`data/graph.json` fail because no graph has been generated yet. Roughly half the suite is
+*adversarial* — negative tests that a lazy implementation (`findOrphans = () => []`) must fail. The
+RED→GREEN transition is the on-camera proof that GPT-5.6/Codex did the structural work.
 
-Only rebuilding the graph needs an OpenAI key:
+**Not built yet** — these commands do not work, and this section says so rather than pretending:
 ```bash
-cp .env.example .env   # set OPENAI_API_KEY
-pnpm atomize           # re-atomize data/oer/ -> data/graph.json, then commit the result
+pnpm atomize   # ❌ src/atomization/atomize.ts does not exist yet.
+               #    Will read data/oer/ (licence-gated) -> write data/graph.json.
+               #    Needs an OpenAI key: cp .env.example .env, set OPENAI_API_KEY.
+pnpm dev       # ❌ no `dev` script and no app yet. Nothing to serve.
 ```
 
 `data/graph.json` is a **committed build artifact**, deliberately not gitignored: the deployed app

@@ -4,6 +4,15 @@
 // Capturing the RED -> GREEN transition (terminal output) is on-camera proof that
 // GPT-5.6/Codex did non-trivial *structural* work, not just glue. Keep these green.
 //
+// ⚠ HALF OF THIS FILE IS ADVERSARIAL, AND THAT IS THE POINT.
+// The 5-node fixture is a clean, fully-connected chain: on it, `findOrphans = () => []`,
+// `danglingEdges = () => []`, `invalidProvenance = () => []`, `hasCycle = () => false`,
+// `pathExists = () => true` and `isSingleConcept = () => true` pass EVERY positive assertion. A
+// suite that only asserts the happy path is UNFALSIFIABLE — it would go green against six
+// functions that do nothing, and the demo would be a lie with a passing test suite. Each negative
+// test below names the exact cheat it kills. If an implementation fails one of these, fix the
+// IMPLEMENTATION. Deleting or weakening a negative test deletes the invariant it defends.
+//
 // Codex: implement the functions imported below in `src/graph/invariants.ts`, then
 // make the real-graph suite pass by producing `data/graph.json` via `pnpm atomize`.
 
@@ -18,68 +27,19 @@ import {
   isSingleConcept,
 } from "./invariants";
 import { loadGraph } from "./load"; // Codex: reads data/graph.json
+import { fixtureGraph, SOURCE_TEXT } from "./fixture-graph";
 
-// --- Small hand-built fixture so the invariant FUNCTIONS can be tested without the LLM ---
-//
-// Relations live ONLY in `edges[]` (Concept carries none — see types.ts). Provenance is
-// quote-primary: each concept quotes SOURCE_TEXT verbatim, and the invariant's job is to prove
-// the quote is really there. Note the deliberate whitespace variety in SOURCE_TEXT (a newline
-// mid-sentence): a byte-exact substring match FAILS on that, so this fixture forces the
-// implementer to normalize whitespace before matching. That is the intended lesson.
-const SOURCE_TEXT = [
-  "A vector is an ordered list of numbers.",
-  "The dot product multiplies two vectors elementwise and sums the result.",
-  "Softmax turns a vector of scores into\na probability distribution that sums to one.",
-  "Query, key and value are three learned projections of the same input.",
-  "Self-attention scores every token against every other token.",
-].join(" ");
+// The hand-built fixture lives in `./fixture-graph` — it is a FIXTURE, never `data/graph.json`
+// (ADR 001, rule 3). Its whitespace trap (a newline mid-sentence, quoted with a space) forces the
+// provenance implementation to normalize whitespace instead of using a byte-exact `includes()`.
+const fixture = fixtureGraph;
 
-const QUOTES: Record<string, string> = {
-  vectors: "A vector is an ordered list of numbers.",
-  "dot-product": "The dot product multiplies two vectors elementwise and sums the result.",
-  // Quoted with collapsed whitespace on purpose — the source has a newline inside it.
-  softmax: "Softmax turns a vector of scores into a probability distribution that sums to one.",
-  qkv: "Query, key and value are three learned projections of the same input.",
-  "self-attention": "Self-attention scores every token against every other token.",
-};
-
-const fixture: LearningGraph = {
-  goalId: "self-attention",
-  sources: [
-    { id: "s1", title: "How LLMs work (primer)", license: "CC-BY-SA 4.0", text: SOURCE_TEXT },
-  ],
-  concepts: (
-    ["vectors", "dot-product", "softmax", "qkv", "self-attention"] as const
-  ).map(
-    (id): Concept => ({
-      id,
-      title: id,
-      summary: `single concept: ${id}`,
-      provenance: { sourceId: "s1", quotedText: QUOTES[id] },
-      tags: ["llm"],
-    })
-  ),
-  edges: [
-    { from: "vectors", to: "dot-product", type: "prereq" },
-    { from: "dot-product", to: "softmax", type: "prereq" },
-    { from: "softmax", to: "qkv", type: "prereq" },
-    { from: "qkv", to: "self-attention", type: "prereq" },
-  ],
-  renderings: [],
-};
+/** A concept with the given summary, for the single-concept tests. */
+const withSummary = (summary: string): Concept => ({ ...fixture.concepts[0], summary });
 
 describe("invariant functions (fixture)", () => {
-  it("1. every node is a single concept (no 'and')", () => {
+  it("1. every node is a single concept", () => {
     for (const c of fixture.concepts) expect(isSingleConcept(c)).toBe(true);
-  });
-
-  // Without this, `isSingleConcept = () => true` passes everything above — every fixture summary
-  // is "single concept: X", so the invariant is unfalsifiable and proves nothing. This is the
-  // negative case that gives it teeth. If a real definition of "one concept" cannot be written,
-  // DELETE this invariant and ship five honest ones rather than six with a fake.
-  it("catches a MULTI-concept summary (otherwise the invariant is unfalsifiable)", () => {
-    const twoThings: Concept = { ...fixture.concepts[0], summary: "vectors and matrices" };
-    expect(isSingleConcept(twoThings)).toBe(false);
   });
 
   it("2. no orphan nodes (roots exempt)", () => {
@@ -101,7 +61,125 @@ describe("invariant functions (fixture)", () => {
   it("6. no dangling edges", () => {
     expect(danglingEdges(fixture)).toEqual([]);
   });
+});
 
+// ---------------------------------------------------------------------------------------------
+// ADVERSARIAL — each test names the cheating implementation it exists to kill.
+// ---------------------------------------------------------------------------------------------
+
+describe("isSingleConcept — teeth", () => {
+  // KILLS: `() => true`. Every fixture summary is "single concept: X", so without a negative case
+  // the invariant is unfalsifiable and proves nothing.
+  it("catches a summary coordinated with 'and'", () => {
+    expect(isSingleConcept(withSummary("vectors and matrices"))).toBe(false);
+  });
+
+  // KILLS: `!summary.includes(" and ")` — the substring ban. These bundle two concepts with NO
+  // occurrence of the word "and", so a ban on " and " passes them and the invariant is still fake.
+  it("catches a COMMA-enumerated summary (no 'and' anywhere)", () => {
+    expect(isSingleConcept(withSummary("matrix multiplication, normalization"))).toBe(false);
+  });
+
+  it("catches a SEMICOLON-enumerated summary (no 'and' anywhere)", () => {
+    expect(isSingleConcept(withSummary("dot products; softmax"))).toBe(false);
+  });
+
+  it("catches an AMPERSAND-coordinated summary (no 'and' anywhere)", () => {
+    expect(isSingleConcept(withSummary("queries & keys"))).toBe(false);
+  });
+
+  // KILLS: `() => false`, and any check so blunt it rejects legitimate single concepts. A summary
+  // is allowed to be a full sentence, to contain a comma inside a subordinate clause, and to name
+  // a concept whose NAME happens to contain "and". Over-rejection is not safety: it would force the
+  // atomizer to be "fixed" until it emits telegraphic summaries.
+  it("does NOT reject a legitimate one-concept summary that contains a comma", () => {
+    expect(
+      isSingleConcept(withSummary("Softmax, applied to a vector of scores, yields a distribution."))
+    ).toBe(true);
+  });
+
+  it("does NOT reject a one-concept summary whose subject contains the letters 'and'", () => {
+    expect(isSingleConcept(withSummary("A random variable is a numeric outcome."))).toBe(true);
+  });
+
+  // ⚠ KNOWN LIMIT — SKIPPED ON PURPOSE, NOT FORGOTTEN. This summary bundles several concepts
+  // (scaling, the dot product, softmax normalization, a weighted average) in ONE un-coordinated
+  // noun phrase. No syntactic rule catches it; only semantic judgment does, and the invariant suite
+  // must stay deterministic and offline (no LLM call at test time). This is the honest hole in
+  // `isSingleConcept`, and it is why the invariant is UNDER REVIEW: an enumeration detector is a
+  // real check, but it is NOT proof of atomicity and must never be presented as such.
+  // -> Decide: CUT the invariant, or KEEP it renamed to what it actually checks. Do not un-skip
+  //    this test by weakening it; un-skip it only if a real definition of "one concept" is found.
+  it.skip("KNOWN LIMIT: cannot catch a multi-concept summary with no coordination", () => {
+    expect(
+      isSingleConcept(withSummary("Scaled dot-product attention computes a weighted average."))
+    ).toBe(false);
+  });
+});
+
+describe("findOrphans — teeth", () => {
+  // KILLS: `() => []`. `trivia` has TWO edges, so it is not isolated in the raw edge list — but
+  // neither edge is a `prereq` edge, so no prerequisite walk can ever reach it and it can never
+  // appear on any learner's path. It is dead weight the atomizer emitted without inferring a single
+  // learning relationship. ALSO KILLS: an implementation that counts all edge types.
+  it("catches a node with ONLY related/method edges (no prereq in or out)", () => {
+    const withTrivia: LearningGraph = {
+      ...fixture,
+      concepts: [
+        ...fixture.concepts,
+        {
+          id: "trivia",
+          title: "trivia",
+          summary: "single concept: trivia",
+          provenance: { sourceId: "s1", quotedText: "A vector is an ordered list of numbers." },
+          tags: ["llm"],
+        },
+      ],
+      edges: [
+        ...fixture.edges,
+        { from: "trivia", to: "softmax", type: "related" },
+        { from: "self-attention", to: "trivia", type: "method" },
+      ],
+    };
+    expect(findOrphans(withTrivia)).toEqual(["trivia"]);
+  });
+
+  // KILLS: `orphan = inbound === 0` (the naive reading), which would flag the root `vectors`, and
+  // `orphan = outbound === 0`, which would flag the goal. Both are legal. Covered by the fixture
+  // test above too, but stated explicitly so the intent survives a refactor.
+  it("does NOT flag the root or the goal (they are legal, see the definition)", () => {
+    const orphans = findOrphans(fixture);
+    expect(orphans).not.toContain("vectors");
+    expect(orphans).not.toContain("self-attention");
+  });
+});
+
+describe("danglingEdges — teeth", () => {
+  // KILLS: `() => []`, and an implementation that only checks `from` (or only `to`), and one that
+  // only checks `prereq` edges. All three broken edges must come back.
+  it("catches a bad `from`, a bad `to`, AND a dangling non-prereq edge", () => {
+    const broken: LearningGraph = {
+      ...fixture,
+      edges: [
+        ...fixture.edges,
+        { from: "ghost", to: "softmax", type: "prereq" }, // `from` resolves to nothing
+        { from: "softmax", to: "phantom", type: "prereq" }, // `to` resolves to nothing
+        { from: "vectors", to: "nowhere", type: "related" }, // referential integrity is all types
+      ],
+    };
+    const dangling = danglingEdges(broken);
+    expect(dangling).toHaveLength(3);
+    expect(dangling).toEqual(
+      expect.arrayContaining([
+        { from: "ghost", to: "softmax", type: "prereq" },
+        { from: "softmax", to: "phantom", type: "prereq" },
+        { from: "vectors", to: "nowhere", type: "related" },
+      ])
+    );
+  });
+});
+
+describe("hasCycle — teeth", () => {
   it("catches a cycle when one is introduced", () => {
     const cyclic: LearningGraph = {
       ...fixture,
@@ -110,9 +188,91 @@ describe("invariant functions (fixture)", () => {
     expect(hasCycle(cyclic)).toBe(true);
   });
 
-  // --- Provenance must have TEETH. Without these, an implementation that always returns []
-  // passes every test above, and the demo's whole credibility claim is unfalsifiable. ---
+  // KILLS: a DFS that marks visited but never tracks the recursion stack, and any check that only
+  // looks for cycles of length >= 2.
+  it("catches a self-loop (x is its own prerequisite)", () => {
+    const selfLoop: LearningGraph = {
+      ...fixture,
+      edges: [...fixture.edges, { from: "softmax", to: "softmax", type: "prereq" }],
+    };
+    expect(hasCycle(selfLoop)).toBe(true);
+  });
 
+  // KILLS: an implementation that walks EVERY edge type. `related` is a symmetric UI affordance and
+  // will routinely appear in both directions on a real graph — reporting that as a cycle is a false
+  // failure on a perfectly good graph, and the reflex "fix" is to weaken the invariant.
+  it("does NOT report a cycle among `related` edges (only prereq edges are learning order)", () => {
+    const relatedLoop: LearningGraph = {
+      ...fixture,
+      edges: [
+        ...fixture.edges,
+        { from: "vectors", to: "self-attention", type: "related" },
+        { from: "self-attention", to: "vectors", type: "related" },
+      ],
+    };
+    expect(hasCycle(relatedLoop)).toBe(false);
+  });
+});
+
+describe("pathExists — teeth", () => {
+  // KILLS: `(g, t) => g.concepts.some(c => c.id === t)` — "does a concept with this id exist",
+  // which passes every happy-path assertion in this file.
+  it("is FALSE for an isolated concept (no prereq edges either way)", () => {
+    const withIsland: LearningGraph = {
+      ...fixture,
+      concepts: [
+        ...fixture.concepts,
+        {
+          id: "island",
+          title: "island",
+          summary: "single concept: island",
+          provenance: { sourceId: "s1", quotedText: "A vector is an ordered list of numbers." },
+          tags: ["llm"],
+        },
+      ],
+    };
+    expect(pathExists(withIsland, "island")).toBe(false);
+  });
+
+  it("is FALSE for a target that is not in the graph at all", () => {
+    expect(pathExists(fixture, "does-not-exist")).toBe(false);
+  });
+
+  // KILLS: `t => inboundPrereqEdges(t).length > 0`. `b` has an inbound prereq edge — but it comes
+  // from inside a 2-cycle, so the component has NO root and nothing in it can ever be learned from
+  // scratch. Reachable-from-a-root is the property; having a parent is not.
+  it("is FALSE when every chain into the target starts inside a cycle (no root)", () => {
+    const rootless: LearningGraph = {
+      ...fixture,
+      concepts: [
+        ...fixture.concepts,
+        ...["a", "b"].map(
+          (id): Concept => ({
+            id,
+            title: id,
+            summary: `single concept: ${id}`,
+            provenance: { sourceId: "s1", quotedText: "A vector is an ordered list of numbers." },
+            tags: ["llm"],
+          })
+        ),
+      ],
+      edges: [
+        ...fixture.edges,
+        { from: "a", to: "b", type: "prereq" },
+        { from: "b", to: "a", type: "prereq" },
+      ],
+    };
+    expect(pathExists(rootless, "b")).toBe(false);
+  });
+
+  // KILLS: an implementation that requires the target to have >= 1 inbound prereq edge. A root is
+  // reachable from itself — you can start there.
+  it("is TRUE for a root itself (you can start at a foundational concept)", () => {
+    expect(pathExists(fixture, "vectors")).toBe(true);
+  });
+});
+
+describe("invalidProvenance — teeth (this is the credibility claim)", () => {
   it("catches a FABRICATED quote (the hallucination case — this is the pitch)", () => {
     const fabricated: LearningGraph = {
       ...fixture,
@@ -133,6 +293,91 @@ describe("invariant functions (fixture)", () => {
       ),
     };
     expect(invalidProvenance(unresolvable)).toEqual(["qkv"]);
+  });
+
+  it("catches an EMPTY sourceId", () => {
+    const noSource: LearningGraph = {
+      ...fixture,
+      concepts: fixture.concepts.map((c) =>
+        c.id === "qkv" ? { ...c, provenance: { ...c.provenance, sourceId: "" } } : c
+      ),
+    };
+    expect(invalidProvenance(noSource)).toEqual(["qkv"]);
+  });
+
+  // KILLS: the naive `normalize(source.text).includes(normalize(quote))`. `"".includes("")` is
+  // TRUE for every string, so an EMPTY quote is reported VALID by the obvious implementation. An
+  // empty quote is a citation-shaped string with nothing in it — the cheapest hallucination there
+  // is, and the one an atomizer produces when the model has nothing to ground a node in.
+  it("catches an EMPTY quote (`text.includes('')` is true for every string)", () => {
+    const emptyQuote: LearningGraph = {
+      ...fixture,
+      concepts: fixture.concepts.map((c) =>
+        c.id === "softmax" ? { ...c, provenance: { ...c.provenance, quotedText: "" } } : c
+      ),
+    };
+    expect(invalidProvenance(emptyQuote)).toEqual(["softmax"]);
+  });
+
+  // Same cheat, one layer deeper: this quote is not empty, but it NORMALIZES to empty. An
+  // implementation that normalizes and then calls `includes()` still reports it valid.
+  it("catches a WHITESPACE-ONLY quote (it normalizes to the empty string)", () => {
+    const blankQuote: LearningGraph = {
+      ...fixture,
+      concepts: fixture.concepts.map((c) =>
+        c.id === "softmax" ? { ...c, provenance: { ...c.provenance, quotedText: " \n\t  " } } : c
+      ),
+    };
+    expect(invalidProvenance(blankQuote)).toEqual(["softmax"]);
+  });
+
+  // KILLS: `sources.find(s => s.id === id)`, which silently picks the FIRST match. Here the first
+  // `s1` is the real source (so `find()` verifies happily and returns []), and the second `s1` is a
+  // decoy. A duplicate id makes `sourceId` unresolvable — the "verification" would be running
+  // against an arbitrary document. Every concept citing the ambiguous id is invalid.
+  it("catches DUPLICATE source IDs (provenance that cannot be resolved is not provenance)", () => {
+    const duplicateSources: LearningGraph = {
+      ...fixture,
+      sources: [
+        ...fixture.sources,
+        { id: "s1", title: "A different document", license: "CC-BY-4.0", text: "Unrelated text." },
+      ],
+    };
+    expect([...invalidProvenance(duplicateSources)].sort()).toEqual(
+      [...fixture.concepts.map((c) => c.id)].sort()
+    );
+  });
+
+  // KILLS: any reintroduction of offset validation. Offsets are HINTS (types.ts) — an LLM's
+  // character arithmetic is never load-bearing. These offsets are garbage (start > end, and both
+  // far past the end of the source) but the QUOTE is real, so the node is VALID. If this test goes
+  // red, someone has re-added the offset-primary model the project rejected.
+  it("does NOT invalidate a real quote carrying garbage offsets (offsets are hints, never checked)", () => {
+    const badOffsets: LearningGraph = {
+      ...fixture,
+      concepts: fixture.concepts.map((c) =>
+        c.id === "softmax"
+          ? {
+              ...c,
+              provenance: {
+                ...c.provenance,
+                estimatedStartOffset: 99999,
+                estimatedEndOffset: 12,
+              },
+            }
+          : c
+      ),
+    };
+    expect(invalidProvenance(badOffsets)).toEqual([]);
+  });
+
+  // The whitespace trap, asserted directly rather than only implied by the fixture. The source has
+  // a newline mid-sentence; the quote renders it as a space. A byte-exact `includes()` FALSE-FAILS
+  // here, and that failure looks exactly like hallucination — which is the single most likely way
+  // this invariant gets wrongly "fixed" by weakening it.
+  it("does NOT false-fail a real quote whose whitespace differs from the source", () => {
+    expect(SOURCE_TEXT).toContain("into\na probability"); // the trap is really in the source
+    expect(invalidProvenance(fixture)).toEqual([]); // and the fixture still validates
   });
 });
 
@@ -158,5 +403,23 @@ describe("generated data/graph.json", () => {
     const g = loadGraph();
     expect(g.goalId).toBe("self-attention");
     expect(pathExists(g, "self-attention")).toBe(true);
+  });
+
+  // The generated graph is NOT allowed to be the fixture wearing a costume (ADR 001, rule 3).
+  // A hand-forged graph makes the headline claim — "GPT-5.6 built this" — false.
+  it("is not a copy of the hand-built test fixture", () => {
+    const g = loadGraph();
+    expect(g.concepts.length).toBeGreaterThan(fixture.concepts.length);
+    expect(g.sources.map((s) => s.title)).not.toContain(fixture.sources[0].title);
+  });
+
+  // Every source shipped in the graph carries an open licence. `Source.license` is required by the
+  // type, but TypeScript cannot enforce a type on JSON parsed at runtime — `loadGraph()` casts. The
+  // full source text is embedded in a PUBLIC repo; shipping it with no licence recorded is a legal
+  // exposure and a hole in the exact claim being made ("openly licensed OER").
+  it("ships every source with a non-empty licence", () => {
+    const g = loadGraph();
+    expect(g.sources.length).toBeGreaterThan(0);
+    for (const s of g.sources) expect(s.license?.trim()).toBeTruthy();
   });
 });

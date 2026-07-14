@@ -54,8 +54,10 @@ is wrong here, for four reasons in descending order of importance:
    test suite (`generated data/graph.json` describe-block) runs the invariants against the committed
    file, so a bad or stale-and-invalid graph fails the suite rather than shipping.
 3. **Fixtures are never presented as generated output.** The hand-built 5-node graph in
-   `src/graph/invariants.test.ts` is a *fixture*: it exists to test the invariant functions without
-   an LLM, and it is labelled as such. It is not, and must not be copied to, `data/graph.json`.
+   `src/graph/fixture-graph.ts` is a *fixture*: it exists to test the invariant functions and the
+   pathfinder without an LLM, and it is labelled as such in its own header. It is not, and must not
+   be copied to, `data/graph.json`. The test suite now enforces this from the other side too — the
+   `generated data/graph.json` block asserts the committed graph is **not** a copy of the fixture.
 
 ## Status right now (2026-07-13)
 
