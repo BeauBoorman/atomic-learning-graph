@@ -30,8 +30,7 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
 - **Public README claims must match working commands.** Do not leave future-tense placeholders or
   commands that do not exist in a shipping README.
 - **Keep the demo scoped:** one subject (how LLMs work), one goal (`self-attention`), one loop.
-- **`plans/` is internal and gitignored.** Never move internal review material into public files,
-  never `git add plans/`. Never commit `.env` or an API key.
+- **This repo is PUBLIC.** Never commit `.env`, an API key, or any credential.
 
 ## Commands
 

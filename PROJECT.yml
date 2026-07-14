@@ -4,7 +4,7 @@ description: "OpenAI Build Week entry — AI-built prerequisite graph of one-con
 type: "app"
 status: active
 intent: Turn any open educational resource into a navigable prerequisite graph of atomic lessons, with a deterministic path from what a learner knows to what they want to learn
-done_means: "Submitted to OpenAI Build Week by 2026-07-21 17:00 PT — public repo, live Vercel app, demo video under 3:00"
+done_means: "Submitted to OpenAI Build Week by 2026-07-21 17:00 PT — public repo w/ OSS licence + README, demo video under 3:00 on YouTube, and the /feedback Codex Session ID from the session where the core was built. A live URL is NOT required (verified against the official rules)."
 stack:
   language: "typescript"
   runtime: "node"
