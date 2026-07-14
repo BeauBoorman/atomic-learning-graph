@@ -63,5 +63,4 @@ export const fixtureGraph: LearningGraph = {
     { from: "softmax", to: "qkv", type: "prereq" },
     { from: "qkv", to: "self-attention", type: "prereq" },
   ],
-  renderings: [],
 };

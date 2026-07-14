@@ -72,16 +72,21 @@ export interface Edge {
   type: EdgeType;
 }
 
-export type RenderingFormat = "90-sec" | "deep" | "eli5";
-
-/** A presentation of a canonical concept. One concept, many renderings. */
-export interface Rendering {
-  id: string;
-  conceptId: ConceptId;
-  format: RenderingFormat;
-  body: string;
-  provenance: Provenance;
-}
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// CUT FROM THE MVP (2026-07-13): `Rendering` / `RenderingFormat` — the multi-format lesson bodies
+// ("90-sec" / "deep" / "eli5"). Three independent reviewers converged on cutting it, for a reason
+// that is not about scope:
+//
+//   `invalidProvenance` returns ConceptId[] — it STRUCTURALLY CANNOT express "this rendering's
+//   quote is ungrounded". So a generated lesson body could be shown in the UI, unsupported by any
+//   source, while every provenance test stayed green. That is a hole in the exact claim the whole
+//   project rests on — a node the graph cannot prove, presented as if it could.
+//
+// The right fix is either (a) make provenance validation cover renderings with typed issue IDs, or
+// (b) delete the surface. For an 8-day build with one person, (b) — the demo renders lesson text
+// from the concept's own provenance, which IS validated. The "infinite renderings" idea stays in
+// the README roadmap; it just isn't a type the MVP can leave unguarded.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
 
 /**
  * A canonical node in the graph: exactly ONE self-contained concept or skill.
@@ -105,7 +110,6 @@ export interface LearningGraph {
   concepts: Concept[];
   /** The ONLY source of truth for relations between concepts. */
   edges: Edge[];
-  renderings: Rendering[];
   /** Every Source that any provenance refers to. Embedded so the UI renders passages offline. */
   sources: Source[];
   /** The node the demo path terminates at. */
