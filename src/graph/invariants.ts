@@ -34,7 +34,15 @@ const TODO = (fn: string): never => {
   throw new Error(`not implemented: ${fn}() — implement in src/graph/invariants.ts`);
 };
 
-/** True if the prerequisite edges contain a cycle. */
+/**
+ * True if the PREREQUISITE edges contain a cycle.
+ *
+ * Only edges of type `"prereq"` participate. A cycle among `related` edges is not a cycle in the
+ * learning order — `related` is a symmetric UI affordance and will routinely appear in both
+ * directions. An implementation that walks every edge type reports a false cycle on a perfectly
+ * good graph, and the reflex "fix" is to weaken the invariant. Filter by type first.
+ * A self-loop (`x -> x`, type `prereq`) IS a cycle.
+ */
 export function hasCycle(_graph: LearningGraph): boolean {
   return TODO("hasCycle");
 }

@@ -20,6 +20,13 @@ export interface Source {
   id: SourceId;
   title: string;
   url?: string;
+  /**
+   * REQUIRED. The open licence the source is used under (e.g. "CC-BY-SA 3.0", "CC-BY 4.0",
+   * "public domain"). The project's whole premise is openly (5R) licensed OER, and the full
+   * source `text` is embedded in a PUBLIC repo — shipping that with no licence recorded is both
+   * a legal exposure and a credibility hole in the exact claim being made.
+   */
+  license: string;
   /** Full source text. The ground truth every quote is checked against. */
   text: string;
 }

@@ -45,7 +45,9 @@ const QUOTES: Record<string, string> = {
 
 const fixture: LearningGraph = {
   goalId: "self-attention",
-  sources: [{ id: "s1", title: "How LLMs work (primer)", text: SOURCE_TEXT }],
+  sources: [
+    { id: "s1", title: "How LLMs work (primer)", license: "CC-BY-SA 4.0", text: SOURCE_TEXT },
+  ],
   concepts: (
     ["vectors", "dot-product", "softmax", "qkv", "self-attention"] as const
   ).map(
@@ -69,6 +71,15 @@ const fixture: LearningGraph = {
 describe("invariant functions (fixture)", () => {
   it("1. every node is a single concept (no 'and')", () => {
     for (const c of fixture.concepts) expect(isSingleConcept(c)).toBe(true);
+  });
+
+  // Without this, `isSingleConcept = () => true` passes everything above — every fixture summary
+  // is "single concept: X", so the invariant is unfalsifiable and proves nothing. This is the
+  // negative case that gives it teeth. If a real definition of "one concept" cannot be written,
+  // DELETE this invariant and ship five honest ones rather than six with a fake.
+  it("catches a MULTI-concept summary (otherwise the invariant is unfalsifiable)", () => {
+    const twoThings: Concept = { ...fixture.concepts[0], summary: "vectors and matrices" };
+    expect(isSingleConcept(twoThings)).toBe(false);
   });
 
   it("2. no orphan nodes (roots exempt)", () => {

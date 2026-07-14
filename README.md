@@ -1,5 +1,13 @@
 # Open Atomic Learning Graph
 
+> ### ⚠ BUILD STATUS — 2026-07-13
+> **This repo is mid-build for OpenAI Build Week (submission Jul 21).** Landed so far: the data
+> model, the graph invariants as a *deliberately failing* test suite, and the architecture decisions.
+> **Not yet built:** the atomizer (`pnpm atomize`), the generated graph (`data/graph.json`), and the
+> web UI (`pnpm dev`). Commands below that depend on those will not work yet.
+> This banner comes down when they land — it is here so the README never claims more than the repo
+> can do.
+
 **Turn any open educational resource into a navigable graph of one-concept-at-a-time lessons, and
 get a personalized path from where you are to what you want to learn — no grades, no paywall.**
 
