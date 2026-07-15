@@ -2,9 +2,11 @@
 // Each throws so the test suite is RED-with-a-reason (a failing test list, not a
 // module-resolution error). Replace the bodies; do not change the signatures.
 //
-// Invariants (see README):
-//   1. one concept per node   2. no orphans (roots exempt)   3. prereq graph is a DAG
-//   4. goal reachable from a root   5. provenance valid   6. no dangling edges
+// 5 HARD proof-invariants (fail-closed gates) + 1 ADVISORY reporter:
+//   HARD: no orphans (roots exempt) · prereq graph is a DAG · goal reachable from a root ·
+//         provenance valid · no dangling edges
+//   ADVISORY (never gates the build): isSingleConcept — an enumeration detector, demoted 2026-07-15.
+//     See ROADMAP.md and the isSingleConcept docstring below.
 //
 // The precise definition of invariant 2 ("orphan", "root", and why roots are exempt) is on
 // `findOrphans` below. Read it before implementing — the test fixture cannot tell a correct
@@ -15,7 +17,7 @@
 // pass EVERY positive assertion — a green suite would have proved nothing. Do not delete or weaken
 // a negative test to make an implementation pass; the negative test IS the invariant.
 //
-// VALIDITY IS NOT THE PRODUCT. A graph can satisfy all six of these and still hand the learner the
+// VALIDITY IS NOT THE PRODUCT. A graph can satisfy all of these and still hand the learner the
 // wrong ROUTE — reachability is not ordering. The ordered deterministic walk (`getPath`) lives in
 // `src/graph/path.ts` and is pinned to the exact golden path by `src/graph/path.test.ts`.
 //
@@ -175,29 +177,27 @@ export function invalidProvenance(_graph: LearningGraph): ConceptId[] {
 }
 
 /**
- * ⚠ UNDER REVIEW — this invariant may be CUT. Read before implementing.
+ * ✅ SETTLED (Beau, 2026-07-15) — KEPT but DEMOTED. This is NOT one of the 5 hard proof-invariants.
+ * It is a build-time ADVISORY enumeration reporter: it NEVER fails the build, NEVER gates a phase or
+ * the repair loop, and is NEVER presented on camera as proof of atomicity. It stays in code, stays
+ * under test, and is the SEED for a future embedding-/LLM-judge atomicity scorer. Nothing is deleted.
  *
- * False if the concept's summary describes more than one thing. The problem is that nobody has
- * written a defensible AUTOMATED definition of "one concept", and a check that cannot be defined
- * cannot be trusted. `!summary.includes(" and ")` is a substring ban wearing a proof's clothes: it
- * passes "matrix multiplication, normalization" and it passes "scaled dot-product attention",
- * both of which bundle several concepts.
+ * False if the concept's summary ENUMERATES more than one thing (coordination — "X and Y", "X, Y",
+ * "X; Y", "X & Y"). That is the narrow, honest thing a syntactic check CAN do, and it catches the
+ * atomizer's observable failure mode. What it CANNOT do, offline and deterministically, is judge
+ * whether a single un-coordinated noun phrase is atomic — see the `it.skip` KNOWN LIMIT case in
+ * invariants.test.ts, which names a summary no syntactic rule can catch. That hole is exactly why
+ * this is an advisory reporter, not a proof gate, and why the future scorer exists (see ROADMAP.md).
  *
- * What IS automatable is narrower than the name claims: detect a summary that ENUMERATES more than
- * one thing (coordination — "X and Y", "X, Y", "X; Y", "X & Y"). That catches the atomizer's actual
- * observable failure mode. What is NOT automatable, offline and deterministically, is whether a
- * single un-coordinated noun phrase is atomic — see the `it.skip` KNOWN LIMIT case in
- * invariants.test.ts, which names a summary no syntactic rule can catch.
+ * Why it is honest, not fake: `!summary.includes(" and ")` would be a substring ban wearing a
+ * proof's clothes (it passes "matrix multiplication, normalization" and "scaled dot-product
+ * attention"). This function makes no such claim — it flags enumerations for a human eyeball, and
+ * the demotion is a ROUTING change: its boolean result goes to an advisory warning stream
+ * (`reportAtomicityWarnings` in `atomicity-report.ts`), never to the build's exit code.
  *
- * So the honest options are (Beau decides, not the implementer):
- *   (a) CUT it from the hard gate — ship five invariants that are true rather than six with a fake
- *       one — and move "one self-contained concept per node" into the atomizer PROMPT plus a manual
- *       eyeball of the ~20 demo nodes; or
- *   (b) KEEP it, renamed to what it actually checks (an enumeration detector), with the scope limit
- *       stated out loud so it is never presented on camera as proof of atomicity.
- *
- * Until that is decided, the negative tests below give it the maximum teeth a syntactic check can
- * have. Do NOT implement it as `() => true`, and do NOT weaken the tests to make it pass.
+ * Keep the pinned boolean signature and the adversarial tests. Do NOT implement it as `() => true`,
+ * do NOT weaken the tests to make it pass, and do NOT promote it to a gate to make a demo look
+ * stronger. See the isSingleConcept reframe spec for the full two-layer design.
  */
 export function isSingleConcept(_concept: Concept): boolean {
   return TODO("isSingleConcept");

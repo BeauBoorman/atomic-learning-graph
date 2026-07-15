@@ -21,6 +21,13 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
   would then prove nothing.
 - **Provenance is quote-primary.** Validate `sourceId` + normalized `quotedText`. Offsets are HINTS
   and are NEVER validated — do not reintroduce an offset check; a test pins this.
+- **`isSingleConcept` is ADVISORY, not a gate (SETTLED 2026-07-15).** There are **5 hard
+  deterministic proof-invariants** (`hasCycle`, `findOrphans`, `danglingEdges`, `pathExists`,
+  `invalidProvenance`) **plus `isSingleConcept` as a build-time advisory enumeration reporter.**
+  `isSingleConcept` and `reportAtomicityWarnings` must **never fail the build, never gate a phase,
+  never gate the repair loop, and never appear in the hard-invariant fail set.** Never present the
+  atomicity reporter on camera as proof of atomicity, and never promote it to a gate to make a demo
+  look stronger. It is the seed for a future scorer — see `ROADMAP.md`.
 - **Do not weaken a test to make an implementation pass.** Roughly half the suite is adversarial and
   each negative test names the cheating implementation it exists to kill (`() => []`, `() => true`,
   a `" and "` substring ban, `sources.find()`, "does this concept id exist"). If a negative test
@@ -47,7 +54,9 @@ otherwise (an older README paragraph, a plan doc) is wrong about the repo as it 
 
 ## Current critical path
 
-1. **Implement the six invariant bodies** in `src/graph/invariants.ts` against the adversarial tests.
+1. **Implement the 5 hard invariant bodies** (`hasCycle`, `findOrphans`, `danglingEdges`,
+   `pathExists`, `invalidProvenance`) in `src/graph/invariants.ts` against the adversarial tests,
+   **plus `isSingleConcept` as an advisory reporter** (never a gate — see the Non-negotiables).
 2. **Write `data/oer/sources.json`** + the source text, then implement `validateManifest` in
    `src/atomization/manifest.ts` (the licence gate).
 3. **Build `src/atomization/atomize.ts`** so it writes `data/graph.json` from real licensed sources.

@@ -38,7 +38,8 @@ const fixture = fixtureGraph;
 const withSummary = (summary: string): Concept => ({ ...fixture.concepts[0], summary });
 
 describe("invariant functions (fixture)", () => {
-  it("1. every node is a single concept", () => {
+  // ADVISORY reporter (not a proof gate): every clean fixture summary reads as a single concept.
+  it("advisory: every clean fixture summary reads as a single concept", () => {
     for (const c of fixture.concepts) expect(isSingleConcept(c)).toBe(true);
   });
 
@@ -106,10 +107,12 @@ describe("isSingleConcept — teeth", () => {
   // (scaling, the dot product, softmax normalization, a weighted average) in ONE un-coordinated
   // noun phrase. No syntactic rule catches it; only semantic judgment does, and the invariant suite
   // must stay deterministic and offline (no LLM call at test time). This is the honest hole in
-  // `isSingleConcept`, and it is why the invariant is UNDER REVIEW: an enumeration detector is a
-  // real check, but it is NOT proof of atomicity and must never be presented as such.
-  // -> Decide: CUT the invariant, or KEEP it renamed to what it actually checks. Do not un-skip
-  //    this test by weakening it; un-skip it only if a real definition of "one concept" is found.
+  // `isSingleConcept`, and it is exactly why the check was DEMOTED (2026-07-15) to an advisory
+  // enumeration reporter rather than a proof gate: an enumeration detector is a real check, but it
+  // is NOT proof of atomicity and must never be presented as such. This known limit is what
+  // motivates the future embedding/LLM-judge scorer (see ROADMAP.md).
+  // -> Do not un-skip this test by weakening it; un-skip it only if a real, defensible definition of
+  //    "one concept" is found — which is what the future scorer is for.
   it.skip("KNOWN LIMIT: cannot catch a multi-concept summary with no coordination", () => {
     expect(
       isSingleConcept(withSummary("Scaled dot-product attention computes a weighted average."))
