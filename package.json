@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Open Atomic Learning Graph — turn open educational resources into a navigable prerequisite graph of one-concept lessons.",
+  "license": "MIT AND CC-BY-SA-4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
