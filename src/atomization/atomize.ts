@@ -302,7 +302,8 @@ function sourcePrompt(sources: Source[]): string {
 }
 
 function loadSources(): { sources: Source[]; manifestBytes: Buffer } {
-  const raw = loadManifest();
+  const manifestPath = process.env.OER_MANIFEST_PATH ?? MANIFEST_PATH;
+  const raw = loadManifest(manifestPath);
   const entries = validateManifest(raw);
   const sources = entries.map((entry): Source => ({
     id: entry.id,
@@ -311,7 +312,7 @@ function loadSources(): { sources: Source[]; manifestBytes: Buffer } {
     license: entry.license,
     text: readFileSync(resolve(OER_DIR, entry.textPath), "utf8"),
   }));
-  return { sources, manifestBytes: readFileSync(MANIFEST_PATH) };
+  return { sources, manifestBytes: readFileSync(manifestPath) };
 }
 
 function groundInventory(concepts: AtomizedConcept[], sources: Source[], requiredIds: readonly string[]): AtomizedConcept[] {
