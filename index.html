@@ -8,6 +8,18 @@
       content="A deterministic learning path through a validated, provenance-grounded concept graph."
     />
     <title>Atomic Learning Graph</title>
+    <script>
+      (() => {
+        try {
+          const saved = localStorage.getItem("atomic-learning-graph.theme.v1");
+          const theme = saved === "light" || saved === "dark"
+            ? saved
+            : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

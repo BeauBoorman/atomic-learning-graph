@@ -27,6 +27,8 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "cytoscape": "^3.34.0",
+    "cytoscape-dagre": "^4.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   }

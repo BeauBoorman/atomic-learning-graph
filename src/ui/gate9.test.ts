@@ -1,9 +1,26 @@
-import { readFileSync } from "node:fs";
+import { globSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const read = (path: string): string => readFileSync(resolve(root, path), "utf8");
+const uiRuntimeFiles = globSync("src/ui/**/*.{ts,tsx}", {
+  cwd: root,
+  exclude: ["src/ui/**/*.test.*"],
+});
+
+function rootThemeTokens(css: string, theme?: string): Record<string, string> {
+  const selector = theme === undefined ? ":root" : `:root[data-theme="${theme}"]`;
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const body = css.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
+
+  return Object.fromEntries(
+    [...body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((match) => [
+      match[1],
+      match[2].trim(),
+    ]),
+  );
+}
 
 describe("Gate 9 architecture", () => {
   it("loads the committed graph at build time through loadGraph", () => {
@@ -14,11 +31,7 @@ describe("Gate 9 architecture", () => {
   });
 
   it("keeps every browser interaction free of network clients", () => {
-    const runtime = [
-      read("src/ui/main.tsx"),
-      read("src/ui/App.tsx"),
-      read("src/ui/model.ts"),
-    ].join("\n");
+    const runtime = uiRuntimeFiles.map(read).join("\n");
 
     const networkClients = [
       "fetch" + "(",
@@ -29,6 +42,16 @@ describe("Gate 9 architecture", () => {
       "open" + "ai",
     ];
     for (const client of networkClients) expect(runtime.toLowerCase()).not.toContain(client.toLowerCase());
+  });
+
+  it("computes the dark background token for the dark theme", () => {
+    const css = read("src/ui/styles.css");
+    const computedDarkTokens = {
+      ...rootThemeTokens(css),
+      ...rootThemeTokens(css, "dark"),
+    };
+
+    expect(computedDarkTokens["--bg"]).toBe("#0d1712");
   });
 
   it("routes progress through the deterministic path module", () => {
