@@ -41,10 +41,6 @@
 
 import type { Concept, ConceptId, Edge, LearningGraph } from "../types";
 
-const TODO = (fn: string): never => {
-  throw new Error(`not implemented: ${fn}() — implement in src/graph/invariants.ts`);
-};
-
 /**
  * True if the PREREQUISITE edges contain a cycle.
  *
@@ -54,8 +50,34 @@ const TODO = (fn: string): never => {
  * good graph, and the reflex "fix" is to weaken the invariant. Filter by type first.
  * A self-loop (`x -> x`, type `prereq`) IS a cycle.
  */
-export function hasCycle(_graph: LearningGraph): boolean {
-  return TODO("hasCycle");
+export function hasCycle(graph: LearningGraph): boolean {
+  const adjacency = new Map<ConceptId, ConceptId[]>();
+  for (const edge of graph.edges) {
+    if (edge.type !== "prereq") continue;
+    const neighbors = adjacency.get(edge.from) ?? [];
+    neighbors.push(edge.to);
+    adjacency.set(edge.from, neighbors);
+  }
+
+  const visiting = new Set<ConceptId>();
+  const visited = new Set<ConceptId>();
+  const visit = (id: ConceptId): boolean => {
+    if (visiting.has(id)) return true;
+    if (visited.has(id)) return false;
+    visiting.add(id);
+    for (const next of adjacency.get(id) ?? []) {
+      if (visit(next)) return true;
+    }
+    visiting.delete(id);
+    visited.add(id);
+    return false;
+  };
+
+  const ids = new Set<ConceptId>([
+    ...graph.concepts.map((concept) => concept.id),
+    ...graph.edges.filter((edge) => edge.type === "prereq").flatMap((edge) => [edge.from, edge.to]),
+  ]);
+  return [...ids].some(visit);
 }
 
 /**
@@ -101,8 +123,14 @@ export function hasCycle(_graph: LearningGraph): boolean {
  *
  * Returns the IDs of all orphans; `[]` means the invariant holds.
  */
-export function findOrphans(_graph: LearningGraph): ConceptId[] {
-  return TODO("findOrphans");
+export function findOrphans(graph: LearningGraph): ConceptId[] {
+  const connected = new Set<ConceptId>();
+  for (const edge of graph.edges) {
+    if (edge.type !== "prereq") continue;
+    connected.add(edge.from);
+    connected.add(edge.to);
+  }
+  return graph.concepts.filter((concept) => !connected.has(concept.id)).map((concept) => concept.id);
 }
 
 /**
@@ -117,8 +145,9 @@ export function findOrphans(_graph: LearningGraph): ConceptId[] {
  * prerequisite it never emitted a node for (a concept from another chunk, or one it hallucinated).
  * Returns the offending edges; `[]` means the invariant holds.
  */
-export function danglingEdges(_graph: LearningGraph): Edge[] {
-  return TODO("danglingEdges");
+export function danglingEdges(graph: LearningGraph): Edge[] {
+  const ids = new Set(graph.concepts.map((concept) => concept.id));
+  return graph.edges.filter((edge) => !ids.has(edge.from) || !ids.has(edge.to));
 }
 
 /**
@@ -138,8 +167,36 @@ export function danglingEdges(_graph: LearningGraph): Edge[] {
  * NOT "does a concept with this id exist" (that cheat passes every happy-path test), and NOT "does
  * it have any inbound edge" (that passes for a target fed only by a cycle).
  */
-export function pathExists(_graph: LearningGraph, _target: ConceptId): boolean {
-  return TODO("pathExists");
+export function pathExists(graph: LearningGraph, target: ConceptId): boolean {
+  const conceptIds = new Set(graph.concepts.map((concept) => concept.id));
+  if (!conceptIds.has(target)) return false;
+
+  const inbound = new Map<ConceptId, number>(graph.concepts.map((concept) => [concept.id, 0]));
+  const adjacency = new Map<ConceptId, ConceptId[]>();
+  for (const edge of graph.edges) {
+    if (edge.type !== "prereq" || !conceptIds.has(edge.from) || !conceptIds.has(edge.to)) continue;
+    inbound.set(edge.to, (inbound.get(edge.to) ?? 0) + 1);
+    const neighbors = adjacency.get(edge.from) ?? [];
+    neighbors.push(edge.to);
+    adjacency.set(edge.from, neighbors);
+  }
+
+  const roots = graph.concepts
+    .map((concept) => concept.id)
+    .filter((id) => (inbound.get(id) ?? 0) === 0 && (adjacency.get(id)?.length ?? 0) > 0);
+  const seen = new Set<ConceptId>(roots);
+  const queue = [...roots];
+  while (queue.length > 0) {
+    const id = queue.shift() as ConceptId;
+    if (id === target) return true;
+    for (const next of adjacency.get(id) ?? []) {
+      if (!seen.has(next)) {
+        seen.add(next);
+        queue.push(next);
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -172,8 +229,28 @@ export function pathExists(_graph: LearningGraph, _target: ConceptId): boolean {
  * SCOPE, stated honestly: a quote occurring in the source proves the node was NOT FABRICATED. It
  * does not prove the node is CORRECT. Do not overclaim it.
  */
-export function invalidProvenance(_graph: LearningGraph): ConceptId[] {
-  return TODO("invalidProvenance");
+export function invalidProvenance(graph: LearningGraph): ConceptId[] {
+  const sourcesById = new Map<string, typeof graph.sources>();
+  for (const source of graph.sources) {
+    const matches = sourcesById.get(source.id) ?? [];
+    matches.push(source);
+    sourcesById.set(source.id, matches);
+  }
+  const normalizeWhitespace = (value: string): string => value.replace(/\s+/g, " ").trim();
+
+  return graph.concepts
+    .filter((concept) => {
+      const sourceId = concept.provenance?.sourceId;
+      const quotedText = concept.provenance?.quotedText;
+      if (typeof sourceId !== "string" || sourceId.trim().length === 0) return true;
+      if (typeof quotedText !== "string") return true;
+      const normalizedQuote = normalizeWhitespace(quotedText);
+      if (normalizedQuote.length === 0) return true;
+      const sources = sourcesById.get(sourceId);
+      if (!sources || sources.length !== 1) return true;
+      return !normalizeWhitespace(sources[0].text).includes(normalizedQuote);
+    })
+    .map((concept) => concept.id);
 }
 
 /**
@@ -199,6 +276,18 @@ export function invalidProvenance(_graph: LearningGraph): ConceptId[] {
  * do NOT weaken the tests to make it pass, and do NOT promote it to a gate to make a demo look
  * stronger. See the isSingleConcept reframe spec for the full two-layer design.
  */
-export function isSingleConcept(_concept: Concept): boolean {
-  return TODO("isSingleConcept");
+export function isSingleConcept(concept: Concept): boolean {
+  const summary = typeof concept.summary === "string" ? concept.summary.trim().replace(/\s+/g, " ") : "";
+  if (summary.length === 0) return true;
+  if (summary.includes("&") || summary.includes(";")) return false;
+
+  const tokens = summary.match(/\b[\p{L}\p{N}'-]+\b/gu) ?? [];
+  const hasTerminalPunctuation = /[.!?]$/.test(summary);
+  const explicitFiniteVerb = /\b(?:is|are|was|were|be|been|being|yields?)\b/i.test(summary);
+  const inflectedVerb = tokens.slice(1).some((token) => /(?:es|ed|ing)$/i.test(token));
+  const isFullSentence = hasTerminalPunctuation && (explicitFiniteVerb || inflectedVerb);
+
+  if (!isFullSentence && /\b(?:and|or)\b/i.test(summary)) return false;
+  if (!isFullSentence && summary.includes(",")) return false;
+  return true;
 }

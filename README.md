@@ -143,3 +143,10 @@ pnpm dev       # ❌ no `dev` script and no app yet. Nothing to serve.
 must ship with a graph, and re-running a non-deterministic LLM atomization in CI could hand the
 judges a different graph than the one whose invariants we verified. It is written **only** by
 `pnpm atomize` — never hand-edited. See [ADR 001](docs/adr/001-commit-the-generated-graph.md).
+
+## Licences
+
+The project code is MIT-licensed under [LICENSE](LICENSE). The redistributed OER source text under
+`data/oer/`, and that text when embedded in `data/graph.json`, remains under
+`CC-BY-SA-4.0`; see [DATA-LICENSE](DATA-LICENSE) and the per-source evidence and modification notices
+in [ATTRIBUTIONS.md](ATTRIBUTIONS.md).

@@ -8,7 +8,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "atomize": "tsx src/atomization/atomize.ts"
+    "fetch:corpus": "tsx scripts/fetch-corpus.ts",
+    "verify:corpus": "tsx scripts/verify-corpus.ts",
+    "atomize": "tsx src/atomization/atomize.ts",
+    "atomize:toy": "tsx src/atomization/atomize.ts --toy"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

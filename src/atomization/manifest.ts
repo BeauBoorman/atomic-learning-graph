@@ -26,7 +26,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -97,10 +97,76 @@ export const ALLOWED_LICENSES: readonly string[] = [
  *
  * Returns the validated entries, in manifest order.
  */
-export function validateManifest(_raw: unknown): SourceManifestEntry[] {
-  throw new Error(
-    "not implemented: validateManifest() — implement in src/atomization/manifest.ts"
-  );
+export function validateManifest(raw: unknown): SourceManifestEntry[] {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    throw new Error("invalid source manifest: expected an object with a non-empty sources array");
+  }
+
+  const sources = (raw as Record<string, unknown>).sources;
+  if (!Array.isArray(sources) || sources.length === 0) {
+    throw new Error("invalid source manifest: sources must be a non-empty array");
+  }
+
+  const seenIds = new Set<string>();
+  const entries: SourceManifestEntry[] = [];
+
+  for (const [index, rawEntry] of sources.entries()) {
+    if (typeof rawEntry !== "object" || rawEntry === null || Array.isArray(rawEntry)) {
+      throw new Error(`invalid source manifest: sources[${index}] must be an object`);
+    }
+
+    const entry = rawEntry as Record<string, unknown>;
+    for (const field of ["id", "title", "license", "textPath"] as const) {
+      if (typeof entry[field] !== "string" || entry[field].trim().length === 0) {
+        throw new Error(`invalid source manifest: sources[${index}].${field} must be a non-blank string`);
+      }
+    }
+
+    const id = entry.id as string;
+    const title = entry.title as string;
+    const license = entry.license as string;
+    const textPath = entry.textPath as string;
+
+    if (!ALLOWED_LICENSES.includes(license)) {
+      throw new Error(
+        `invalid source manifest: sources[${index}].license is not allowlisted: ${JSON.stringify(license)}`
+      );
+    }
+
+    if (seenIds.has(id)) {
+      throw new Error(`invalid source manifest: duplicate source id ${JSON.stringify(id)}`);
+    }
+    seenIds.add(id);
+
+    const hasParentSegment = textPath.split(/[\\/]+/).includes("..");
+    const looksLikeWindowsAbsolute = /^[A-Za-z]:[\\/]/.test(textPath) || /^\\\\/.test(textPath);
+    const resolvedTextPath = resolve(OER_DIR, textPath);
+    const pathWithinOer = relative(OER_DIR, resolvedTextPath);
+    if (
+      hasParentSegment ||
+      isAbsolute(textPath) ||
+      looksLikeWindowsAbsolute ||
+      pathWithinOer === ".." ||
+      pathWithinOer.startsWith("../") ||
+      pathWithinOer.startsWith("..\\") ||
+      isAbsolute(pathWithinOer)
+    ) {
+      throw new Error(
+        `invalid source manifest: sources[${index}].textPath escapes data/oer/: ${JSON.stringify(textPath)}`
+      );
+    }
+
+    const validated: SourceManifestEntry = { id, title, license, textPath };
+    if (entry.url !== undefined) {
+      if (typeof entry.url !== "string") {
+        throw new Error(`invalid source manifest: sources[${index}].url must be a string when present`);
+      }
+      validated.url = entry.url;
+    }
+    entries.push(validated);
+  }
+
+  return entries;
 }
 
 /**

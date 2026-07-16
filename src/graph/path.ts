@@ -15,10 +15,6 @@
 
 import type { ConceptId, LearningGraph } from "../types";
 
-const TODO = (fn: string): never => {
-  throw new Error(`not implemented: ${fn}() — implement in src/graph/path.ts`);
-};
-
 /**
  * The ordered sequence of concepts a learner must understand to reach `goalId`, ending WITH the
  * goal. A deterministic walk over the prerequisite DAG — never a model call. This is the claim:
@@ -47,9 +43,57 @@ const TODO = (fn: string): never => {
  * an empty array would silently render an empty path — a false green in the UI.
  */
 export function getPath(
-  _graph: LearningGraph,
-  _goalId: ConceptId,
-  _known: ConceptId[] = []
+  graph: LearningGraph,
+  goalId: ConceptId,
+  known: ConceptId[] = []
 ): ConceptId[] {
-  return TODO("getPath");
+  const ids = new Set(graph.concepts.map((concept) => concept.id));
+  if (!ids.has(goalId)) throw new Error(`unknown goal concept: ${goalId}`);
+
+  const prerequisites = new Map<ConceptId, ConceptId[]>();
+  for (const edge of graph.edges) {
+    if (edge.type !== "prereq" || !ids.has(edge.from) || !ids.has(edge.to)) continue;
+    const current = prerequisites.get(edge.to) ?? [];
+    current.push(edge.from);
+    prerequisites.set(edge.to, current);
+  }
+
+  const closure = new Set<ConceptId>();
+  const collect = (id: ConceptId): void => {
+    if (closure.has(id)) return;
+    closure.add(id);
+    for (const prereq of prerequisites.get(id) ?? []) collect(prereq);
+  };
+  collect(goalId);
+
+  const indegree = new Map<ConceptId, number>([...closure].map((id) => [id, 0]));
+  const outgoing = new Map<ConceptId, ConceptId[]>();
+  for (const edge of graph.edges) {
+    if (edge.type !== "prereq" || !closure.has(edge.from) || !closure.has(edge.to)) continue;
+    indegree.set(edge.to, (indegree.get(edge.to) ?? 0) + 1);
+    const next = outgoing.get(edge.from) ?? [];
+    next.push(edge.to);
+    outgoing.set(edge.from, next);
+  }
+
+  const ready = [...closure].filter((id) => indegree.get(id) === 0).sort();
+  const ordered: ConceptId[] = [];
+  while (ready.length > 0) {
+    const id = ready.shift() as ConceptId;
+    ordered.push(id);
+    for (const next of [...(outgoing.get(id) ?? [])].sort()) {
+      const remaining = (indegree.get(next) ?? 0) - 1;
+      indegree.set(next, remaining);
+      if (remaining === 0) {
+        ready.push(next);
+        ready.sort();
+      }
+    }
+  }
+  if (ordered.length !== closure.size) {
+    throw new Error(`cannot build a learning path through a prerequisite cycle ending at ${goalId}`);
+  }
+
+  const knownIds = new Set(known);
+  return ordered.filter((id) => !knownIds.has(id));
 }

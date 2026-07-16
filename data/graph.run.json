@@ -1,0 +1,20 @@
+{
+  "model": "gpt-5.4-2026-03-05",
+  "requestedModel": "gpt-5.4",
+  "promptVersion": "atomizer-v1-extractive-two-phase",
+  "strictStructuredOutputs": true,
+  "manifestSha256": "3c21c8e2062173530a74a6f207f34aad439b3223ce66c5b69a9093b9f29291b6",
+  "graphSha256": "3125c1f210978cb3ba032e09558d8afd59e1aa3d5a5b5011ec1cd895572050a7",
+  "responseIds": [
+    "resp_0244aed858c2c0a4006a585a444ea881969a216bae4a3c06f4",
+    "resp_097e99fef83a5f33006a585a452e64819588174ada89c86837",
+    "resp_00854c93dd4e7eec006a585a4ee3a88197b246bd7f7f12e51d",
+    "resp_0553fa835174f157006a585a50982c8190b1464ab84f024cc1"
+  ],
+  "convergence": [
+    {
+      "attempt": 1,
+      "issues": []
+    }
+  ]
+}

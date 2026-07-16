@@ -51,10 +51,30 @@ export const syntacticAtomicityScorer: AtomicityScorer = {
  *
  * RED STUB: throws until Codex builds it at Gate 2 against ./atomicity-report.test.ts.
  */
-export function reportAtomicityWarnings(_graph: LearningGraph): AtomicityWarning[] {
-  throw new Error(
-    "not implemented: reportAtomicityWarnings — build the advisory reporter at Gate 2 against " +
-      "src/graph/atomicity-report.test.ts (see isSingleConcept-reframe-spec §5). It must return " +
-      "warnings and never throw.",
-  );
+export function reportAtomicityWarnings(graph: LearningGraph): AtomicityWarning[] {
+  const warnings: AtomicityWarning[] = [];
+  const concepts = Array.isArray(graph?.concepts) ? graph.concepts : [];
+  for (const concept of concepts) {
+    try {
+      if (isSingleConcept(concept)) continue;
+      const summary = typeof concept.summary === "string" ? concept.summary : "";
+      const signal: AtomicitySignal = summary.includes("&")
+        ? "ampersand"
+        : summary.includes(";")
+          ? "semicolon"
+          : summary.includes(",")
+            ? "comma-enumeration"
+            : "coordinating-and-or";
+      warnings.push({
+        conceptId: concept.id,
+        summary,
+        signal,
+        reason: `summary reads as an enumeration: ${summary}`,
+        confidence: "high",
+      });
+    } catch {
+      // Advisory-only by construction: malformed build-time input cannot turn this reporter into a gate.
+    }
+  }
+  return warnings;
 }
