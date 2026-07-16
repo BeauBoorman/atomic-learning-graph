@@ -8,9 +8,11 @@ import { MANIFEST_PATH, OER_DIR, loadManifest, validateManifest } from "./manife
 import {
   GOLDEN_PATH,
   GoldenGraphHalt,
+  convergeLessonCitations,
   convergeGraph,
   type ExpectedSource,
 } from "./repair";
+import { writeGraphArtifact } from "./artifacts";
 
 const PROMPT_VERSION = "atomizer-v1-extractive-two-phase";
 const GRAPH_PATH = resolve(OER_DIR, "..", "graph.json");
@@ -496,7 +498,7 @@ async function main(): Promise<void> {
   const expectedSources: ExpectedSource[] = sources.map((source) => ({ ...source }));
   const attemptLog: Array<{ attempt: number; issues: unknown[] }> = [];
 
-  const converged = await convergeGraph(initialGraph, {
+  const baseConverged = await convergeGraph(initialGraph, {
     expectedSources,
     onAttempt: (attempt, issues) => {
       attemptLog.push({ attempt, issues });
@@ -531,8 +533,13 @@ async function main(): Promise<void> {
     },
   });
 
+  const converged = await convergeLessonCitations(baseConverged);
   const warnings = reportAtomicityWarnings(converged);
-  const graphBytes = Buffer.from(`${JSON.stringify(converged, null, 2)}\n`, "utf8");
+
+  // The sole graph write is guarded again at the artifact boundary. Phase 4 inserts translated
+  // lessons between base convergence and this lesson-only pass; deterministic floors keep this
+  // intermediate code-only phase grounded until then.
+  const graphBytes = writeGraphArtifact(GRAPH_PATH, converged);
   const runLog = {
     model: client.modelSnapshot || client.model,
     requestedModel: client.model,
@@ -544,8 +551,6 @@ async function main(): Promise<void> {
     convergence: attemptLog,
   };
 
-  // The first write to graph.json occurs only after convergeGraph returns with zero hard issues.
-  writeFileSync(GRAPH_PATH, graphBytes);
   writeFileSync(RUN_LOG_PATH, `${JSON.stringify(runLog, null, 2)}\n`);
   writeFileSync(ATOMICITY_REPORT_PATH, `${JSON.stringify({ advisoryOnly: true, warnings }, null, 2)}\n`);
   console.log(

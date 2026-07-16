@@ -1,10 +1,12 @@
-import type { ConceptId, Edge, LearningGraph, Source } from "../types";
+import type { Concept, ConceptId, Edge, LearningGraph, LessonStep, Source } from "../types";
 import { getPath } from "../graph/path";
 import {
   danglingEdges,
   findOrphans,
   hasCycle,
+  invalidLessonCitations,
   invalidProvenance,
+  type LessonCitationIssue,
   pathExists,
 } from "../graph/invariants";
 import { ALLOWED_LICENSES } from "./manifest";
@@ -45,6 +47,7 @@ export type ConvergenceIssueKind =
   | "dangling"
   | "orphan"
   | "provenance"
+  | "lesson-citation"
   | "path"
   | "golden-node"
   | "golden-edge"
@@ -58,6 +61,91 @@ export interface ConvergenceIssue {
   message: string;
   conceptIds?: ConceptId[];
   edges?: Edge[];
+  lessonCitationIssues?: LessonCitationIssue[];
+}
+
+export interface LessonConvergenceOptions {
+  repairLessonCitation?: (
+    graph: LearningGraph,
+    issue: LessonCitationIssue,
+  ) => Promise<LearningGraph>;
+}
+
+export class LessonConvergenceError extends Error {
+  constructor(public readonly issues: LessonCitationIssue[]) {
+    super(
+      `lesson citations did not converge: ${issues
+        .map((issue) => `${issue.conceptId}[${issue.stepIndex}]:${issue.reason}`)
+        .join(", ")}`,
+    );
+    this.name = "LessonConvergenceError";
+  }
+}
+
+export function lessonConvergenceIssues(graph: LearningGraph): ConvergenceIssue[] {
+  const lessonCitationIssues = invalidLessonCitations(graph);
+  if (lessonCitationIssues.length === 0) return [];
+  const conceptIds = [...new Set(lessonCitationIssues.map((issue) => issue.conceptId))];
+  return [
+    {
+      kind: "lesson-citation",
+      conceptIds,
+      lessonCitationIssues,
+      message: `${lessonCitationIssues.length} invalid lesson citation issue(s) across ${conceptIds.length} concept(s)`,
+    },
+  ];
+}
+
+function floorStep(concept: Concept, floorIndex: number): LessonStep {
+  const summary = concept.summary.trim().replace(/\s+/g, " ") || concept.title;
+  const prefix = floorIndex === 0 ? "The main idea is this:" : "Keep this idea in mind:";
+  return {
+    text: `${prefix} ${summary}`,
+    stepTier: "core",
+    citation: { ...concept.provenance },
+  };
+}
+
+export async function convergeLessonCitations(
+  graph: LearningGraph,
+  options: LessonConvergenceOptions = {},
+): Promise<LearningGraph> {
+  let candidate: LearningGraph = JSON.parse(JSON.stringify(graph));
+  const initialStepIssues = invalidLessonCitations(candidate).filter((issue) => issue.stepIndex >= 0);
+
+  if (options.repairLessonCitation) {
+    for (const issue of initialStepIssues) {
+      const stillInvalid = invalidLessonCitations(candidate).some(
+        (current) =>
+          current.conceptId === issue.conceptId && current.stepIndex === issue.stepIndex,
+      );
+      if (stillInvalid) candidate = await options.repairLessonCitation(candidate, issue);
+    }
+  }
+
+  const remainingByConcept = new Map<ConceptId, number[]>();
+  for (const issue of invalidLessonCitations(candidate)) {
+    if (issue.stepIndex < 0) continue;
+    const indices = remainingByConcept.get(issue.conceptId) ?? [];
+    indices.push(issue.stepIndex);
+    remainingByConcept.set(issue.conceptId, indices);
+  }
+
+  for (const concept of candidate.concepts) {
+    const badIndices = [...new Set(remainingByConcept.get(concept.id) ?? [])].sort(
+      (left, right) => right - left,
+    );
+    for (const stepIndex of badIndices) concept.lesson?.steps.splice(stepIndex, 1);
+
+    if (!concept.lesson) concept.lesson = { plainTitle: concept.title, steps: [] };
+    while (concept.lesson.steps.length < 2) {
+      concept.lesson.steps.push(floorStep(concept, concept.lesson.steps.length));
+    }
+  }
+
+  const finalIssues = invalidLessonCitations(candidate);
+  if (finalIssues.length > 0) throw new LessonConvergenceError(finalIssues);
+  return candidate;
 }
 
 export interface ExpectedSource {
