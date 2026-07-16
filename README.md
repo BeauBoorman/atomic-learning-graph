@@ -76,6 +76,11 @@ language model, bounded at every step by deterministic checks it cannot talk its
 
 Model output is allowed to *propose* the map. It is not trusted until the deterministic checks pass.
 
+The brief that drove the build is committed verbatim at [`docs/kickoff-prompt.md`](docs/kickoff-prompt.md)
+— the phase-gated instructions the model was held to, including the rule it was never permitted to break:
+*never fake green*. It is a record of what was **asked for**, not a claim about what happened. The
+acceptance gate above is the evidence for that.
+
 ## Run it
 
 Requires Node.js and pnpm. No API key is needed to run, test, or build the committed graph and UI.
@@ -151,7 +156,11 @@ Honest limits, stated up front:
 
 ## Licences
 
-**Content: CC-BY-SA-4.0. Source text: CC-BY-SA-4.0 from [d2l.ai](https://d2l.ai).**
+**Code: MIT. Content: CC-BY-SA-4.0. Source text: CC-BY-SA-4.0 from [d2l.ai](https://d2l.ai).**
+
+The source code — `src/`, `scripts/` and the build configuration — is licensed
+[MIT](LICENSE-CODE). Creative Commons recommends against CC licences for software, and ShareAlike
+is viral on adaptations, so the boundary is drawn between the engine and the text it renders.
 
 The lessons are adaptations of CC-BY-SA-4.0 material from *Dive into Deep Learning* by Aston Zhang,
 Zachary C. Lipton, Mu Li and Alexander J. Smola, translated into plain English at build time and
@@ -159,7 +168,8 @@ modified from the originals. As adaptations of ShareAlike material, **the lesson
 licensed CC-BY-SA-4.0**.
 
 Redistributed OER text under `data/oer/`, and the same text embedded in `data/graph.json`, remains
-under its recorded open licence. This repository is licensed under [CC-BY-SA-4.0](LICENSE).
+under its recorded open licence. The content of this repository — the lessons, the corpus and the
+prose — is licensed [CC-BY-SA-4.0](LICENSE).
 
 See [NOTICE](NOTICE), [DATA-LICENSE](DATA-LICENSE) and [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for
 per-source attribution, revision pins, licence evidence, and modification notices.
