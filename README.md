@@ -11,8 +11,9 @@ chatbot and no request-time model call.
 ## The loop
 
 1. The build pipeline licence-checks every corpus source before model ingestion.
-2. GPT-5.6 extracts grounded concepts, proposes relationships between frozen concept IDs, and
-   translates each converged concept into short lesson steps with per-step citations.
+2. GPT-5.6 extracts grounded concepts, proposes relationships between frozen concept IDs,
+   translates each converged concept into cited lesson steps, and pre-builds optional passion
+   analogies as clearly labelled illustrations.
 3. Bounded validate → repair → re-validate loops check graph structure, goal reachability,
    quote-primary provenance, lesson citations, and the hard readability floor.
 4. On convergence, `pnpm atomize` writes the sorted graph and run log. It never writes a failing
@@ -20,7 +21,7 @@ chatbot and no request-time model call.
 5. The UI loads `data/graph.json` at build time and calls the pure `getPath()` function locally.
    Marking a concept understood recomputes the remaining route from local state.
 
-The shipped artifact contains 9 concepts, 9 prerequisite relationships, and the complete text of
+The shipped artifact contains 10 concepts, 9 prerequisite relationships, and the complete text of
 four pinned OER sources. Every displayed lesson step resolves its own `sourceId` and validated
 `quotedText` against the embedded source text.
 
@@ -60,6 +61,7 @@ checksum to detect post-run changes. See [ADR 001](docs/adr/001-commit-the-gener
 - `src/atomization/manifest.ts` — exact-match SPDX allowlist and manifest validation.
 - `src/atomization/atomize.ts` — three-phase inventory, relationship, and cited-translation build.
 - `src/atomization/translate.ts` — strict lesson schema, anchored excerpts, quote repair, and floors.
+- `src/atomization/analogy.ts` — optional build-time analogies for the fixed passion set.
 - `src/graph/invariants.ts` — the five hard deterministic proof invariants.
 - `src/graph/atomicity-report.ts` — an advisory-only concept atomicity reporter; never a gate.
 - `src/graph/path.ts` — deterministic prerequisite-ancestor walk with a stable tie-break.

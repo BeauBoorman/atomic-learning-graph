@@ -2,35 +2,46 @@
   "advisoryOnly": true,
   "warnings": [
     {
-      "conceptId": "vector-norm",
-      "summary": "A vector norm represents the magnitude or size of a vector.",
-      "signal": "coordinating-and-or",
-      "reason": "summary reads as an enumeration: A vector norm represents the magnitude or size of a vector.",
-      "confidence": "high"
+      "conceptId": "attention-pooling",
+      "grade": 10.38,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 10.38"
     },
     {
-      "conceptId": "cross-entropy",
-      "grade": 14.51,
+      "conceptId": "dot-product",
+      "grade": 10.13,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 14.51"
+      "reason": "lesson readability is estimated at US grade 10.13"
     },
     {
       "conceptId": "positional-encoding",
-      "grade": 10.16,
+      "grade": 10.89,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.16"
+      "reason": "lesson readability is estimated at US grade 10.89"
+    },
+    {
+      "conceptId": "qkv",
+      "grade": 10.75,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 10.75"
     },
     {
       "conceptId": "self-attention",
-      "grade": 11.71,
+      "grade": 13.52,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 11.71"
+      "reason": "lesson readability is estimated at US grade 13.52"
     },
     {
       "conceptId": "softmax",
-      "grade": 13.9,
+      "grade": 12.84,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 13.9"
+      "reason": "lesson readability is estimated at US grade 12.84"
+    },
+    {
+      "conceptId": "softmax-ordering",
+      "grade": 10.71,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 10.71"
     }
   ]
 }

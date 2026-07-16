@@ -13,6 +13,7 @@ import {
   type ExpectedSource,
 } from "./repair";
 import { writeGraphArtifact } from "./artifacts";
+import { ANALOGY_PROMPT_VERSION, generateAnalogies } from "./analogy";
 import { groundedQuote } from "./grounding";
 import {
   PROMPT_VERSION,
@@ -480,8 +481,18 @@ async function runToy(client: ResponsesClient, sources: Source[]): Promise<void>
     throw new Error(`toy dry-run failed lesson citation checks: ${JSON.stringify(lessonIssues)}`);
   }
   checkLessonReadability(translated);
+  const enriched = await generateAnalogies(translated, client);
+  const analogyCount = enriched.concepts.reduce(
+    (total, concept) =>
+      total +
+      (concept.lesson?.steps.reduce(
+        (stepTotal, step) => stepTotal + Object.keys(step.analogies ?? {}).length,
+        0,
+      ) ?? 0),
+    0,
+  );
   console.log(
-    `TOY DRY RUN PASS: ${translated.concepts.length} grounded concepts with translated lessons; no artifact written.`,
+    `TOY DRY RUN PASS: ${enriched.concepts.length} grounded concepts with translated lessons and ${analogyCount} optional analogies; no artifact written.`,
   );
 }
 
@@ -543,14 +554,22 @@ async function main(): Promise<void> {
   const converged = await translateAndConvergeLessons(baseConverged, client);
   const readabilityWarnings = checkLessonReadability(converged);
   const warnings = [...reportAtomicityWarnings(converged), ...readabilityWarnings];
+  let enriched = converged;
+  try {
+    enriched = await generateAnalogies(converged, client);
+  } catch (error) {
+    // Optional illustrations never gate graph emission, even if the enrichment layer itself fails.
+    console.warn(`Analogy layer failed; continuing without analogies: ${String(error)}`);
+  }
 
   // The sole graph write is guarded again at the artifact boundary, after lesson-only convergence
   // and the hard readability floor have both passed.
-  const graphBytes = writeGraphArtifact(GRAPH_PATH, converged);
+  const graphBytes = writeGraphArtifact(GRAPH_PATH, enriched);
   const runLog = {
     model: client.modelSnapshot || client.model,
     requestedModel: client.model,
     promptVersion: PROMPT_VERSION,
+    analogyPromptVersion: ANALOGY_PROMPT_VERSION,
     strictStructuredOutputs: client.strictSchema,
     manifestSha256: sha256(manifestBytes),
     graphSha256: sha256(graphBytes),
@@ -561,8 +580,8 @@ async function main(): Promise<void> {
   writeFileSync(RUN_LOG_PATH, `${JSON.stringify(runLog, null, 2)}\n`);
   writeFileSync(ATOMICITY_REPORT_PATH, `${JSON.stringify({ advisoryOnly: true, warnings }, null, 2)}\n`);
   console.log(
-    `ATOMIZATION PASS: wrote ${converged.concepts.length} concepts, ${converged.edges.length} edges, ` +
-      `${converged.sources.length} complete sources; ${warnings.length} advisory atomicity warnings.`,
+    `ATOMIZATION PASS: wrote ${enriched.concepts.length} concepts, ${enriched.edges.length} edges, ` +
+      `${enriched.sources.length} complete sources; ${warnings.length} advisory atomicity warnings.`,
   );
 }
 

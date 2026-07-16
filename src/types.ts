@@ -9,6 +9,15 @@
 
 export type ConceptId = string;
 export type SourceId = string;
+export const PASSION_IDS = [
+  "cooking",
+  "sports",
+  "music",
+  "video-games",
+  "cars",
+  "gardening",
+] as const;
+export type PassionId = (typeof PASSION_IDS)[number];
 
 /**
  * A source document the graph was atomized FROM. The full `text` is retained so that
@@ -86,6 +95,12 @@ export interface LessonStep {
   stepTier: "core" | "deep";
   /** Validated by the same quote-grounding predicate as `Concept.provenance`. */
   citation: Provenance;
+  /**
+   * Optional build-time illustrations for the learner's selected passion. These are explicitly
+   * analogies, not source claims, and are deliberately outside `invalidLessonCitations`. A failed
+   * passion is omitted without affecting the lesson or build.
+   */
+  analogies?: Partial<Record<PassionId, string>>;
 }
 
 export interface Lesson {

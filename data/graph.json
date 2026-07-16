@@ -1,43 +1,51 @@
 {
   "concepts": [
     {
-      "id": "cross-entropy",
-      "title": "Cross-Entropy",
-      "summary": "Cross-entropy measures expected surprisal when subjective probabilities are evaluated against data generated from another distribution.",
+      "id": "attention-pooling",
+      "title": "Attention Pooling over Variable-Sized Data",
+      "summary": "Attention pooling can operate over databases of arbitrary size without changing the pooling procedure.",
       "provenance": {
-        "sourceId": "d2l-softmax-regression",
-        "quotedText": "The cross-entropy from P to Q, denoted , is the expected surprisal of an observer with subjective probabilities Q upon seeing data that was actually generated according to probabilities P."
+        "sourceId": "d2l-queries-keys-values",
+        "quotedText": "Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed."
       },
       "tags": [
-        "cross-entropy",
-        "probability",
-        "loss functions"
+        "attention",
+        "attention pooling",
+        "variable-sized input"
       ],
       "lesson": {
-        "plainTitle": "Measuring Surprise from Predicted Chances",
+        "plainTitle": "Using Attention with Any Amount of Data",
         "steps": [
           {
-            "text": "Cross-entropy measures how surprised you expect to be when your predicted chances, Q, are tested against data produced by the actual chances, P.",
+            "text": "Attention pooling can handle a database of any size. The same pooling process works whether the database has few items or many.",
             "stepTier": "core",
             "citation": {
-              "sourceId": "d2l-softmax-regression",
-              "quotedText": "The cross-entropy from P to Q, denoted , is the expected surprisal of an observer with subjective probabilities Q upon seeing data that was actually generated according to probabilities P."
+              "sourceId": "d2l-queries-keys-values",
+              "quotedText": "attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed."
+            },
+            "analogies": {
+              "cooking": "Imagine using the same tasting method for three soup ingredients or thirty; the process stays the same even as the ingredient list grows.",
+              "sports": "Like a coach reviewing a small squad or a huge roster with the same selection process, regardless of how many players are available.",
+              "music": "Imagine a producer using the same mixing approach for a few tracks or an entire orchestra; only the number of inputs changes.",
+              "video-games": "Like using the same inventory search whether your character holds five items or hundreds; the procedure still works across the whole collection.",
+              "cars": "Imagine inspecting a small parking lot or a massive garage with the same method for finding and combining useful vehicle details.",
+              "gardening": "Like surveying a tiny flower bed or a vast garden with the same process for gathering useful observations from every plant."
             }
           },
           {
-            "text": "The smallest possible cross-entropy occurs when the predicted chances match the actual chances.",
-            "stepTier": "core",
-            "citation": {
-              "sourceId": "d2l-softmax-regression",
-              "quotedText": "The lowest possible cross-entropy is achieved when ."
-            }
-          },
-          {
-            "text": "For classification, reducing cross-entropy can be viewed as making the observed data more likely or reducing the surprise—and number of bits—needed to communicate its labels.",
+            "text": "It combines information from many key-value pairs, where keys help identify relevant items and values contain the information to combine.",
             "stepTier": "deep",
             "citation": {
-              "sourceId": "d2l-softmax-regression",
-              "quotedText": "In short, we can think of the cross-entropy classification objective in two ways: (i) as maximizing the likelihood of the observed data; and (ii) as minimizing our surprisal (and thus the number of bits) required to communicate the labels."
+              "sourceId": "d2l-queries-keys-values",
+              "quotedText": "The attention mechanism allows us to aggregate data from many (key, value) pairs."
+            },
+            "analogies": {
+              "cooking": "Imagine recipe labels as keys pointing to ingredients, while each ingredient’s flavor is the value blended into the final dish.",
+              "sports": "Like jersey numbers helping identify relevant players, while their skills and statistics provide the information combined into a game plan.",
+              "music": "Imagine track names as keys that locate sounds, while the notes and rhythms are values blended into the final mix.",
+              "video-games": "Like map markers identifying useful locations, while the loot or information found there supplies what gets combined for your next move.",
+              "cars": "Imagine dashboard labels identifying relevant systems, while their readings provide the information combined to understand the car’s condition.",
+              "gardening": "Like plant tags identifying which crops matter, while details such as growth and moisture provide the information combined into a garden plan."
             }
           }
         ]
@@ -46,7 +54,7 @@
     {
       "id": "dot-product",
       "title": "Dot Product",
-      "summary": "The dot product of two vectors sums the products of elements at corresponding positions.",
+      "summary": "The dot product combines two vectors by summing products of elements at corresponding positions.",
       "provenance": {
         "sourceId": "d2l-linear-algebra",
         "quotedText": "Given two vectors , their dot product (also known as inner product, ) is a sum over the products of the elements at the same position: ."
@@ -57,30 +65,54 @@
         "dot product"
       ],
       "lesson": {
-        "plainTitle": "Multiply Matching Positions, Then Add",
+        "plainTitle": "Multiply Matching Values, Then Add",
         "steps": [
           {
-            "text": "For two vectors—ordered lists of numbers—the dot product is found by multiplying numbers in matching positions and adding those products.",
+            "text": "A dot product takes two vectors—ordered lists of numbers—multiplies values in matching positions, and adds those products together.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-linear-algebra",
-              "quotedText": "The dot product of two vectors is a sum over the products of the elements at the same position"
+              "quotedText": "their dot product (also known as inner product, ) is a sum over the products of the elements at the same position"
+            },
+            "analogies": {
+              "cooking": "Imagine pairing amounts from two recipe lists, multiplying each matched pair, then adding those products into one total.",
+              "sports": "Like matching each player’s statistics with corresponding scoring factors, multiplying each pair, and adding the products for one score.",
+              "music": "Imagine matching note values with volume levels, multiplying each corresponding pair, then adding the products into one result.",
+              "video-games": "Like pairing character attributes with matching bonus multipliers, multiplying each pair, and adding everything into one final score.",
+              "cars": "Imagine matching a car’s performance numbers with corresponding factors, multiplying each pair, then adding the products into one rating.",
+              "gardening": "Like pairing quantities of garden supplies with matching per-unit values, multiplying each pair, then adding the products for one total."
             }
           },
           {
-            "text": "In other words, multiply the two vectors element by element, then add all the results.",
+            "text": "In practical terms, first multiply the two vectors element by element, then add all the results.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "we can calculate the dot product of two vectors by performing an elementwise multiplication followed by a sum"
+            },
+            "analogies": {
+              "cooking": "Imagine multiplying each ingredient quantity by its matching cost, then adding every result to find the recipe’s total cost.",
+              "sports": "Like multiplying each shot count by its matching point value, then adding the results to calculate the total score.",
+              "music": "Imagine multiplying each instrument’s level by its matching mix setting, then adding all the results into one combined value.",
+              "video-games": "Like multiplying each collected item count by its matching point value, then adding the results for your total score.",
+              "cars": "Imagine multiplying each trip segment’s distance by its matching fuel-use figure, then adding all the results into one total.",
+              "gardening": "Like multiplying each seed packet count by its matching price, then adding every result to find the total cost."
             }
           },
           {
-            "text": "A dot product can calculate a weighted sum, where each value is multiplied by a number that sets its importance.",
+            "text": "A dot product can calculate a weighted sum, where each value is multiplied by a chosen weight before the results are added.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "the weighted sum of the values in according to the weights could be expressed as the dot product"
+            },
+            "analogies": {
+              "cooking": "Imagine multiplying each flavor score by how important that flavor is, then adding the results for one weighted recipe rating.",
+              "sports": "Like multiplying each performance statistic by its chosen importance, then adding the products to create a weighted player score.",
+              "music": "Imagine multiplying each track’s score by its chosen influence, then adding the products into a weighted playlist rating.",
+              "video-games": "Like multiplying each skill score by its chosen importance, then adding the products for a weighted character rating.",
+              "cars": "Imagine multiplying fuel economy, comfort, and safety scores by chosen importance levels, then adding them into a weighted car rating.",
+              "gardening": "Like multiplying sunlight, soil, and water scores by chosen importance levels, then adding the products into a weighted plant score."
             }
           },
           {
@@ -89,6 +121,14 @@
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "When the weights are nonnegative and sum to 1, i.e., , the dot product expresses a weighted average."
+            },
+            "analogies": {
+              "cooking": "Imagine recipe ratings receiving nonnegative shares of importance totaling one; combining them produces a weighted average rating.",
+              "sports": "Like assigning nonnegative importance shares totaling one to several game statistics, then combining them into a weighted average performance.",
+              "music": "Imagine giving songs nonnegative influence shares totaling one, then combining their ratings into a weighted average playlist score.",
+              "video-games": "Like giving character attributes nonnegative importance shares totaling one, then combining their scores into a weighted average rating.",
+              "cars": "Imagine assigning nonnegative importance shares totaling one to car features, then combining their scores into a weighted average.",
+              "gardening": "Like giving several plant-growth measures nonnegative importance shares totaling one, then combining their values into a weighted average."
             }
           }
         ]
@@ -108,38 +148,70 @@
         "vectors"
       ],
       "lesson": {
-        "plainTitle": "Multiplying a Matrix by a Vector",
+        "plainTitle": "How a Matrix Changes a Vector",
         "steps": [
           {
-            "text": "The result is a column of m numbers. Each number comes from a dot product: multiply matching entries in one matrix row and the input vector, then add those products.",
+            "text": "Multiplying a matrix by a vector produces a new column vector. Each number in the result is a dot product—the sum found by multiplying matching values in one matrix row and the input vector, then adding them.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "The matrix--vector product is simply a column vector of length m, whose element is the dot product"
+            },
+            "analogies": {
+              "cooking": "Imagine each recipe row pairing its ingredient amounts with your available ingredients, multiplying each match, then adding the results to create one new score.",
+              "sports": "Like each player's statistics being matched with coaching weights, multiplied pair by pair, and added to produce one number in a new results column.",
+              "music": "Imagine each mixer row adjusting matching instrument levels, then adding those contributions to produce one output level in a new sound vector.",
+              "video-games": "Think of each damage formula matching character stats with multipliers, multiplying each pair, and adding them to create one value in a new results list.",
+              "cars": "Imagine each performance formula pairing car measurements with weights, multiplying matching values, and adding them to produce one number in a new output column.",
+              "gardening": "Like each garden plan matching quantities such as sunlight, water, and soil with weights, then adding the paired products to create one result."
             }
           },
           {
-            "text": "You can view this multiplication as a transformation: it changes an input vector into a new vector. For example, certain square matrices can rotate vectors.",
-            "stepTier": "deep",
-            "citation": {
-              "sourceId": "d2l-linear-algebra",
-              "quotedText": "For example, we can represent rotations as multiplications by certain square matrices."
-            }
-          },
-          {
-            "text": "The matrix must have the same number of columns as the vector has entries. Otherwise, the matching values needed for each dot product will not line up.",
+            "text": "For the multiplication to work, each matrix row must have the same number of values as the input vector.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length)."
+            },
+            "analogies": {
+              "cooking": "Imagine a recipe checklist with exactly one slot for every ingredient you provide; missing or extra ingredients prevent all positions from pairing correctly.",
+              "sports": "Like a lineup drill requiring one player for every assigned position; the counts must match before each position can be paired.",
+              "music": "Imagine a mixer preset needing one control for every instrument channel; the numbers must match so each control has a channel.",
+              "video-games": "Like equipping one item into every available gear slot; the item list and slot list must be equal in length.",
+              "cars": "Imagine matching one tire-pressure reading to each wheel position; the lists need equal lengths for every reading to have a place.",
+              "gardening": "Like planting one seed in each prepared hole; the number of seeds and holes must match for every pairing to work."
             }
           },
           {
-            "text": "This operation is also used in neural networks to calculate each layer’s output from the previous layer’s output.",
+            "text": "You can view this multiplication as a transformation that changes or maps a vector. For example, certain square matrices can rotate vectors.",
+            "stepTier": "deep",
+            "citation": {
+              "sourceId": "d2l-linear-algebra",
+              "quotedText": "For example, we can represent rotations as multiplications by certain square matrices."
+            },
+            "analogies": {
+              "cooking": "Imagine reshaping dough with a mold: the same dough becomes a new form, like a matrix mapping a vector to a changed direction or shape.",
+              "sports": "Like a planned pass redirecting the ball across the field; the operation changes its direction, resembling a transformation that can rotate a vector.",
+              "music": "Imagine a musical phrase transposed or shifted by a rule; its notes become a mapped version, like transforming a vector into a new one.",
+              "video-games": "Like applying a rotation command to a character's direction arrow, mapping the original orientation to a new one.",
+              "cars": "Imagine turning the steering wheel so the car's direction changes; this resembles a matrix transforming, and sometimes rotating, a vector.",
+              "gardening": "Like guiding a vine around a trellis so its growth direction changes, illustrating how a transformation can map one direction to another."
+            }
+          },
+          {
+            "text": "Matrix–vector products are also used in neural networks to calculate each layer’s output from the previous layer’s output.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "Matrix--vector products also describe the key calculation involved in computing the outputs of each layer in a neural network given the outputs from the previous layer."
+            },
+            "analogies": {
+              "cooking": "Imagine each kitchen station combining weighted portions from earlier stations to prepare its next output, like one neural-network layer using the previous layer’s results.",
+              "sports": "Like each coaching stage combining weighted performance signals from the previous drill to produce scores that guide the next stage.",
+              "music": "Imagine each effects unit mixing weighted signals from the previous unit to create its own outputs before passing them onward.",
+              "video-games": "Like each processing stage combining weighted values from the previous stage to calculate new signals for the next stage.",
+              "cars": "Imagine each control module combining weighted sensor outputs from an earlier module to calculate the values it passes forward.",
+              "gardening": "Like each planning stage combining weighted observations from the previous stage to produce new recommendations for the next stage."
             }
           }
         ]
@@ -148,7 +220,7 @@
     {
       "id": "positional-encoding",
       "title": "Positional Encoding",
-      "summary": "Positional encoding supplies token-order information to a self-attention model as additional input.",
+      "summary": "Positional information is supplied as an additional token-associated input because self-attention alone does not preserve sequence order.",
       "provenance": {
         "sourceId": "d2l-self-attention",
         "quotedText": "The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token."
@@ -159,38 +231,70 @@
         "sequence order"
       ],
       "lesson": {
-        "plainTitle": "Giving a Model Information About Word Order",
+        "plainTitle": "How a Model Keeps Track of Word Order",
         "steps": [
           {
-            "text": "Self-attention models need extra information to know where each token, such as a word or word part, appears in a sequence. This added input preserves the order of the tokens.",
+            "text": "A model is given extra information with each token, or piece of text, so it can keep track of where that token appears in the sequence.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-self-attention",
               "quotedText": "The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token."
+            },
+            "analogies": {
+              "cooking": "Imagine labeling each ingredient with its recipe-step number so the cook knows when it belongs.",
+              "sports": "Like giving each player a numbered position marker so the team knows where everyone belongs in the formation.",
+              "music": "Imagine attaching a measure and beat number to each note so its place in the song stays clear.",
+              "video-games": "Think of each quest item carrying a slot number that shows where it appears in the mission sequence.",
+              "cars": "Like numbering every part along an assembly line so its proper stage remains clear.",
+              "gardening": "Imagine marking each seed with its row and spot so its location in the garden is known."
             }
           },
           {
-            "text": "These extra inputs are called positional encodings. They may be learned during training or set in advance using a fixed pattern.",
+            "text": "This extra information is called positional encoding. It can be learned during training or set in advance using a fixed method.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-self-attention",
               "quotedText": "These inputs are called positional encodings, and they can either be learned or fixed a priori."
+            },
+            "analogies": {
+              "cooking": "Think of recipe-step labels that are either learned through repeated cooking or assigned beforehand by a standard numbering system.",
+              "sports": "Like position markers that a team either learns during practice or receives from a preset play diagram.",
+              "music": "Imagine timing cues that musicians either learn through rehearsal or follow from a fixed written score.",
+              "video-games": "Like map coordinates that a game either learns to use during development or calculates with a preset system.",
+              "cars": "Think of assembly-stage codes that are either learned from production data or assigned using a fixed scheme.",
+              "gardening": "Imagine plot labels that are either learned from past planting patterns or set beforehand with a regular grid."
             }
           },
           {
-            "text": "One fixed method uses repeating sine and cosine math patterns to represent different positions in the sequence.",
+            "text": "One fixed method uses repeating sine and cosine patterns to represent positions.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-self-attention",
               "quotedText": "We now describe a simple scheme for fixed positional encodings based on sine and cosine functions ."
+            },
+            "analogies": {
+              "cooking": "Imagine marking recipe steps with two repeating kitchen-timer rhythms that together indicate each step’s place.",
+              "sports": "Like using two repeating scoreboard-light patterns to give each moment in a play a distinctive position signal.",
+              "music": "Imagine two smooth, repeating musical waves working together to mark places throughout a composition.",
+              "video-games": "Think of two looping animation patterns combining to signal each location along a game level.",
+              "cars": "Like two repeating dashboard signals combining to mark different points along a route.",
+              "gardening": "Imagine two repeating watering patterns overlapping to identify positions across rows of plants."
             }
           },
           {
-            "text": "In the resulting table, each row represents a position in the sequence, while each column stores a different part of that position’s encoding.",
+            "text": "Different parts of the encoding repeat at different rates, helping distinguish positions much like binary digits change at different rates.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-self-attention",
-              "quotedText": "In the positional embedding matrix , rows correspond to positions within a sequence and columns represent different positional encoding dimensions."
+              "quotedText": "In binary representations, a higher bit has a lower frequency than a lower bit. Similarly, as demonstrated in the heat map below, the positional encoding decreases frequencies along the encoding dimension by using trigonometric functions."
+            },
+            "analogies": {
+              "cooking": "Imagine several kitchen timers ticking at different speeds; their combined states help identify the current recipe step.",
+              "sports": "Like several stadium clocks cycling at different rates, creating a combined pattern that separates one play moment from another.",
+              "music": "Imagine rhythms of different speeds playing together, with their changing combination marking distinct places in the song.",
+              "video-games": "Like several rotating beacons moving at different speeds, whose combined pattern identifies where you are in a level.",
+              "cars": "Imagine dashboard counters turning at different rates, like odometer digits, so their combination marks a particular point.",
+              "gardening": "Like watering wheels rotating at different speeds, creating combined patterns that distinguish one garden position from another."
             }
           }
         ]
@@ -199,7 +303,7 @@
     {
       "id": "qkv",
       "title": "Queries, Keys, and Values",
-      "summary": "Attention combines values using weights determined by compatibility between a query and keys.",
+      "summary": "Attention derives weights from query–key compatibility and uses those weights to form a linear combination of values.",
       "provenance": {
         "sourceId": "d2l-queries-keys-values",
         "quotedText": "The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys ."
@@ -214,35 +318,51 @@
         "plainTitle": "How Attention Chooses and Combines Information",
         "steps": [
           {
-            "text": "Attention compares a query—what the model is looking for—with keys that label available information. The strength of each match determines how much weight to give the corresponding value, and the weighted values are then combined.",
+            "text": "Attention compares a query—the information being searched for—with keys that label available information. It turns each match into a weight, then uses those weights to combine the corresponding values.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-queries-keys-values",
               "quotedText": "The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys ."
+            },
+            "analogies": {
+              "cooking": "Imagine choosing ingredients by matching a recipe’s needs to pantry labels, then blending each ingredient according to how well it matches.",
+              "sports": "Think of a coach matching a game plan to player roles, then combining each player’s contribution according to the strength of the match.",
+              "music": "Imagine matching a desired sound to labeled instrument tracks, then mixing those tracks with weights based on how well each fits.",
+              "video-games": "Like matching a quest objective to inventory labels, then combining the useful items’ effects according to how relevant each item is.",
+              "cars": "Imagine matching a driving need to dashboard controls, then combining their effects according to how closely each control fits the situation.",
+              "gardening": "Think of matching a garden’s needs to labeled supplies, then combining water, compost, and nutrients according to how well each matches."
             }
           },
           {
-            "text": "The query can be compact even when it searches across many keys and values. This helps the network layer work without learning too many adjustable settings, called parameters.",
+            "text": "When the weights are zero or greater and add up to 1, larger weights can be viewed as stronger focus on the most relevant pieces. This is a helpful interpretation, not a guaranteed explanation of the model.",
             "stepTier": "deep",
-            "citation": {
-              "sourceId": "d2l-queries-keys-values",
-              "quotedText": "This is a desirable property for a network layer as it does not require too many parameters to learn."
-            }
-          },
-          {
-            "text": "Attention can use the same combining process even as the collection of keys and values grows very large.",
-            "stepTier": "deep",
-            "citation": {
-              "sourceId": "d2l-queries-keys-values",
-              "quotedText": "Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed."
-            }
-          },
-          {
-            "text": "When weights are zero or positive and add up to 1, larger weights can be viewed as stronger selections of relevant information. This is a helpful picture, but not a complete explanation of what the model is doing.",
-            "stepTier": "core",
             "citation": {
               "sourceId": "d2l-queries-keys-values",
               "quotedText": "In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition."
+            },
+            "analogies": {
+              "cooking": "Imagine a sauce recipe where nonnegative portions total one whole batch; larger portions suggest stronger flavor emphasis, though they do not fully explain the chef’s reasoning.",
+              "sports": "Like dividing a team’s focus across opponents so the shares total 100%; a larger share suggests more attention, not a guaranteed account of the strategy.",
+              "music": "Imagine mixing tracks with nonnegative volume shares totaling one; louder shares suggest stronger focus, though they do not completely explain the musical decision.",
+              "video-games": "Think of distributing targeting priority across enemies so it totals 100%; a larger share suggests stronger focus, not proof of why the game chose it.",
+              "cars": "Imagine distributing traction among wheels with shares totaling one; a larger share suggests greater emphasis, though it does not fully explain the control system.",
+              "gardening": "Like dividing watering across plants so the shares total one; larger shares suggest stronger focus on certain plants, not a guaranteed explanation of the gardener’s choice."
+            }
+          },
+          {
+            "text": "The same attention process can search through collections of different sizes without changing how it combines the information.",
+            "stepTier": "deep",
+            "citation": {
+              "sourceId": "d2l-queries-keys-values",
+              "quotedText": "attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed."
+            },
+            "analogies": {
+              "cooking": "Imagine using the same tasting-and-blending method whether choosing from three ingredients or thirty; only the pantry size changes, not the combining process.",
+              "sports": "Like a coach using the same selection method with a small squad or a large roster; the number of players changes, but the combination approach stays.",
+              "music": "Imagine using the same mixing method for a trio or an orchestra; there are more tracks to consider, but each is still weighted and combined.",
+              "video-games": "Like searching a small inventory or a huge vault with the same selection system; the collection grows, while the way chosen effects combine remains unchanged.",
+              "cars": "Imagine the same navigation process comparing a few routes or many routes; the number of options changes, but weighted information is combined the same way.",
+              "gardening": "Think of choosing plants from one bed or an entire nursery using the same method; the collection size changes, but the selections are combined similarly."
             }
           }
         ]
@@ -258,18 +378,26 @@
       },
       "tags": [
         "self-attention",
-        "sequence modeling",
+        "sequences",
         "tokens"
       ],
       "lesson": {
-        "plainTitle": "How Every Word Looks at the Others",
+        "plainTitle": "How each word can use the whole sequence",
         "steps": [
           {
-            "text": "In self-attention, each token—a word or other basic piece of the input—can pay attention to every other token in the same sequence.",
+            "text": "In self-attention, every token—a word or word piece—can look at every other token in the same sequence to decide what information matters.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-self-attention",
               "quotedText": "Because every token is attending to each other token"
+            },
+            "analogies": {
+              "cooking": "Imagine each ingredient checking every other ingredient before deciding how strongly its flavor should contribute to the dish.",
+              "sports": "Like every player watching all teammates and opponents to decide which movements matter for the next play.",
+              "music": "Imagine each note listening across the whole phrase to decide which other notes shape its role.",
+              "video-games": "Think of each character scanning every character on the map to decide whose actions are relevant.",
+              "cars": "Imagine each car sensor considering readings from all other sensors before deciding what information matters.",
+              "gardening": "Like each plant being considered alongside every other plant when deciding its role in the garden layout."
             }
           },
           {
@@ -278,14 +406,30 @@
             "citation": {
               "sourceId": "d2l-self-attention",
               "quotedText": "its self-attention outputs a sequence of the same length"
+            },
+            "analogies": {
+              "cooking": "Imagine a tray entering with twelve portions and leaving with twelve improved portions, each enriched by the whole recipe.",
+              "sports": "Like a lineup of eleven players remaining eleven players after each receives updated tactical instructions.",
+              "music": "Imagine eight notes entering an arrangement and eight notes emerging, each with a newly informed musical role.",
+              "video-games": "Like a squad keeping the same number of characters after every member receives updated information about the match.",
+              "cars": "Imagine six dashboard signals going into a system and six updated signals coming out in matching positions.",
+              "gardening": "Like ten garden plots remaining ten plots after each plan is updated using information from the entire garden."
             }
           },
           {
-            "text": "Short connections between sequence positions can help the model learn relationships between tokens that are far apart.",
+            "text": "Because information can travel directly between any two positions, self-attention can make relationships between far-apart words easier to learn.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-self-attention",
               "quotedText": "a shorter path between any combination of sequence positions makes it easier to learn long-range dependencies within the sequence"
+            },
+            "analogies": {
+              "cooking": "Imagine a spice added early directly influencing a finishing sauce, without its effect passing through every intermediate step.",
+              "sports": "Like a goalkeeper sending a direct pass to a distant striker, making their connection easier to establish.",
+              "music": "Imagine the opening note directly guiding the final chord, making their long-range relationship easier to recognize.",
+              "video-games": "Like two players on opposite sides of a map communicating directly instead of relaying messages through every teammate.",
+              "cars": "Imagine the rear sensor directly informing the front display, avoiding a long chain of intermediate components.",
+              "gardening": "Like comparing plants at opposite ends of a garden directly, making their shared watering needs easier to notice."
             }
           }
         ]
@@ -294,7 +438,7 @@
     {
       "id": "softmax",
       "title": "Softmax",
-      "summary": "Softmax transforms neural-network outputs into a valid discrete probability distribution.",
+      "summary": "Softmax transforms neural-network outputs into a valid probability distribution over discrete classes.",
       "provenance": {
         "sourceId": "d2l-softmax-regression",
         "quotedText": "As a side effect, we encountered the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions."
@@ -305,22 +449,89 @@
         "probability"
       ],
       "lesson": {
-        "plainTitle": "Turning network outputs into probabilities",
+        "plainTitle": "Turning network scores into probabilities",
         "steps": [
           {
-            "text": "Softmax is a function that turns a neural network’s raw outputs into a valid set of probabilities for separate choices.",
+            "text": "Softmax is a function that turns a neural network’s output scores into probabilities for a set of separate classes, such as cat, dog, or bird.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-softmax-regression",
               "quotedText": "the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions."
+            },
+            "analogies": {
+              "cooking": "Imagine turning judges’ scores for separate dishes into percentage chances that each dish will win.",
+              "sports": "Like converting team ratings into win probabilities that together cover all possible teams.",
+              "music": "Imagine transforming scores for different songs into percentage chances that each song is the listener’s choice.",
+              "video-games": "Think of converting character scores into probabilities for which character class was selected.",
+              "cars": "Like turning ratings for separate car models into percentage chances that each model matches the driver’s choice.",
+              "gardening": "Imagine converting scores for different flower types into probabilities for which flower appears in a photo."
             }
           },
           {
-            "text": "When softmax is paired with cross-entropy, a common measure of prediction error, learning is guided by the difference between the expected result and the prediction.",
+            "text": "When softmax is paired with cross-entropy loss, learning uses the difference between the expected result and the network’s prediction.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-softmax-regression",
               "quotedText": "We saw that the derivative of the cross-entropy loss when combined with softmax behaves very similarly to the derivative of squared error; namely by taking the difference between the expected behavior and its prediction."
+            },
+            "analogies": {
+              "cooking": "Imagine comparing the expected winning dish with predicted chances, then adjusting the recipe based on the mismatch.",
+              "sports": "Like comparing the actual winner with predicted team probabilities, then using the error to improve future predictions.",
+              "music": "Imagine comparing the expected note with predicted note probabilities, then adjusting practice according to the mismatch.",
+              "video-games": "Like comparing the correct target with predicted choices, then using the mistake signal to improve the next attempt.",
+              "cars": "Imagine comparing the expected car model with predicted probabilities, then tuning the system based on the difference.",
+              "gardening": "Like comparing the expected plant type with predicted probabilities, then using the mismatch to refine future identification."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "softmax-ordering",
+      "title": "Softmax Preserves Ordering",
+      "summary": "Softmax preserves the ordering of its inputs, so the largest input identifies the highest-probability class.",
+      "provenance": {
+        "sourceId": "d2l-softmax-regression",
+        "quotedText": "Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability."
+      },
+      "tags": [
+        "softmax",
+        "classification",
+        "logits"
+      ],
+      "lesson": {
+        "plainTitle": "The Biggest Input Stays on Top",
+        "steps": [
+          {
+            "text": "Softmax turns input scores into probabilities without changing their order: a higher score still produces a higher probability.",
+            "stepTier": "core",
+            "citation": {
+              "sourceId": "d2l-softmax-regression",
+              "quotedText": "the softmax operation preserves the ordering among its arguments"
+            },
+            "analogies": {
+              "cooking": "Imagine ranking dishes by judges’ scores, then converting those scores into menu popularity shares; the higher-scored dish still gets the larger share.",
+              "sports": "Like turning race points into percentages of the total: athletes keep the same ranking, so higher points mean a higher percentage.",
+              "music": "Imagine converting song ratings into playlist probabilities; a song with a higher rating still has a higher chance of being selected.",
+              "video-games": "Like changing player power scores into selection chances; the player with more power still receives the greater chance.",
+              "cars": "Imagine converting car performance scores into preference probabilities; a higher-scoring car remains more likely to be chosen.",
+              "gardening": "Like turning flower-show scores into winning probabilities; the flower with the higher score still receives the higher probability."
+            }
+          },
+          {
+            "text": "To find the class with the highest probability, simply choose the class with the largest input score. You do not need to calculate all the probabilities first.",
+            "stepTier": "core",
+            "citation": {
+              "sourceId": "d2l-softmax-regression",
+              "quotedText": "we do not need to compute the softmax to determine which class has been assigned the highest probability"
+            },
+            "analogies": {
+              "cooking": "Imagine choosing the judges’ favorite dish by finding the highest score; you need not calculate every dish’s share of the total first.",
+              "sports": "Like identifying the leader by checking who has the most points, without first converting every player’s score into a percentage.",
+              "music": "Imagine picking the top-rated song directly from its rating; there is no need to compute every song’s playlist probability.",
+              "video-games": "Like selecting the strongest character by comparing power scores; choose the largest score without calculating every selection chance.",
+              "cars": "Imagine choosing the leading car by its highest performance score, without converting all car scores into preference probabilities.",
+              "gardening": "Like finding the likely flower-show winner by choosing the highest judge score, without calculating every flower’s winning probability."
             }
           }
         ]
@@ -329,7 +540,7 @@
     {
       "id": "vector-norm",
       "title": "Vector Norms",
-      "summary": "A vector norm represents the magnitude or size of a vector.",
+      "summary": "A vector norm measures the magnitude or size of a vector.",
       "provenance": {
         "sourceId": "d2l-linear-algebra",
         "quotedText": "Informally, the norm of a vector tells us how big it is."
@@ -340,38 +551,70 @@
         "norms"
       ],
       "lesson": {
-        "plainTitle": "How to Measure a Vector’s Size",
+        "plainTitle": "Measuring a Vector’s Size",
         "steps": [
           {
-            "text": "A vector’s norm is a number that tells you how large the vector is.",
+            "text": "A vector norm is a number that tells you the vector’s size or length.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "Informally, the norm of a vector tells us how big it is."
+            },
+            "analogies": {
+              "cooking": "Imagine a single score describing how large a batch of ingredients is overall.",
+              "sports": "Think of one number summarizing the length of an athlete’s movement from start to finish.",
+              "music": "Imagine one number expressing the overall size of a musical control vector.",
+              "video-games": "Like a stat that summarizes the overall size of a character’s movement vector.",
+              "cars": "Think of one gauge reading that summarizes the size of a car’s motion vector.",
+              "gardening": "Imagine one number summarizing the overall size of several measured garden changes."
             }
           },
           {
-            "text": "It measures the size of the vector’s values, not how many values the vector contains.",
+            "text": "It measures the size of the vector’s component values, not how many components the vector has.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "Here, we are employing a notion of size that concerns the magnitude of a vector's components (not its dimensionality)."
+            },
+            "analogies": {
+              "cooking": "Like judging a recipe by the ingredient amounts, not simply by counting how many ingredients are listed.",
+              "sports": "Imagine measuring the strength of recorded performance values, rather than counting how many statistics appear.",
+              "music": "Think of judging signal levels by their values, not by the number of tracks.",
+              "video-games": "Like measuring the amounts in a movement command, not merely counting its directional components.",
+              "cars": "Imagine assessing driving measurements by their values, not by how many readings the dashboard provides.",
+              "gardening": "Think of measuring the amounts of growth data, rather than counting the number of measurements."
             }
           },
           {
-            "text": "One common norm is the vector’s ordinary geometric length, found by taking the square root of the sum of its values squared.",
+            "text": "One common norm finds the vector’s length by squaring each component, adding the squares, and taking the square root.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "The Euclidean norm that we all learned in elementary school geometry when calculating the hypotenuse of a right triangle is the square root of the sum of squares of a vector's elements."
+            },
+            "analogies": {
+              "cooking": "Imagine squaring each ingredient amount, adding those results, then taking the square root to create one overall measure.",
+              "sports": "Like squaring each directional movement, adding the squares, and taking the square root to measure the overall displacement.",
+              "music": "Imagine squaring several signal values, totaling them, and taking the square root for one combined measure.",
+              "video-games": "Think of squaring horizontal and vertical movement, adding them, then taking the square root to find movement length.",
+              "cars": "Like squaring motion values in different directions, adding them, and taking the square root for overall length.",
+              "gardening": "Imagine squaring several growth changes, adding the squares, and taking the square root for one combined measure."
             }
           },
           {
-            "text": "Different valid norms can measure size in different ways.",
+            "text": "Another norm adds the absolute values of all components. Different norms can therefore represent different ideas of size.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-linear-algebra",
-              "quotedText": "Many functions are valid norms and different norms encode different notions of size."
+              "quotedText": "By definition, the norm sums the absolute values of a vector's elements:"
+            },
+            "analogies": {
+              "cooking": "Imagine adding every ingredient amount without letting negative adjustments cancel positive ones; this gives a different idea of total size.",
+              "sports": "Like adding the magnitudes of movements in every direction, producing a different size measure from straight-line distance.",
+              "music": "Think of adding each control change by magnitude, ignoring whether it rises or falls, to represent size differently.",
+              "video-games": "Imagine adding all directional movement amounts without signs; this measures total grid-like travel rather than straight-line distance.",
+              "cars": "Like adding the magnitudes of separate directional changes, giving a different view of movement size.",
+              "gardening": "Think of adding every increase or decrease by its magnitude, so all changes contribute to a different measure of total size."
             }
           }
         ]
@@ -391,14 +634,22 @@
         "scalars"
       ],
       "lesson": {
-        "plainTitle": "Vectors as fixed-length lists",
+        "plainTitle": "Vectors as Fixed-Length Lists",
         "steps": [
           {
-            "text": "A vector is a list with a set number of scalar values. A scalar is one individual number.",
+            "text": "A vector is a list with a set number of scalar values. A scalar is a single number.",
             "stepTier": "core",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "For current purposes, you can think of a vector as a fixed-length array of scalars."
+            },
+            "analogies": {
+              "cooking": "Imagine a recipe card with exactly three numbered amounts; each amount is one number, and together they form a fixed-length list.",
+              "sports": "Think of a player stat line containing exactly four numbers, such as points, assists, rebounds, and steals.",
+              "music": "Like a short rhythm pattern with exactly four numbered beat lengths, a vector holds a set number of individual numbers.",
+              "video-games": "Imagine a character status panel with exactly three numbers for health, armor, and speed.",
+              "cars": "Think of a dashboard record with exactly four numbers for speed, fuel, temperature, and mileage.",
+              "gardening": "Like a planting note with exactly three numbers for water, sunlight, and spacing."
             }
           },
           {
@@ -407,14 +658,30 @@
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "As with their code counterparts, we call these scalars the elements of the vector (synonyms include entries and components)."
+            },
+            "analogies": {
+              "cooking": "Imagine each numbered amount on a recipe card as one element, also called an entry or component.",
+              "sports": "Think of each number in a player stat line as an element, entry, or component of the complete list.",
+              "music": "Like each numbered beat length in a rhythm pattern, every value is an element, entry, or component.",
+              "video-games": "Imagine health as one element, armor as another, and speed as another in a character’s fixed list.",
+              "cars": "Think of speed, fuel, and temperature readings as separate elements, entries, or components in one list.",
+              "gardening": "Like water, sunlight, and spacing measurements, each number is an element, entry, or component of the garden list."
             }
           },
           {
-            "text": "A vector can describe one real-world example, with each component storing a meaningful measurement such as income or employment length.",
+            "text": "A vector can describe one real-world example, such as a loan applicant. Its elements might record income, employment length, and past defaults.",
             "stepTier": "deep",
             "citation": {
               "sourceId": "d2l-linear-algebra",
               "quotedText": "For example, if we were training a model to predict the risk of a loan defaulting, we might associate each applicant with a vector whose components correspond to quantities like their income, length of employment, or number of previous defaults."
+            },
+            "analogies": {
+              "cooking": "Imagine one dish represented by a vector whose elements record cooking time, oven temperature, and serving count.",
+              "sports": "Think of one athlete represented by a vector recording points, assists, and rebounds.",
+              "music": "Imagine one song represented by a vector whose elements record tempo, duration, and track count.",
+              "video-games": "Think of one game character represented by a vector recording health, armor, and experience.",
+              "cars": "Imagine one car represented by a vector whose elements record mileage, fuel level, and engine temperature.",
+              "gardening": "Think of one plant represented by a vector recording height, daily water, and hours of sunlight."
             }
           }
         ]
@@ -433,8 +700,8 @@
       "type": "prereq"
     },
     {
-      "from": "matrix-vector-product",
-      "to": "qkv",
+      "from": "qkv",
+      "to": "attention-pooling",
       "type": "prereq"
     },
     {
@@ -449,12 +716,12 @@
     },
     {
       "from": "softmax",
-      "to": "cross-entropy",
+      "to": "qkv",
       "type": "prereq"
     },
     {
       "from": "softmax",
-      "to": "qkv",
+      "to": "softmax-ordering",
       "type": "prereq"
     },
     {
