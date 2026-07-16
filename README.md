@@ -19,8 +19,8 @@ chatbot and no request-time model call.
 5. The UI loads `data/graph.json` at build time and calls the pure `getPath()` function locally.
    Marking a concept understood recomputes the remaining route from local state.
 
-The shipped artifact contains 10 concepts, 24 relationships, and the complete text of four pinned
-OER sources. Every displayed lesson passage resolves through `sourceId` and uses that concept's
+The shipped artifact contains 10 concepts, 25 relationships (10 prerequisite, 15 related), and the
+complete text of four pinned OER sources. Every displayed lesson passage resolves through `sourceId` and uses that concept's
 validated `quotedText` plus its embedded source context.
 
 ## Run it
