@@ -310,6 +310,7 @@ function loadSources(): { sources: Source[]; manifestBytes: Buffer } {
     title: entry.title,
     url: entry.url,
     license: entry.license,
+    author: entry.author,
     text: readFileSync(resolve(OER_DIR, entry.textPath), "utf8"),
   }));
   return { sources, manifestBytes: readFileSync(manifestPath) };

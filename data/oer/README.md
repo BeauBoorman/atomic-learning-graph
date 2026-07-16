@@ -1,6 +1,7 @@
 # OER corpus — the atomizer's input
 
-Every source the atomizer reads must be listed in **`sources.json`** with an **open licence**.
+Every source the atomizer reads must be listed in **`sources.json`** with an **open licence and
+attribution**.
 This is a gate, not a convention: `src/atomization/manifest.ts` (`validateManifest`) rejects the
 run if any source is missing a licence or carries a non-open one, and `pnpm atomize` reads its
 corpus **only** through it.
@@ -19,6 +20,7 @@ source IDs, and an un-listed file is a file whose licence nobody checked.
       "title": "Attention (machine learning)",
       "url": "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
       "license": "CC-BY-SA-4.0",
+      "author": "Wikipedia contributors",
       "textPath": "wikipedia-attention.txt"
     }
   ]
@@ -31,6 +33,7 @@ source IDs, and an un-listed file is a file whose licence nobody checked.
 | `title` | yes | Human-readable; shown in the UI beside the quoted passage. |
 | `url` | no | Where it came from. Optional only because some open corpora ship offline. |
 | `license` | **yes** | **Exact SPDX identifier**, from the allowlist below. Fail-closed. |
+| `author` | **yes** | Attribution copied into the shipped graph and displayed with the lesson. |
 | `textPath` | yes | Plain-text file, relative to `data/oer/`. Must exist, must be non-empty. |
 
 ## Allowed licences (exact match — `ALLOWED_LICENSES` in `src/atomization/manifest.ts`)
@@ -51,4 +54,5 @@ allowlist.
 `data/graph.json` embeds each source's complete text so provenance can be **verified** (does the
 quote actually occur here?) and **rendered** (the UI shows the cited passage with no network call).
 That means this repo republishes the source text — which is exactly why the licence field is
-required and checked. Attribution for `CC-BY*` sources comes from `title` + `url` + `license`.
+required and checked. Attribution for `CC-BY*` sources comes from `author` + `title` + `url` +
+`license`.

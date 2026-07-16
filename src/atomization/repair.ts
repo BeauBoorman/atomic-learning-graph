@@ -65,6 +65,7 @@ export interface ExpectedSource {
   title: string;
   url?: string;
   license: string;
+  author: string;
   text: string;
 }
 
@@ -132,6 +133,7 @@ function sameSource(actual: Source, expected: ExpectedSource): boolean {
     actual.title === expected.title &&
     actual.url === expected.url &&
     actual.license === expected.license &&
+    actual.author === expected.author &&
     actual.text === expected.text
   );
 }
@@ -219,6 +221,8 @@ export function convergenceIssues(
     graph.sources.some(
       (source) =>
         !ALLOWED_LICENSES.includes(source.license) ||
+        typeof source.author !== "string" ||
+        source.author.trim().length === 0 ||
         typeof source.text !== "string" ||
         source.text.length === 0,
     )

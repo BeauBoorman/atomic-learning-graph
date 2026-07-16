@@ -1,10 +1,9 @@
-// STUB — Codex implements these. Signatures are fixed by `invariants.test.ts`.
-// Each throws so the test suite is RED-with-a-reason (a failing test list, not a
-// module-resolution error). Replace the bodies; do not change the signatures.
+// Deterministic graph and citation invariants. Signatures are pinned by adversarial tests in
+// `invariants.test.ts`; change the implementation when a test fails, never weaken the contract.
 //
-// 5 HARD proof-invariants (fail-closed gates) + 1 ADVISORY reporter:
+// HARD proof-invariants (fail-closed gates) + 1 ADVISORY reporter:
 //   HARD: no orphans (roots exempt) · prereq graph is a DAG · goal reachable from a root ·
-//         provenance valid · no dangling edges
+//         concept provenance valid · lesson-step citations valid · no dangling edges
 //   ADVISORY (never gates the build): isSingleConcept — an enumeration detector, demoted 2026-07-15.
 //     See ROADMAP.md and the isSingleConcept docstring below.
 //
@@ -39,7 +38,72 @@
 // wrongly "fixed" by weakening it. Collapse whitespace runs to a single space and trim BOTH
 // sides before comparing. The fixture deliberately contains this trap — see invariants.test.ts.
 
-import type { Concept, ConceptId, Edge, LearningGraph } from "../types";
+import type { Concept, ConceptId, Edge, LearningGraph, Source } from "../types";
+
+export interface LessonCitationIssue {
+  conceptId: ConceptId;
+  stepIndex: number;
+  reason: "empty-lesson" | "unresolved-source" | "ambiguous-source" | "quote-not-found";
+}
+
+const normalizeWhitespace = (value: string): string => value.replace(/\s+/g, " ").trim();
+
+/**
+ * The single definition of a grounded quote. The source ID must be non-empty and resolve to
+ * exactly one source, and the non-empty quote must occur after whitespace normalization.
+ */
+export function quoteGrounded(sources: Source[], sourceId: string, quotedText: string): boolean {
+  if (typeof sourceId !== "string" || sourceId.trim().length === 0) return false;
+  if (typeof quotedText !== "string") return false;
+  const normalizedQuote = normalizeWhitespace(quotedText);
+  if (normalizedQuote.length === 0) return false;
+  const matches = sources.filter((source) => source.id === sourceId);
+  if (matches.length !== 1) return false;
+  if (typeof matches[0].text !== "string") return false;
+  return normalizeWhitespace(matches[0].text).includes(normalizedQuote);
+}
+
+function lessonCitationReason(
+  sources: Source[],
+  sourceId: unknown,
+  quotedText: unknown,
+): Exclude<LessonCitationIssue["reason"], "empty-lesson"> {
+  if (typeof sourceId !== "string" || sourceId.trim().length === 0) return "unresolved-source";
+  const matches = sources.filter((source) => source.id === sourceId);
+  if (matches.length === 0) return "unresolved-source";
+  if (matches.length > 1) return "ambiguous-source";
+  if (typeof quotedText !== "string" || normalizeWhitespace(quotedText).length === 0) {
+    return "quote-not-found";
+  }
+  return "quote-not-found";
+}
+
+/**
+ * Typed failures for every lesson unit that may be rendered. A missing or short lesson receives
+ * the concept-level sentinel `stepIndex: -1`; actual citation failures retain their array index.
+ * This proves only that the cited source span is real, not that the AI translation is faithful.
+ */
+export function invalidLessonCitations(graph: LearningGraph): LessonCitationIssue[] {
+  const issues: LessonCitationIssue[] = [];
+  for (const concept of graph.concepts) {
+    const steps = Array.isArray(concept.lesson?.steps) ? concept.lesson.steps : [];
+    if (steps.length < 2) {
+      issues.push({ conceptId: concept.id, stepIndex: -1, reason: "empty-lesson" });
+    }
+
+    for (const [stepIndex, step] of steps.entries()) {
+      const sourceId = step?.citation?.sourceId;
+      const quotedText = step?.citation?.quotedText;
+      if (quoteGrounded(graph.sources, sourceId, quotedText)) continue;
+      issues.push({
+        conceptId: concept.id,
+        stepIndex,
+        reason: lessonCitationReason(graph.sources, sourceId, quotedText),
+      });
+    }
+  }
+  return issues;
+}
 
 /**
  * True if the PREREQUISITE edges contain a cycle.
@@ -230,26 +294,15 @@ export function pathExists(graph: LearningGraph, target: ConceptId): boolean {
  * does not prove the node is CORRECT. Do not overclaim it.
  */
 export function invalidProvenance(graph: LearningGraph): ConceptId[] {
-  const sourcesById = new Map<string, typeof graph.sources>();
-  for (const source of graph.sources) {
-    const matches = sourcesById.get(source.id) ?? [];
-    matches.push(source);
-    sourcesById.set(source.id, matches);
-  }
-  const normalizeWhitespace = (value: string): string => value.replace(/\s+/g, " ").trim();
-
   return graph.concepts
-    .filter((concept) => {
-      const sourceId = concept.provenance?.sourceId;
-      const quotedText = concept.provenance?.quotedText;
-      if (typeof sourceId !== "string" || sourceId.trim().length === 0) return true;
-      if (typeof quotedText !== "string") return true;
-      const normalizedQuote = normalizeWhitespace(quotedText);
-      if (normalizedQuote.length === 0) return true;
-      const sources = sourcesById.get(sourceId);
-      if (!sources || sources.length !== 1) return true;
-      return !normalizeWhitespace(sources[0].text).includes(normalizedQuote);
-    })
+    .filter(
+      (concept) =>
+        !quoteGrounded(
+          graph.sources,
+          concept.provenance?.sourceId,
+          concept.provenance?.quotedText,
+        ),
+    )
     .map((concept) => concept.id);
 }
 

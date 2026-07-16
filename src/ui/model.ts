@@ -1,7 +1,7 @@
 import type { Concept, ConceptId, LearningGraph, Source } from "../types";
 import { getPath } from "../graph/path";
 
-export interface Lesson {
+export interface ResolvedPassage {
   concept: Concept;
   source: Source;
   /** The complete source paragraph/line that contains the verified quote. */
@@ -23,7 +23,7 @@ export function markUnderstood(
   return { known: nextKnown, path: getPath(graph, graph.goalId, nextKnown) };
 }
 
-export function resolveLesson(graph: LearningGraph, conceptId: ConceptId): Lesson {
+export function resolveLesson(graph: LearningGraph, conceptId: ConceptId): ResolvedPassage {
   const concept = graph.concepts.find((candidate) => candidate.id === conceptId);
   if (!concept) throw new Error(`unknown lesson concept: ${conceptId}`);
 

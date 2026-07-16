@@ -46,7 +46,13 @@ export const GOLDEN_PATH = [
 export const fixtureGraph: LearningGraph = {
   goalId: "self-attention",
   sources: [
-    { id: "s1", title: "How LLMs work (primer)", license: "CC-BY-SA-4.0", text: SOURCE_TEXT },
+    {
+      id: "s1",
+      title: "How LLMs work (primer)",
+      license: "CC-BY-SA-4.0",
+      author: "Fixture author",
+      text: SOURCE_TEXT,
+    },
   ],
   concepts: GOLDEN_PATH.map(
     (id): Concept => ({
@@ -55,6 +61,21 @@ export const fixtureGraph: LearningGraph = {
       summary: `single concept: ${id}`,
       provenance: { sourceId: "s1", quotedText: QUOTES[id] },
       tags: ["llm"],
+      lesson: {
+        plainTitle: id,
+        steps: [
+          {
+            text: `Start with the plain-language idea behind ${id}.`,
+            stepTier: "core",
+            citation: { sourceId: "s1", quotedText: QUOTES[id] },
+          },
+          {
+            text: `Then connect ${id} to the learning path.`,
+            stepTier: "deep",
+            citation: { sourceId: "s1", quotedText: QUOTES[id] },
+          },
+        ],
+      },
     })
   ),
   edges: [

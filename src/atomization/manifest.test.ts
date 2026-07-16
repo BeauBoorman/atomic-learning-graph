@@ -23,6 +23,7 @@ const valid: SourceManifestEntry = {
   title: "Attention (machine learning)",
   url: "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
   license: "CC-BY-SA-4.0",
+  author: "Wikipedia contributors",
   textPath: "wikipedia-attention.txt",
 };
 
@@ -109,6 +110,12 @@ describe("validateManifest — the licence gate", () => {
     expectRejected(manifestWithout("title"));
     expectRejected(manifestWithout("textPath"));
     expectRejected(manifestWith({ id: "  " }));
+  });
+
+  it("REJECTS a source with missing or blank attribution", () => {
+    expectRejected(manifestWithout("author"));
+    expectRejected(manifestWith({ author: "" }));
+    expectRejected(manifestWith({ author: "   " }));
   });
 
   // Downstream, `invalidProvenance` rejects a concept citing an ambiguous source ID. Reject it here

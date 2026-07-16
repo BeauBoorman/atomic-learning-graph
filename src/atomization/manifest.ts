@@ -44,6 +44,8 @@ export interface SourceManifestEntry {
   url?: string;
   /** SPDX licence identifier. MUST be in ALLOWED_LICENSES — see the fail-closed rule below. */
   license: string;
+  /** Required attribution copied into the shipped graph. */
+  author: string;
   /** Path to the source text, RELATIVE to `data/oer/`. The file must exist and be non-empty. */
   textPath: string;
 }
@@ -89,7 +91,7 @@ export const ALLOWED_LICENSES: readonly string[] = [
  *   - the parsed value is not an object with a non-empty `sources` array. An EMPTY corpus is a
  *     failure, never an empty graph: an empty graph vacuously satisfies several invariants and
  *     produces a FALSE GREEN (same reasoning as `load.ts`);
- *   - any entry is missing `id`, `title`, `license` or `textPath`, or has one that is empty/blank;
+ *   - any entry is missing `id`, `title`, `license`, `author` or `textPath`, or is empty/blank;
  *   - any `license` is not an EXACT member of ALLOWED_LICENSES (this is the whole point);
  *   - two entries share an `id` — provenance citing an ambiguous source ID is unresolvable
  *     (see `invalidProvenance` in ../graph/invariants.ts, which rejects the same thing downstream);
@@ -116,7 +118,7 @@ export function validateManifest(raw: unknown): SourceManifestEntry[] {
     }
 
     const entry = rawEntry as Record<string, unknown>;
-    for (const field of ["id", "title", "license", "textPath"] as const) {
+    for (const field of ["id", "title", "license", "author", "textPath"] as const) {
       if (typeof entry[field] !== "string" || entry[field].trim().length === 0) {
         throw new Error(`invalid source manifest: sources[${index}].${field} must be a non-blank string`);
       }
@@ -125,6 +127,7 @@ export function validateManifest(raw: unknown): SourceManifestEntry[] {
     const id = entry.id as string;
     const title = entry.title as string;
     const license = entry.license as string;
+    const author = entry.author as string;
     const textPath = entry.textPath as string;
 
     if (!ALLOWED_LICENSES.includes(license)) {
@@ -156,7 +159,7 @@ export function validateManifest(raw: unknown): SourceManifestEntry[] {
       );
     }
 
-    const validated: SourceManifestEntry = { id, title, license, textPath };
+    const validated: SourceManifestEntry = { id, title, license, author, textPath };
     if (entry.url !== undefined) {
       if (typeof entry.url !== "string") {
         throw new Error(`invalid source manifest: sources[${index}].url must be a string when present`);

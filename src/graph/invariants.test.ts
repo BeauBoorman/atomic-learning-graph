@@ -24,6 +24,8 @@ import {
   danglingEdges,
   pathExists,
   invalidProvenance,
+  invalidLessonCitations,
+  quoteGrounded,
   isSingleConcept,
 } from "./invariants";
 import { loadGraph } from "./load"; // Codex: reads data/graph.json
@@ -343,7 +345,13 @@ describe("invalidProvenance — teeth (this is the credibility claim)", () => {
       ...fixture,
       sources: [
         ...fixture.sources,
-        { id: "s1", title: "A different document", license: "CC-BY-4.0", text: "Unrelated text." },
+        {
+          id: "s1",
+          title: "A different document",
+          license: "CC-BY-4.0",
+          author: "Another fixture author",
+          text: "Unrelated text.",
+        },
       ],
     };
     expect([...invalidProvenance(duplicateSources)].sort()).toEqual(
@@ -381,6 +389,78 @@ describe("invalidProvenance — teeth (this is the credibility claim)", () => {
   it("does NOT false-fail a real quote whose whitespace differs from the source", () => {
     expect(SOURCE_TEXT).toContain("into\na probability"); // the trap is really in the source
     expect(invalidProvenance(fixture)).toEqual([]); // and the fixture still validates
+  });
+});
+
+describe("invalidLessonCitations — every on-screen unit is grounded", () => {
+  it("accepts the two-step grounded fixture", () => {
+    expect(invalidLessonCitations(fixture)).toEqual([]);
+  });
+
+  it("reports one typed empty-lesson issue when a lesson is missing", () => {
+    const graph = structuredClone(fixture);
+    graph.concepts[0].lesson = undefined;
+    expect(invalidLessonCitations(graph)).toContainEqual({
+      conceptId: "vectors",
+      stepIndex: -1,
+      reason: "empty-lesson",
+    });
+  });
+
+  it("reports one typed empty-lesson issue when fewer than two steps exist", () => {
+    const graph = structuredClone(fixture);
+    graph.concepts[0].lesson?.steps.splice(1);
+    expect(invalidLessonCitations(graph)).toContainEqual({
+      conceptId: "vectors",
+      stepIndex: -1,
+      reason: "empty-lesson",
+    });
+  });
+
+  it("identifies the exact step whose quote is not in its source", () => {
+    const graph = structuredClone(fixture);
+    const lesson = graph.concepts.find((concept) => concept.id === "qkv")?.lesson;
+    if (!lesson) throw new Error("test setup: qkv lesson missing");
+    lesson.steps[1].citation.quotedText = "This citation was fabricated.";
+
+    expect(invalidLessonCitations(graph)).toEqual([
+      { conceptId: "qkv", stepIndex: 1, reason: "quote-not-found" },
+    ]);
+    // Keep the original on-camera invariant crisp: lesson failures do not widen its scope.
+    expect(invalidProvenance(graph)).toEqual([]);
+  });
+
+  it("classifies unresolved and ambiguous source IDs", () => {
+    const unresolved = structuredClone(fixture);
+    const unresolvedLesson = unresolved.concepts[0].lesson;
+    if (!unresolvedLesson) throw new Error("test setup: vectors lesson missing");
+    unresolvedLesson.steps[0].citation.sourceId = "missing";
+    expect(invalidLessonCitations(unresolved)).toContainEqual({
+      conceptId: "vectors",
+      stepIndex: 0,
+      reason: "unresolved-source",
+    });
+
+    const ambiguous = structuredClone(fixture);
+    ambiguous.sources.push({
+      id: "s1",
+      title: "A different document",
+      license: "CC-BY-4.0",
+      author: "Another fixture author",
+      text: SOURCE_TEXT,
+    });
+    expect(invalidLessonCitations(ambiguous)).toContainEqual({
+      conceptId: "vectors",
+      stepIndex: 0,
+      reason: "ambiguous-source",
+    });
+  });
+
+  it("normalizes whitespace through the shared grounding predicate", () => {
+    const quote = "Softmax turns a vector of scores into a probability distribution that sums to one.";
+    expect(SOURCE_TEXT).toContain("into\na probability");
+    expect(quoteGrounded(fixture.sources, "s1", quote)).toBe(true);
+    expect(invalidLessonCitations(fixture)).toEqual([]);
   });
 });
 

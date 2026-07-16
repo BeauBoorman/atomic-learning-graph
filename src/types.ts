@@ -33,6 +33,8 @@ export interface Source {
    * on the vetted allowlist. This field carries that vetted value through into the shipped graph.
    */
   license: string;
+  /** Required attribution for the openly licensed source. */
+  author: string;
   /** Full source text. The ground truth every quote is checked against. */
   text: string;
 }
@@ -72,21 +74,26 @@ export interface Edge {
   type: EdgeType;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────────────────────
-// CUT FROM THE MVP (2026-07-13): `Rendering` / `RenderingFormat` — the multi-format lesson bodies
-// ("90-sec" / "deep" / "eli5"). Three independent reviewers converged on cutting it, for a reason
-// that is not about scope:
-//
-//   `invalidProvenance` returns ConceptId[] — it STRUCTURALLY CANNOT express "this rendering's
-//   quote is ungrounded". So a generated lesson body could be shown in the UI, unsupported by any
-//   source, while every provenance test stayed green. That is a hole in the exact claim the whole
-//   project rests on — a node the graph cannot prove, presented as if it could.
-//
-// The right fix is either (a) make provenance validation cover renderings with typed issue IDs, or
-// (b) delete the surface. For an 8-day build with one person, (b) — the demo renders lesson text
-// from the concept's own provenance, which IS validated. The "infinite renderings" idea stays in
-// the README roadmap; it just isn't a type the MVP can leave unguarded.
-// ─────────────────────────────────────────────────────────────────────────────────────────────
+/**
+ * One page of AI-translated lesson prose. `text` is plain-language translation, NOT a verbatim
+ * quote and NOT machine-proven to be a faithful paraphrase. What the machine proves is narrower:
+ * this exact on-screen unit carries a co-located, verbatim citation that resolves against the
+ * openly licensed source text. `invalidLessonCitations` enforces that boundary per step.
+ */
+export interface LessonStep {
+  text: string;
+  /** Within-concept depth. The quick path renders core steps; deep steps are enrichment. */
+  stepTier: "core" | "deep";
+  /** Validated by the same quote-grounding predicate as `Concept.provenance`. */
+  citation: Provenance;
+}
+
+export interface Lesson {
+  /** Jargon-free title shown on the lesson page. */
+  plainTitle: string;
+  /** Two to four ordered pages; every page must be independently grounded. */
+  steps: LessonStep[];
+}
 
 /**
  * A canonical node in the graph: exactly ONE self-contained concept or skill.
@@ -104,6 +111,8 @@ export interface Concept {
   summary: string;
   provenance: Provenance;
   tags: string[];
+  /** Optional only for fixture ergonomics; `invalidLessonCitations` requires it at build time. */
+  lesson?: Lesson;
 }
 
 export interface LearningGraph {
