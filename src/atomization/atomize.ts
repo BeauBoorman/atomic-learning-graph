@@ -3,22 +3,27 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AtomizedConcept, Concept, Edge, LearningGraph, Source } from "../types";
 import { reportAtomicityWarnings } from "../graph/atomicity-report";
-import { invalidProvenance } from "../graph/invariants";
+import { invalidLessonCitations, invalidProvenance } from "../graph/invariants";
+import { checkLessonReadability } from "../graph/readability";
 import { MANIFEST_PATH, OER_DIR, loadManifest, validateManifest } from "./manifest";
 import {
   GOLDEN_PATH,
   GoldenGraphHalt,
-  convergeLessonCitations,
   convergeGraph,
   type ExpectedSource,
 } from "./repair";
 import { writeGraphArtifact } from "./artifacts";
+import { groundedQuote } from "./grounding";
+import {
+  PROMPT_VERSION,
+  translateAndConvergeLessons,
+  type TranslationRequestOptions,
+} from "./translate";
 
-const PROMPT_VERSION = "atomizer-v1-extractive-two-phase";
 const GRAPH_PATH = resolve(OER_DIR, "..", "graph.json");
 const RUN_LOG_PATH = resolve(OER_DIR, "..", "graph.run.json");
 const ATOMICITY_REPORT_PATH = resolve(OER_DIR, "..", "atomicity-report.json");
-const MODEL_CANDIDATES = [process.env.OPENAI_MODEL ?? "gpt-5.6-sol", "gpt-5.4"];
+const MODEL_CANDIDATES = [process.env.OPENAI_MODEL ?? "gpt-5.6-sol"];
 
 type JsonObject = Record<string, unknown>;
 
@@ -138,25 +143,20 @@ class ResponsesClient {
     }
     if (!this.model) throw new Error(`none of the pinned GPT-5.x candidates are available: ${candidates.join(", ")}`);
 
-    try {
-      const probe = await this.request(
-        "Return exactly the requested object.",
-        "Set ok to true.",
-        {
-          type: "object",
-          properties: { ok: { type: "boolean" } },
-          required: ["ok"],
-          additionalProperties: false,
-        },
-        "strict_probe",
-        true,
-      );
-      if (probe.ok !== true) throw new Error("strict probe returned the wrong value");
-      this.strictSchema = true;
-    } catch (error) {
-      this.strictSchema = false;
-      console.warn(`Strict Structured Outputs probe failed; using parse-and-validate fallback: ${String(error)}`);
-    }
+    const probe = await this.request(
+      "Return exactly the requested object.",
+      "Set ok to true.",
+      {
+        type: "object",
+        properties: { ok: { type: "boolean" } },
+        required: ["ok"],
+        additionalProperties: false,
+      },
+      "strict_probe",
+      { forceStrict: true },
+    );
+    if (probe.ok !== true) throw new Error("strict Structured Outputs probe returned the wrong value");
+    this.strictSchema = true;
   }
 
   async request(
@@ -164,15 +164,15 @@ class ResponsesClient {
     input: string,
     schema: JsonObject,
     schemaName: string,
-    forceStrict = false,
+    options: Partial<TranslationRequestOptions> = {},
   ): Promise<JsonObject> {
-    const useStrict = forceStrict || this.strictSchema;
+    const useStrict = options.forceStrict || this.strictSchema;
     const body: JsonObject = {
       model: this.model,
       instructions,
       input,
       reasoning: { effort: "low" },
-      max_output_tokens: 10000,
+      max_output_tokens: options.maxOutputTokens ?? 10000,
     };
     if (useStrict) {
       body.text = {
@@ -249,14 +249,6 @@ function dedupeConcepts(concepts: AtomizedConcept[]): AtomizedConcept[] {
     out.push({ ...concept, id });
   }
   return out;
-}
-
-function groundedQuote(sourceText: string, proposedQuote: string): string | undefined {
-  const tokens = proposedQuote.trim().split(/\s+/).filter(Boolean);
-  if (tokens.length === 0) return undefined;
-  const escaped = tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const match = sourceText.match(new RegExp(escaped.join("\\s+"), "u"));
-  return match?.[0];
 }
 
 function sourcePassages(sourceText: string): string[] {
@@ -482,7 +474,15 @@ async function runToy(client: ResponsesClient, sources: Source[]): Promise<void>
   if (graph.concepts.length < 3 || invalidProvenance(graph).length > 0) {
     throw new Error("toy dry-run failed grounding or concept-count checks");
   }
-  console.log(`TOY DRY RUN PASS: ${graph.concepts.length} grounded concepts; no artifact written.`);
+  const translated = await translateAndConvergeLessons(graph, client);
+  const lessonIssues = invalidLessonCitations(translated);
+  if (lessonIssues.length > 0) {
+    throw new Error(`toy dry-run failed lesson citation checks: ${JSON.stringify(lessonIssues)}`);
+  }
+  checkLessonReadability(translated);
+  console.log(
+    `TOY DRY RUN PASS: ${translated.concepts.length} grounded concepts with translated lessons; no artifact written.`,
+  );
 }
 
 async function main(): Promise<void> {
@@ -540,12 +540,12 @@ async function main(): Promise<void> {
     },
   });
 
-  const converged = await convergeLessonCitations(baseConverged);
-  const warnings = reportAtomicityWarnings(converged);
+  const converged = await translateAndConvergeLessons(baseConverged, client);
+  const readabilityWarnings = checkLessonReadability(converged);
+  const warnings = [...reportAtomicityWarnings(converged), ...readabilityWarnings];
 
-  // The sole graph write is guarded again at the artifact boundary. Phase 4 inserts translated
-  // lessons between base convergence and this lesson-only pass; deterministic floors keep this
-  // intermediate code-only phase grounded until then.
+  // The sole graph write is guarded again at the artifact boundary, after lesson-only convergence
+  // and the hard readability floor have both passed.
   const graphBytes = writeGraphArtifact(GRAPH_PATH, converged);
   const runLog = {
     model: client.modelSnapshot || client.model,

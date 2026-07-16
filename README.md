@@ -11,17 +11,18 @@ chatbot and no request-time model call.
 ## The loop
 
 1. The build pipeline licence-checks every corpus source before model ingestion.
-2. GPT-5.6 extracts grounded concepts and proposes relationships between frozen concept IDs.
-3. A bounded validate → repair → re-validate loop checks cycles, orphans, dangling edges, goal
-   reachability, and quote-primary provenance.
+2. GPT-5.6 extracts grounded concepts, proposes relationships between frozen concept IDs, and
+   translates each converged concept into short lesson steps with per-step citations.
+3. Bounded validate → repair → re-validate loops check graph structure, goal reachability,
+   quote-primary provenance, lesson citations, and the hard readability floor.
 4. On convergence, `pnpm atomize` writes the sorted graph and run log. It never writes a failing
    graph.
 5. The UI loads `data/graph.json` at build time and calls the pure `getPath()` function locally.
    Marking a concept understood recomputes the remaining route from local state.
 
-The shipped artifact contains 10 concepts, 25 relationships (10 prerequisite, 15 related), and the
-complete text of four pinned OER sources. Every displayed lesson passage resolves through `sourceId` and uses that concept's
-validated `quotedText` plus its embedded source context.
+The shipped artifact contains 9 concepts, 9 prerequisite relationships, and the complete text of
+four pinned OER sources. Every displayed lesson step resolves its own `sourceId` and validated
+`quotedText` against the embedded source text.
 
 ## Run it
 
@@ -57,7 +58,8 @@ checksum to detect post-run changes. See [ADR 001](docs/adr/001-commit-the-gener
 
 - `data/oer/` — pinned upstream Markdown, deterministically extracted source text, and the fail-closed source manifest.
 - `src/atomization/manifest.ts` — exact-match SPDX allowlist and manifest validation.
-- `src/atomization/atomize.ts` — extractive two-phase atomization and bounded convergence loop.
+- `src/atomization/atomize.ts` — three-phase inventory, relationship, and cited-translation build.
+- `src/atomization/translate.ts` — strict lesson schema, anchored excerpts, quote repair, and floors.
 - `src/graph/invariants.ts` — the five hard deterministic proof invariants.
 - `src/graph/atomicity-report.ts` — an advisory-only concept atomicity reporter; never a gate.
 - `src/graph/path.ts` — deterministic prerequisite-ancestor walk with a stable tie-break.

@@ -1,4 +1,36 @@
 {
   "advisoryOnly": true,
-  "warnings": []
+  "warnings": [
+    {
+      "conceptId": "vector-norm",
+      "summary": "A vector norm represents the magnitude or size of a vector.",
+      "signal": "coordinating-and-or",
+      "reason": "summary reads as an enumeration: A vector norm represents the magnitude or size of a vector.",
+      "confidence": "high"
+    },
+    {
+      "conceptId": "cross-entropy",
+      "grade": 14.51,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 14.51"
+    },
+    {
+      "conceptId": "positional-encoding",
+      "grade": 10.16,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 10.16"
+    },
+    {
+      "conceptId": "self-attention",
+      "grade": 11.71,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 11.71"
+    },
+    {
+      "conceptId": "softmax",
+      "grade": 13.9,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 13.9"
+    }
+  ]
 }

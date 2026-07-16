@@ -482,6 +482,10 @@ describe("generated data/graph.json", () => {
     expect(invalidProvenance(g)).toEqual([]);
   });
 
+  it("grounds every generated lesson step in its declared source", () => {
+    expect(invalidLessonCitations(loadGraph())).toEqual([]);
+  });
+
   it("reaches the demo goal 'self-attention'", () => {
     const g = loadGraph();
     expect(g.goalId).toBe("self-attention");

@@ -1,15 +1,23 @@
 {
   "model": "gpt-5.6-sol",
   "requestedModel": "gpt-5.6-sol",
-  "promptVersion": "atomizer-v1-extractive-two-phase",
+  "promptVersion": "atomizer-v2-translate-three-phase",
   "strictStructuredOutputs": true,
-  "manifestSha256": "3c21c8e2062173530a74a6f207f34aad439b3223ce66c5b69a9093b9f29291b6",
-  "graphSha256": "8b412198ccae97061807c0583ad0e213f11a74e21e340b9942a8b102e5958d0a",
+  "manifestSha256": "f001e14587941340f4b61ec2fb0f6f0cd4833cd6335ea3d89e16ef525d6cd7cb",
+  "graphSha256": "2e21d505de4b5a8129b92ff7832560eefbef9661717fe72bf45fad4a3a7c8967",
   "responseIds": [
-    "resp_0388a764f9e7e0bd006a585c9c184c8190894f0299dcf47097",
-    "resp_04bc218df588c65b006a585c9db030819492000d7ca286ff4d",
-    "resp_09ee51a36aa699dc006a585cbef5f08196953925967565f2e1",
-    "resp_046bebdf49db3132006a585cc40b108193b1de69e084f41ef6"
+    "resp_04fddce5e88f8ff7006a587d375b2881969427f31542d34e8d",
+    "resp_0c55dae6c34d22e2006a587d3868188190aad6a9a886559644",
+    "resp_0c153e26f004050f006a587d4ce9988195ac1db1f627e3823d",
+    "resp_0f0ae8d3d2a9ad6b006a587d6a6c408197a8b6848d52d68a98",
+    "resp_083621bb8e2d8b45006a587d708600819598eef3fc6ecf03d2",
+    "resp_0c3680c7227a00cb006a587d78a06881959d680b6be2a2fc80",
+    "resp_0f17eb7f0808abc2006a587d827f70819595e73b90d4ff6417",
+    "resp_0032de601ca9f09b006a587d8c0dec81948db78fb9dfa53a72",
+    "resp_07a1a1591d6f225c006a587d94016081939604a8ea48d22214",
+    "resp_0bf5e6f712759860006a587d9ac76881908c3324cc7ccc6228",
+    "resp_0736b96c59d7f099006a587d9f70988197a1efb99effaef5fd",
+    "resp_0f3d2948512337b1006a587da4d5708197ac96daed67caa3f5"
   ],
   "convergence": [
     {

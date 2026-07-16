@@ -13,4 +13,13 @@ describe("generated graph run log", () => {
     };
     expect(createHash("sha256").update(graph).digest("hex")).toBe(run.graphSha256);
   });
+
+  it("records the strict three-phase translation prompt", () => {
+    const run = JSON.parse(readFileSync(resolve(repoRoot, "data", "graph.run.json"), "utf8")) as {
+      promptVersion?: string;
+      strictStructuredOutputs?: boolean;
+    };
+    expect(run.promptVersion).toBe("atomizer-v2-translate-three-phase");
+    expect(run.strictStructuredOutputs).toBe(true);
+  });
 });

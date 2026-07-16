@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LearningGraph } from "../types";
 import { fixtureGraph } from "./fixture-graph";
+import { loadGraph } from "./load";
 import {
   READABILITY_ADVISORY_GRADE,
   READABILITY_HARD_FLOOR,
@@ -58,5 +59,9 @@ describe("lesson readability", () => {
     expect((thrown as ReadabilityFloorError).failures).toContainEqual(
       expect.objectContaining({ conceptId: "vectors" }),
     );
+  });
+
+  it("keeps every generated lesson at or below the hard readability floor", () => {
+    expect(() => checkLessonReadability(loadGraph())).not.toThrow();
   });
 });
