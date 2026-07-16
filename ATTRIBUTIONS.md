@@ -1,40 +1,44 @@
 # Attributions
 
-The source texts under `data/oer/` are redistributed under their source licences. The project
-code is separately licensed under MIT; see `LICENSE` and `DATA-LICENSE`.
+The source texts under `data/oer/` and the AI-translated lesson adaptations are distributed under
+CC-BY-SA-4.0. See `LICENSE`, `NOTICE`, and `DATA-LICENSE`.
 
-## Euclidean vector
+## Dive into Deep Learning — 2.3 Linear Algebra
 
-- Source: [pinned revision](https://en.wikipedia.org/wiki/Euclidean_vector?oldid=1362285945)
-- Author: Wikipedia contributors
+- Source: [pinned v1.0.3 revision](https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md)
+- Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
 - Licence: `CC-BY-SA-4.0` ([licence deed](https://creativecommons.org/licenses/by-sa/4.0/))
-- Licence evidence: [CC statement on the pinned page](https://en.wikipedia.org/wiki/Euclidean_vector?oldid=1362285945) — “Text is available under the Creative Commons Attribution-ShareAlike 4.0 License.”
-- Stored text SHA-256: `18c5adf1a0a1054e11df940718b6143e08edbd54bb2827890ab845de5be109e8`
-- Modifications made: Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.
+- Licence evidence: [licence text at the pinned commit](https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE)
+- Upstream Markdown SHA-256: `5cc01c28161cfac142e45e748db30d7534c0ac759cefdab1bb04ada26543c89a`
+- Extracted text SHA-256: `5fd201cebf4d550f92d3e424ce587ac82d1127478cbf8ac3a4aa16321c9bf000`
+- Modifications made: Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.
 
-## Dot product
+## Dive into Deep Learning — 4.1 Softmax Regression
 
-- Source: [pinned revision](https://en.wikipedia.org/wiki/Dot_product?oldid=1363226908)
-- Author: Wikipedia contributors
+- Source: [pinned v1.0.3 revision](https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md)
+- Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
 - Licence: `CC-BY-SA-4.0` ([licence deed](https://creativecommons.org/licenses/by-sa/4.0/))
-- Licence evidence: [CC statement on the pinned page](https://en.wikipedia.org/wiki/Dot_product?oldid=1363226908) — “Text is available under the Creative Commons Attribution-ShareAlike 4.0 License.”
-- Stored text SHA-256: `84d4eb55813d5220ec5d3a93b427d461c13d6228a0aa89bf359a5206479a4afb`
-- Modifications made: Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.
+- Licence evidence: [licence text at the pinned commit](https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE)
+- Upstream Markdown SHA-256: `82c997368fa3003b2d8e44742da8e3bf4459ee7f1d24caba4e358f95166366b7`
+- Extracted text SHA-256: `9b4eecd38cc1e5caaf4196e65dfaad491c3285fa200144db7c4a2672034c9924`
+- Modifications made: Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.
 
-## Softmax function
+## Dive into Deep Learning — 11.1 Queries, Keys, and Values
 
-- Source: [pinned revision](https://en.wikipedia.org/wiki/Softmax_function?oldid=1361846646)
-- Author: Wikipedia contributors
+- Source: [pinned v1.0.3 revision](https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md)
+- Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
 - Licence: `CC-BY-SA-4.0` ([licence deed](https://creativecommons.org/licenses/by-sa/4.0/))
-- Licence evidence: [CC statement on the pinned page](https://en.wikipedia.org/wiki/Softmax_function?oldid=1361846646) — “Text is available under the Creative Commons Attribution-ShareAlike 4.0 License.”
-- Stored text SHA-256: `319cab4f8889be1346bbc72f1f26c4a767432960cff3c230318c44877309a201`
-- Modifications made: Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.
+- Licence evidence: [licence text at the pinned commit](https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE)
+- Upstream Markdown SHA-256: `880642f004c40c95fc5ecc0b6dee98aedb5fc014ab814bbff35838441de12c8d`
+- Extracted text SHA-256: `0a7b3a92b3bda596bb4203fa630b019f0ddfb2fa779b7079cbccdef8a13178c6`
+- Modifications made: Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.
 
-## Attention (machine learning)
+## Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding
 
-- Source: [pinned revision](https://en.wikipedia.org/wiki/Attention_(machine_learning)?oldid=1361482961)
-- Author: Wikipedia contributors
+- Source: [pinned v1.0.3 revision](https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md)
+- Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
 - Licence: `CC-BY-SA-4.0` ([licence deed](https://creativecommons.org/licenses/by-sa/4.0/))
-- Licence evidence: [CC statement on the pinned page](https://en.wikipedia.org/wiki/Attention_(machine_learning)?oldid=1361482961) — “Text is available under the Creative Commons Attribution-ShareAlike 4.0 License.”
-- Stored text SHA-256: `f71803f27555c1b18c3f32b0fac26cb53c48d91143fbbf1851d665500e2a6b64`
-- Modifications made: Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.
+- Licence evidence: [licence text at the pinned commit](https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE)
+- Upstream Markdown SHA-256: `8b6eeedba841fbd231edaa5f0f1524bf17c82449623bd2e46f8da21a0cead35f`
+- Extracted text SHA-256: `d85a0d9cd44d297a015bb6dba6c178529656cb3f1ceff2398799e8fe038f2f01`
+- Modifications made: Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.

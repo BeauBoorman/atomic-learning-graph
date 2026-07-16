@@ -1,67 +1,95 @@
 {
   "sources": [
     {
-      "id": "wikipedia-euclidean-vector",
-      "title": "Euclidean vector",
-      "url": "https://en.wikipedia.org/wiki/Euclidean_vector?oldid=1362285945",
+      "id": "d2l-linear-algebra",
+      "title": "Dive into Deep Learning — 2.3 Linear Algebra",
+      "url": "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md",
       "license": "CC-BY-SA-4.0",
-      "textPath": "wikipedia-euclidean-vector.txt",
-      "sha256": "18c5adf1a0a1054e11df940718b6143e08edbd54bb2827890ab845de5be109e8",
-      "author": "Wikipedia contributors",
-      "licenseEvidence": {
-        "url": "https://en.wikipedia.org/wiki/Euclidean_vector?oldid=1362285945",
-        "statement": "Text is available under the Creative Commons Attribution-ShareAlike 4.0 License",
-        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 License"
+      "textPath": "d2l-linear-algebra.txt",
+      "sha256": "5fd201cebf4d550f92d3e424ce587ac82d1127478cbf8ac3a4aa16321c9bf000",
+      "sourceSha256": "5cc01c28161cfac142e45e748db30d7534c0ac759cefdab1bb04ada26543c89a",
+      "author": "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola",
+      "revision": {
+        "repo": "https://github.com/d2l-ai/d2l-en",
+        "tag": "v1.0.3",
+        "commit": "b2e2ae30898a9d0126a9699ae7e441de3e272715",
+        "sourceFile": "chapter_preliminaries/linear-algebra.md"
       },
-      "modifications": "Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE",
+        "statement": "Creative Commons Attribution-ShareAlike 4.0 International Public License",
+        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 International Public License"
+      },
+      "modifications": "Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.",
       "licenseDeed": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
-      "id": "wikipedia-dot-product",
-      "title": "Dot product",
-      "url": "https://en.wikipedia.org/wiki/Dot_product?oldid=1363226908",
+      "id": "d2l-softmax-regression",
+      "title": "Dive into Deep Learning — 4.1 Softmax Regression",
+      "url": "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md",
       "license": "CC-BY-SA-4.0",
-      "textPath": "wikipedia-dot-product.txt",
-      "sha256": "84d4eb55813d5220ec5d3a93b427d461c13d6228a0aa89bf359a5206479a4afb",
-      "author": "Wikipedia contributors",
-      "licenseEvidence": {
-        "url": "https://en.wikipedia.org/wiki/Dot_product?oldid=1363226908",
-        "statement": "Text is available under the Creative Commons Attribution-ShareAlike 4.0 License",
-        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 License"
+      "textPath": "d2l-softmax-regression.txt",
+      "sha256": "9b4eecd38cc1e5caaf4196e65dfaad491c3285fa200144db7c4a2672034c9924",
+      "sourceSha256": "82c997368fa3003b2d8e44742da8e3bf4459ee7f1d24caba4e358f95166366b7",
+      "author": "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola",
+      "revision": {
+        "repo": "https://github.com/d2l-ai/d2l-en",
+        "tag": "v1.0.3",
+        "commit": "b2e2ae30898a9d0126a9699ae7e441de3e272715",
+        "sourceFile": "chapter_linear-classification/softmax-regression.md"
       },
-      "modifications": "Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE",
+        "statement": "Creative Commons Attribution-ShareAlike 4.0 International Public License",
+        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 International Public License"
+      },
+      "modifications": "Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.",
       "licenseDeed": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
-      "id": "wikipedia-softmax-function",
-      "title": "Softmax function",
-      "url": "https://en.wikipedia.org/wiki/Softmax_function?oldid=1361846646",
+      "id": "d2l-queries-keys-values",
+      "title": "Dive into Deep Learning — 11.1 Queries, Keys, and Values",
+      "url": "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md",
       "license": "CC-BY-SA-4.0",
-      "textPath": "wikipedia-softmax-function.txt",
-      "sha256": "319cab4f8889be1346bbc72f1f26c4a767432960cff3c230318c44877309a201",
-      "author": "Wikipedia contributors",
-      "licenseEvidence": {
-        "url": "https://en.wikipedia.org/wiki/Softmax_function?oldid=1361846646",
-        "statement": "Text is available under the Creative Commons Attribution-ShareAlike 4.0 License",
-        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 License"
+      "textPath": "d2l-queries-keys-values.txt",
+      "sha256": "0a7b3a92b3bda596bb4203fa630b019f0ddfb2fa779b7079cbccdef8a13178c6",
+      "sourceSha256": "880642f004c40c95fc5ecc0b6dee98aedb5fc014ab814bbff35838441de12c8d",
+      "author": "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola",
+      "revision": {
+        "repo": "https://github.com/d2l-ai/d2l-en",
+        "tag": "v1.0.3",
+        "commit": "b2e2ae30898a9d0126a9699ae7e441de3e272715",
+        "sourceFile": "chapter_attention-mechanisms-and-transformers/queries-keys-values.md"
       },
-      "modifications": "Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE",
+        "statement": "Creative Commons Attribution-ShareAlike 4.0 International Public License",
+        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 International Public License"
+      },
+      "modifications": "Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.",
       "licenseDeed": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
-      "id": "wikipedia-attention",
-      "title": "Attention (machine learning)",
-      "url": "https://en.wikipedia.org/wiki/Attention_(machine_learning)?oldid=1361482961",
+      "id": "d2l-self-attention",
+      "title": "Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding",
+      "url": "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md",
       "license": "CC-BY-SA-4.0",
-      "textPath": "wikipedia-attention.txt",
-      "sha256": "f71803f27555c1b18c3f32b0fac26cb53c48d91143fbbf1851d665500e2a6b64",
-      "author": "Wikipedia contributors",
-      "licenseEvidence": {
-        "url": "https://en.wikipedia.org/wiki/Attention_(machine_learning)?oldid=1361482961",
-        "statement": "Text is available under the Creative Commons Attribution-ShareAlike 4.0 License",
-        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 License"
+      "textPath": "d2l-self-attention.txt",
+      "sha256": "d85a0d9cd44d297a015bb6dba6c178529656cb3f1ceff2398799e8fe038f2f01",
+      "sourceSha256": "8b6eeedba841fbd231edaa5f0f1524bf17c82449623bd2e46f8da21a0cead35f",
+      "author": "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola",
+      "revision": {
+        "repo": "https://github.com/d2l-ai/d2l-en",
+        "tag": "v1.0.3",
+        "commit": "b2e2ae30898a9d0126a9699ae7e441de3e272715",
+        "sourceFile": "chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md"
       },
-      "modifications": "Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/d2l-ai/d2l-en/b2e2ae30898a9d0126a9699ae7e441de3e272715/LICENSE",
+        "statement": "Creative Commons Attribution-ShareAlike 4.0 International Public License",
+        "licenseName": "Creative Commons Attribution-ShareAlike 4.0 International Public License"
+      },
+      "modifications": "Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.",
       "licenseDeed": "https://creativecommons.org/licenses/by-sa/4.0/"
     }
   ]

@@ -55,7 +55,7 @@ checksum to detect post-run changes. See [ADR 001](docs/adr/001-commit-the-gener
 
 ## Architecture
 
-- `data/oer/` — pinned, verbatim source text and the fail-closed source manifest.
+- `data/oer/` — pinned upstream Markdown, deterministically extracted source text, and the fail-closed source manifest.
 - `src/atomization/manifest.ts` — exact-match SPDX allowlist and manifest validation.
 - `src/atomization/atomize.ts` — extractive two-phase atomization and bounded convergence loop.
 - `src/graph/invariants.ts` — the five hard deterministic proof invariants.
@@ -82,7 +82,8 @@ They are not represented as working features in the current product.
 
 ## Licences
 
-Project code is MIT-licensed under [LICENSE](LICENSE). Redistributed OER text under `data/oer/`, and
-the same text embedded in `data/graph.json`, remains under its recorded open licence. See
+Repository content is licensed under CC-BY-SA-4.0; lessons are modified, AI-translated adaptations
+of their cited sources. Redistributed OER text under `data/oer/`, and the same text embedded in
+`data/graph.json`, remains under its recorded open licence. See [NOTICE](NOTICE),
 [DATA-LICENSE](DATA-LICENSE) and [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for per-source attribution,
 revision pins, licence evidence, and modification notices.

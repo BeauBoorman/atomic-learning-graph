@@ -1,0 +1,13 @@
+Atomic Learning Graph
+=====================
+
+Repository content is licensed under CC-BY-SA-4.0; see LICENSE.
+
+The 4 source documents in data/oer/ are adapted from Dive into Deep Learning by
+Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, pinned to v1.0.3 at commit b2e2ae30898a9d0126a9699ae7e441de3e272715. They are used under
+CC-BY-SA-4.0. Markdown formatting, code and directive blocks, math markup, role directives,
+emphasis delimiters, and link/reference markup were removed to produce the plain-text corpus.
+
+Lessons generated from these sources are modified, AI-translated adaptations. They are not
+endorsed by the Dive into Deep Learning authors. Per-source titles, links, hashes, and
+modifications are recorded in ATTRIBUTIONS.md and data/oer/sources.json.

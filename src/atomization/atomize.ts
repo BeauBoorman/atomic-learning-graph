@@ -259,14 +259,21 @@ function groundedQuote(sourceText: string, proposedQuote: string): string | unde
   return match?.[0];
 }
 
+function sourcePassages(sourceText: string): string[] {
+  return sourceText
+    .split(/(?<=[.!?])\s+(?=[#A-Z0-9])/u)
+    .map((passage) => passage.trim())
+    .filter(Boolean);
+}
+
 function selectExcerpt(source: Source): string {
   const keywordsBySource: Record<string, RegExp> = {
-    "wikipedia-euclidean-vector": /vector|magnitude|direction|coordinate/i,
-    "wikipedia-dot-product": /dot product|scalar product|coordinate vector|angle/i,
-    "wikipedia-softmax-function": /softmax|probability distribution|normalize|exponential/i,
-    "wikipedia-attention": /self-attention|query, key, and value|dot products|softmax|token embeddings|attention weight/i,
+    "d2l-linear-algebra": /vector|fixed-length array|dot product|scalar|same position/i,
+    "d2l-softmax-regression": /softmax|add up to 1|dividing each by their sum|probabilit/i,
+    "d2l-queries-keys-values": /query|keys and values|attention pooling|database/i,
+    "d2l-self-attention": /self-attention|each token|query, keys, and values|attending/i,
   };
-  const paragraphs = source.text.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  const paragraphs = sourcePassages(source.text);
   const selected: string[] = [];
   const seen = new Set<string>();
   const add = (paragraph: string): void => {
@@ -285,14 +292,14 @@ function selectExcerpt(source: Source): string {
 
 function targetedQuoteExcerpt(source: Source, conceptId: string): string {
   const patterns: Record<string, RegExp> = {
-    vectors: /Euclidean vector|magnitude .* direction/i,
-    "dot-product": /dot product is an algebraic operation|Algebraically, the dot product/i,
-    softmax: /softmax function.*probability distribution|softmax function takes as input/i,
-    qkv: /Self-attention is essentially.*query, key, and value vectors/i,
-    "self-attention": /major breakthrough came with self-attention|Self-attention is essentially/i,
+    vectors: /you can think of a vector as a fixed-length array of scalars/i,
+    "dot-product": /is a sum over the products of the elements at the same position/i,
+    softmax: /transform these values so that they add up to 1 by dividing each by their sum/i,
+    qkv: /actual "code" for executing on the set of keys and values, namely the query/i,
+    "self-attention": /because every token is attending to each other token/i,
   };
   const pattern = patterns[conceptId] ?? new RegExp(conceptId.replace(/-/g, "[ -]"), "i");
-  const paragraphs = source.text.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  const paragraphs = sourcePassages(source.text);
   const matches = paragraphs.filter((paragraph) => pattern.test(paragraph) && paragraph.length <= 5000);
   return (matches.length > 0 ? matches : paragraphs.slice(0, 4)).slice(0, 4).join("\n\n");
 }
@@ -400,7 +407,7 @@ async function inventoryPhase(
     "Use only listed sourceId values. Summaries should describe exactly one self-contained concept.";
   const input = `${toy ? "Produce exactly 3" : "Produce 8 to 10"} distinct concepts. Required stable IDs: ${requiredIds.join(", ")}.
 Required source IDs are restricted to: ${sourceIds.join(", ")}.
-For the full run, use this grounding map: vectors -> wikipedia-euclidean-vector; dot-product -> wikipedia-dot-product; softmax -> wikipedia-softmax-function; qkv and self-attention -> wikipedia-attention.
+For the full run, use this grounding map: vectors -> d2l-linear-algebra; dot-product -> d2l-linear-algebra; softmax -> d2l-softmax-regression; qkv -> d2l-queries-keys-values; self-attention -> d2l-self-attention.
 Copy a substantial prose sentence for each quotedText. Do not rely on formula-only passages.
 
 ${sourcePrompt(sources)}`;
@@ -466,8 +473,8 @@ ${JSON.stringify({ concepts: inventory }, null, 2)}`;
 }
 
 async function runToy(client: ResponsesClient, sources: Source[]): Promise<void> {
-  const dotProduct = sources.filter((source) => source.id === "wikipedia-dot-product");
-  if (dotProduct.length !== 1) throw new Error("toy corpus requires wikipedia-dot-product");
+  const dotProduct = sources.filter((source) => source.id === "d2l-linear-algebra");
+  if (dotProduct.length !== 1) throw new Error("toy corpus requires d2l-linear-algebra");
   const required = ["vectors", "dot-product", "scalar"] as const;
   const inventory = await inventoryPhase(client, dotProduct, required, true);
   const related = await relationshipPhase(client, inventory, required);

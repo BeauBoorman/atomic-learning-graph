@@ -1,12 +1,23 @@
-import { readdirSync, writeFileSync } from "node:fs";
+import { readdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   CC_BY_SA_4_DEED,
-  WIKIPEDIA_LICENSE_NAME,
-  WIKIPEDIA_LICENSE_STATEMENT,
-  fetchWikipediaExtract,
+  D2L_AUTHOR,
+  D2L_COMMIT,
+  D2L_LICENSE_STATEMENT,
+  D2L_REPO,
+  D2L_SOURCES,
+  D2L_TAG,
+  d2lBlobUrl,
+  extractD2LText,
+  fetchPinnedText,
+  localMarkdownPath,
+  normalizeRepoLicense,
+  rawD2LUrl,
   renderAttributions,
+  renderDataLicense,
+  renderNotice,
   sha256,
   verifyLicenseEvidence,
   type AuditedSourceEntry,
@@ -14,95 +25,84 @@ import {
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const oerDir = resolve(repoRoot, "data", "oer");
-
-interface WikipediaSourceSpec {
-  id: string;
-  title: string;
-  articleSlug: string;
-  revision: string;
-  textPath: string;
-  requiredProse: RegExp[];
-}
-
-const specs: WikipediaSourceSpec[] = [
-  {
-    id: "wikipedia-euclidean-vector",
-    title: "Euclidean vector",
-    articleSlug: "Euclidean_vector",
-    revision: "1362285945",
-    textPath: "wikipedia-euclidean-vector.txt",
-    requiredProse: [/a Euclidean vector or simply a vector/i, /has magnitude .* and direction/i],
-  },
-  {
-    id: "wikipedia-dot-product",
-    title: "Dot product",
-    articleSlug: "Dot_product",
-    revision: "1363226908",
-    textPath: "wikipedia-dot-product.txt",
-    requiredProse: [/the dot product is an algebraic operation/i, /returns a single number/i],
-  },
-  {
-    id: "wikipedia-softmax-function",
-    title: "Softmax function",
-    articleSlug: "Softmax_function",
-    revision: "1361846646",
-    textPath: "wikipedia-softmax-function.txt",
-    requiredProse: [/converts a tuple of K real numbers into a probability distribution/i],
-  },
-  {
-    id: "wikipedia-attention",
-    title: "Attention (machine learning)",
-    articleSlug: "Attention_(machine_learning)",
-    revision: "1361482961",
-    textPath: "wikipedia-attention.txt",
-    requiredProse: [
-      /The major breakthrough came with self-attention/i,
-      /query, key, and value vectors all come from the same model/i,
-    ],
-  },
+const legacyWikipediaFiles = [
+  "wikipedia-attention.txt",
+  "wikipedia-dot-product.txt",
+  "wikipedia-euclidean-vector.txt",
+  "wikipedia-softmax-function.txt",
 ];
 
-const knownFiles = new Set(["README.md", "sources.json", ...specs.map((spec) => spec.textPath)]);
+const expectedD2LFiles = D2L_SOURCES.flatMap((spec) => [
+  spec.textPath,
+  localMarkdownPath(spec.textPath),
+]);
+const knownFiles = new Set([
+  "README.md",
+  "sources.json",
+  ...legacyWikipediaFiles,
+  ...expectedD2LFiles,
+]);
 const unexpected = readdirSync(oerDir).filter((name) => !knownFiles.has(name));
 if (unexpected.length > 0) {
   throw new Error(`refusing to fetch over unlisted data/oer files: ${unexpected.join(", ")}`);
 }
 
-const entries: AuditedSourceEntry[] = [];
-for (const spec of specs) {
-  const text = await fetchWikipediaExtract(spec.revision);
-  for (const required of spec.requiredProse) {
-    if (!required.test(text)) {
-      throw new Error(
-        `${spec.title} revision ${spec.revision} lacks required substantial prose: ${required}`
-      );
-    }
-  }
-
-  const url = `https://en.wikipedia.org/wiki/${spec.articleSlug}?oldid=${spec.revision}`;
-  const entry: AuditedSourceEntry = {
-    id: spec.id,
-    title: spec.title,
-    url,
-    license: "CC-BY-SA-4.0",
-    textPath: spec.textPath,
-    sha256: sha256(text),
-    author: "Wikipedia contributors",
-    licenseEvidence: {
-      url,
-      statement: WIKIPEDIA_LICENSE_STATEMENT,
-      licenseName: WIKIPEDIA_LICENSE_NAME,
-    },
-    modifications:
-      "Text extracted to plain text with the MediaWiki `explaintext` API; article markup and formatting were removed. The extracted prose was otherwise stored verbatim.",
-    licenseDeed: CC_BY_SA_4_DEED,
-  };
-
-  await verifyLicenseEvidence(entry);
-  writeFileSync(resolve(oerDir, spec.textPath), text, "utf8");
-  entries.push(entry);
+const licenceUrl = rawD2LUrl("LICENSE");
+const licenceText = await fetchPinnedText(licenceUrl);
+if (!licenceText.includes(D2L_LICENSE_STATEMENT)) {
+  throw new Error(`pinned d2l LICENSE lacks ${JSON.stringify(D2L_LICENSE_STATEMENT)}`);
 }
 
+const fetched = await Promise.all(
+  D2L_SOURCES.map(async (spec) => {
+    const markdown = await fetchPinnedText(rawD2LUrl(spec.sourceFile));
+    const text = extractD2LText(markdown);
+    const entry: AuditedSourceEntry = {
+      id: spec.id,
+      title: spec.title,
+      url: d2lBlobUrl(spec.sourceFile),
+      license: "CC-BY-SA-4.0",
+      textPath: spec.textPath,
+      sha256: sha256(text),
+      sourceSha256: sha256(markdown),
+      author: D2L_AUTHOR,
+      revision: {
+        repo: D2L_REPO,
+        tag: D2L_TAG,
+        commit: D2L_COMMIT,
+        sourceFile: spec.sourceFile,
+      },
+      licenseEvidence: {
+        url: licenceUrl,
+        statement: D2L_LICENSE_STATEMENT,
+        licenseName: D2L_LICENSE_STATEMENT,
+      },
+      modifications:
+        "Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.",
+      licenseDeed: CC_BY_SA_4_DEED,
+    };
+    return { spec, markdown, text, entry };
+  })
+);
+
+await verifyLicenseEvidence(fetched[0]!.entry);
+
+for (const { spec, markdown, text } of fetched) {
+  writeFileSync(resolve(oerDir, localMarkdownPath(spec.textPath)), markdown, "utf8");
+  writeFileSync(resolve(oerDir, spec.textPath), text, "utf8");
+}
+
+const entries = fetched.map(({ entry }) => entry);
 writeFileSync(resolve(oerDir, "sources.json"), `${JSON.stringify({ sources: entries }, null, 2)}\n`);
-writeFileSync(resolve(repoRoot, "ATTRIBUTIONS.md"), renderAttributions(entries));
-console.log(`Fetched and pinned ${entries.length} openly licensed sources.`);
+writeFileSync(resolve(repoRoot, "ATTRIBUTIONS.md"), renderAttributions(entries), "utf8");
+writeFileSync(resolve(repoRoot, "DATA-LICENSE"), renderDataLicense(entries), "utf8");
+writeFileSync(resolve(repoRoot, "NOTICE"), renderNotice(entries), "utf8");
+writeFileSync(resolve(repoRoot, "LICENSE"), normalizeRepoLicense(licenceText), "utf8");
+
+for (const legacyFile of legacyWikipediaFiles) {
+  rmSync(resolve(oerDir, legacyFile), { force: true });
+}
+
+console.log(
+  `Fetched ${entries.length} d2l sources pinned to ${D2L_TAG} (${D2L_COMMIT}) and applied the pinned extraction transform.`
+);

@@ -16,12 +16,19 @@ source IDs, and an un-listed file is a file whose licence nobody checked.
 {
   "sources": [
     {
-      "id": "wikipedia-attention",
-      "title": "Attention (machine learning)",
-      "url": "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
+      "id": "d2l-self-attention",
+      "title": "Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding",
+      "url": "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md",
       "license": "CC-BY-SA-4.0",
-      "author": "Wikipedia contributors",
-      "textPath": "wikipedia-attention.txt"
+      "author": "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola",
+      "textPath": "d2l-self-attention.txt",
+      "sha256": "<64-hex extracted-text hash>",
+      "revision": {
+        "repo": "https://github.com/d2l-ai/d2l-en",
+        "tag": "v1.0.3",
+        "commit": "b2e2ae30898a9d0126a9699ae7e441de3e272715",
+        "sourceFile": "chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md"
+      }
     }
   ]
 }
@@ -35,6 +42,8 @@ source IDs, and an un-listed file is a file whose licence nobody checked.
 | `license` | **yes** | **Exact SPDX identifier**, from the allowlist below. Fail-closed. |
 | `author` | **yes** | Attribution copied into the shipped graph and displayed with the lesson. |
 | `textPath` | yes | Plain-text file, relative to `data/oer/`. Must exist, must be non-empty. |
+| `sha256` | audited corpus | Hash of the exact extracted text bytes. Verified by `pnpm verify:corpus`. |
+| `revision` | audited corpus | Immutable repository, tag, full commit, and upstream source path. |
 
 ## Allowed licences (exact match — `ALLOWED_LICENSES` in `src/atomization/manifest.ts`)
 

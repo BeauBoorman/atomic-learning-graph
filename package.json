@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "fetch:corpus": "tsx scripts/fetch-corpus.ts",
     "verify:corpus": "tsx scripts/verify-corpus.ts",
+    "verify:anchors": "tsx scripts/verify-anchors.ts",
     "atomize": "tsx src/atomization/atomize.ts",
     "atomize:toy": "tsx src/atomization/atomize.ts --toy"
   },

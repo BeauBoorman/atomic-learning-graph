@@ -1,9 +1,14 @@
-The educational source text under data/oer/, and copies of that source text embedded in
-data/graph.json, are licensed by their respective authors under the Creative Commons
-Attribution-ShareAlike 4.0 International licence (CC-BY-SA-4.0):
+DATA LICENCE
+============
 
-https://creativecommons.org/licenses/by-sa/4.0/
+The source documents in data/oer/ are excerpts from Dive into Deep Learning by
+Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola. They are redistributed under the Creative Commons
+Attribution-ShareAlike 4.0 International licence (CC-BY-SA-4.0).
 
-See ATTRIBUTIONS.md for source-by-source authorship, pinned source URLs, licence evidence,
-checksums, and modification notices. This notice does not relicense the project code, which is
-separately available under the MIT License in LICENSE.
+Pinned source revision: https://github.com/d2l-ai/d2l-en tag v1.0.3, commit b2e2ae30898a9d0126a9699ae7e441de3e272715.
+The files were transformed as described in ATTRIBUTIONS.md; their extracted SHA-256 values are
+recorded in data/oer/sources.json. The 4 included source documents retain the same
+licence. AI-translated lesson adaptations produced from them are also CC-BY-SA-4.0.
+
+Licence deed: https://creativecommons.org/licenses/by-sa/4.0/
+Full licence: LICENSE

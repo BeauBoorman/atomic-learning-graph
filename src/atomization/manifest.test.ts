@@ -19,12 +19,12 @@ import {
 } from "./manifest";
 
 const valid: SourceManifestEntry = {
-  id: "wikipedia-attention",
-  title: "Attention (machine learning)",
-  url: "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
+  id: "d2l-self-attention",
+  title: "Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding",
+  url: "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md",
   license: "CC-BY-SA-4.0",
-  author: "Wikipedia contributors",
-  textPath: "wikipedia-attention.txt",
+  author: "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola",
+  textPath: "d2l-self-attention.txt",
 };
 
 /** A manifest around one entry, with the given field overridden/removed. */
