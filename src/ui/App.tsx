@@ -301,8 +301,12 @@ export function App({ graph }: AppProps) {
             }}
             aria-label={`Current theme: ${currentThemeName}. Switch to ${nextThemeName} theme.`}
           >
-            <span aria-hidden="true">{theme === "light" ? "☀" : "☾"}</span>
-            <span>{currentThemeName}</span>
+            {/* Show the ACTION, not the current state. Labelling the button with the theme
+                you are already in reads as "click to go dark" while you are dark — it made
+                the toggle feel reversed even though the colours were always correct. The
+                icon and text now both describe what the click will do, matching aria-label. */}
+            <span aria-hidden="true">{nextThemeName === "light" ? "☀" : "☾"}</span>
+            <span>Switch to {nextThemeName}</span>
           </button>
         </div>
       </header>

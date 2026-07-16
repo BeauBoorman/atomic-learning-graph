@@ -267,7 +267,15 @@ export function GraphMap({
     });
 
     graphRef.current = cy;
-    const resizeObserver = new ResizeObserver(() => cy.resize());
+    // resize() only re-measures the canvas; it does NOT re-fit the graph. The map lives
+    // behind a toggle, so the container's real size arrives AFTER the layout ran — leaving
+    // the zoom/pan computed against the wrong box and the route rendered as an unreadable
+    // smudge off to one side. Re-fit whenever the box changes; the +/-/Fit controls still
+    // let the learner zoom deliberately.
+    const resizeObserver = new ResizeObserver(() => {
+      cy.resize();
+      cy.fit(undefined, 52);
+    });
     resizeObserver.observe(viewportRef.current);
 
     return () => {
