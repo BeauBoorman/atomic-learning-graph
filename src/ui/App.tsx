@@ -24,7 +24,11 @@ interface AppProps {
 
 type Theme = "light" | "dark";
 
-const PROGRESS_KEY = "atomic-learning-graph.progress.v1";
+// v2: the graph was rebuilt (new d2l corpus, new concept ids, lesson steps). Progress saved
+// against the OLD graph is meaningless but its ids still resolve, so it silently marked
+// concepts "known" and dropped returning learners into the middle of a course. Bumping the
+// key retires that stale state instead of honouring it.
+const PROGRESS_KEY = "atomic-learning-graph.progress.v2";
 const THEME_KEY = "atomic-learning-graph.theme.v1";
 const PASSION_KEY = "atomic-learning-graph.passion.v1";
 
@@ -208,6 +212,21 @@ export function App({ graph }: AppProps) {
     media.addEventListener("change", followSystem);
     return () => media.removeEventListener("change", followSystem);
   }, [themeIsExplicit]);
+
+  // Every page is a NEW page — put the learner at the top of it.
+  // Without this the SPA kept the previous scroll offset: "Start learning" and "Next page"
+  // both sit below the fold, so each lesson opened mid-sentence and the analogy floated
+  // next to text it did not belong to. One clear thing at a time starts at its beginning.
+  const currentPage = progress.remaining[0];
+  const currentPageKey = currentPage
+    ? `${currentPage.conceptId}#${currentPage.stepIndex}`
+    : "complete";
+  useEffect(() => {
+    // "instant", not "auto": the page sets CSS scroll-behavior:smooth, and "auto" defers to
+    // that — the animated scroll then loses to the content swap and strands the learner
+    // mid-page. An instant jump is also the calmer, reduced-motion-friendly behaviour.
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [currentPageKey, started]);
 
   const handleNext = useCallback(() => {
     const page = progress.remaining[0];
