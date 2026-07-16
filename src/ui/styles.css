@@ -1,55 +1,124 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE PLAIN READING EDITION
+
+   THREE HUES, FOREVER:
+     claret     — you, your route, your action
+     amber      — the source
+     warm grey  — everything else
+   Seven hues (green primary, brown focus, yellow mark, pale-green analogy, three
+   map greens) was the "nobody chose anything" tell more than any single element.
+
+   --line   draws CONTROL borders only. Gated at 3:1 by gate9.
+   --rule   draws hairlines between TEXT. Ungated and deliberately quiet — one 3:1
+            token drawing both is why every divider used to read as a form field.
+   --focus  appears ONLY in the :focus-visible block. Painted anywhere else it puts
+            a permanent fake focus ring beside the real one.
+
+   TYPE: no webfont, ever. Every face below is installed on the machine or falls
+   back in-family, and the demo must work offline. An @font-face or @import here
+   would fire a live request on every page load AND would sail past gate9, whose
+   network scan globs only the ts/tsx sources and never reads this file. The
+   constraint is real regardless of what is green. Weights are 400/500/600/700
+   only: the old ramp used 650/680/720/750/760/800, which only a variable font
+   resolves — against installed faces it collapsed to ~3 buckets on macOS and
+   pushed to Segoe UI Black 900 on Windows, making the typography a function of
+   the judge's operating system.
+
+   The :root and :root[data-theme="light"] blocks are byte-identical and MUST stay
+   that way. The duplication is deliberate, not rot: gate9 parses the two selectors
+   SEPARATELY and asserts they mirror, and index.html sets data-theme before first
+   paint, so bare :root is the both-localStorage-and-matchMedia-threw fallback.
+   Collapsing them to a grouped `:root, :root[data-theme="light"]` selector looks
+   like the DRY fix and silently breaks that gate: its parser looks for a BARE root
+   selector followed immediately by a brace, which a grouped selector never matches,
+   so the mirror assertion starts comparing every real value against undefined.
+   (Verified by mutation, not assumed. Note also that the parser is an unanchored
+   regex scanning this whole file, so prose in these comments must never spell a
+   selector-and-brace literally — it would be matched as if it were code.)
+
+   ANY NEW COLOUR TOKEN GOES IN ALL THREE BLOCKS. gate9 mirrors a FIXED token list,
+   so a token added here and forgotten in the dark block renders wrong at 100% green.
+   ───────────────────────────────────────────────────────────────────────────── */
+
 :root {
   color-scheme: light;
-  --bg: #f4f6f1;
-  --surface: #ffffff;
-  --surface-soft: #e8eee8;
-  --ink: #17231b;
-  --muted: #4d6254;
-  --line: #77887c;
-  --line-soft: #c9d2cb;
-  --focus: #815600;
-  --primary: #245b3d;
-  --primary-ink: #ffffff;
-  --mark: #f0d96b;
-  --mark-ink: #17231b;
-  --analogy: #e3eddf;
-  --shadow: 0 12px 34px rgba(24, 43, 31, 0.08);
+  --bg: #f3efe6;
+  --surface: #fffdf8;
+  --surface-soft: #eae4d6;
+  --ink: #22201b;
+  --muted: #5b5348;
+  --line: #8f8375;
+  --rule: #e0d9c7;
+  --focus: #8a4b12;
+  --primary: #8c2f2a;
+  --primary-ink: #fffdf8;
+  --mark: #f2dc9a;
+  --mark-ink: #22201b;
+  --analogy-rule: #c9a24a;
+  --shadow: 0 24px 60px -20px rgba(34, 32, 27, 0.28);
+
+  --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-text: "Iowan Old Style", Charter, Palatino, Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --t-folio: 11px;
+  --t-colophon: 13px;
+  --t-ui: 15px;
+  --t-body: 20px;
+  --t-analogy: 16px;
+  --t-quote: 19px;
+  --t-title: clamp(30px, 1.4rem + 1.9vw, 38px);
+  --t-hero: clamp(36px, 1.5rem + 3vw, 50px);
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+  --s9: 96px;
+
+  --measure: 620px;
+  --radius: 6px;
+  --radius-lg: 12px;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f4f6f1;
-  --surface: #ffffff;
-  --surface-soft: #e8eee8;
-  --ink: #17231b;
-  --muted: #4d6254;
-  --line: #77887c;
-  --line-soft: #c9d2cb;
-  --focus: #815600;
-  --primary: #245b3d;
-  --primary-ink: #ffffff;
-  --mark: #f0d96b;
-  --mark-ink: #17231b;
-  --analogy: #e3eddf;
-  --shadow: 0 12px 34px rgba(24, 43, 31, 0.08);
+  --bg: #f3efe6;
+  --surface: #fffdf8;
+  --surface-soft: #eae4d6;
+  --ink: #22201b;
+  --muted: #5b5348;
+  --line: #8f8375;
+  --rule: #e0d9c7;
+  --focus: #8a4b12;
+  --primary: #8c2f2a;
+  --primary-ink: #fffdf8;
+  --mark: #f2dc9a;
+  --mark-ink: #22201b;
+  --analogy-rule: #c9a24a;
+  --shadow: 0 24px 60px -20px rgba(34, 32, 27, 0.28);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0d1712;
-  --surface: #15231b;
-  --surface-soft: #1d3025;
-  --ink: #f3f6f1;
-  --muted: #b5c5b9;
-  --line: #718379;
-  --line-soft: #3c5045;
-  --focus: #f1cc75;
-  --primary: #b4dfbe;
-  --primary-ink: #102017;
-  --mark: #6f5c1c;
-  --mark-ink: #ffffff;
-  --analogy: #233b2b;
-  --shadow: 0 14px 38px rgba(0, 0, 0, 0.24);
+  --bg: #14120e;
+  --surface: #1d1a15;
+  --surface-soft: #282419;
+  --ink: #f2ece1;
+  --muted: #a99e8e;
+  --line: #7a7062;
+  --rule: #332e26;
+  --focus: #f0c473;
+  --primary: #e79a86;
+  --primary-ink: #1d1a15;
+  --mark: #6a4a16;
+  --mark-ink: #fffdf8;
+  --analogy-rule: #b08a3c;
+  --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -59,7 +128,7 @@
 html {
   background: var(--bg);
   color: var(--ink);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-ui);
   scroll-behavior: smooth;
 }
 
@@ -78,23 +147,22 @@ input {
   font: inherit;
 }
 
+/* No `summary` in these lists any more: the last <details> in the app was the one
+   hiding the source, and there is not a single <summary> element left in src/ui/. */
 button,
 select,
-summary,
 a {
   -webkit-tap-highlight-color: transparent;
 }
 
 button,
-select,
-summary {
+select {
   color: inherit;
 }
 
 button:focus-visible,
 select:focus-visible,
 input:focus-visible,
-summary:focus-visible,
 a:focus-visible,
 [tabindex]:focus-visible {
   outline: 3px solid var(--focus);
@@ -107,17 +175,16 @@ a {
   text-underline-offset: 0.18em;
 }
 
-:root[data-theme="dark"] a {
-  color: #b4dfbe;
-}
-
+/* The skip link is only ever seen while focused, and `a:focus-visible` above already
+   draws the ring. Bordering it in --focus too produced two competing rings. */
 .skip-link {
   position: fixed;
   z-index: 100;
   top: 0.75rem;
   left: 0.75rem;
   padding: 0.65rem 0.9rem;
-  border: 2px solid var(--focus);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
   transform: translateY(-180%);
@@ -127,15 +194,32 @@ a {
   transform: translateY(0);
 }
 
+/* ── The folio hand ───────────────────────────────────────────────────────────
+   11px mono, wide tracking, uppercase. One hand for every label in the app: the
+   page number, the analogy's voice, the map's legend. Casing is done HERE and not
+   in the markup, so a screen reader is never handed shouted text. */
+.eyebrow,
+.folio,
+.analogy-label,
+.parallel-label,
+.graph-view-label,
+.map-key-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-folio);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .masthead {
-  width: min(100% - 2rem, 980px);
+  width: min(100% - 4rem, 980px);
   min-height: 4.5rem;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-bottom: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--rule);
 }
 
 .wordmark {
@@ -146,7 +230,8 @@ a {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-weight: 750;
+  font-size: var(--t-ui);
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -168,10 +253,12 @@ a {
 
 .theme-button,
 .text-button {
-  min-height: 2.75rem;
+  min-height: 2.75rem; /* WCAG 2.5.5 AAA touch target. Deliberate — leave it. */
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink);
+  font-size: var(--t-ui);
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -180,24 +267,30 @@ a {
   align-items: center;
   gap: 0.45rem;
   padding: 0.45rem 0.75rem;
-  border-radius: 0.55rem;
+  border-radius: var(--radius);
 }
 
+/* Was `0.35rem 0.15rem`: 2.4px of horizontal padding on a 44px-tall control, so hover
+   filled ~9px above and below the text against 2.4px beside it. The padding was inverted,
+   not the height. */
 .text-button {
-  padding: 0.35rem 0.15rem;
+  padding: 0.35rem 0.75rem;
   border-width: 0 0 1px;
 }
 
 .theme-button:hover,
-.text-button:hover,
-summary:hover {
+.text-button:hover {
   background: var(--surface-soft);
 }
 
+/* One column, three screens, ONE gutter: --s6 desktop, --s4 at 640px (see the media
+   query at the foot of this file). This selector moves the entry, the course, the
+   completion screen AND the map together — deliberately: they are the same reading
+   column, and them sitting on different grids is why nothing used to line up. */
 .entry,
 .course,
 .completion-page {
-  width: min(100% - 2rem, 720px);
+  width: min(100% - 4rem, 720px);
   margin: 0 auto;
 }
 
@@ -205,39 +298,50 @@ summary:hover {
   padding: clamp(3rem, 8vw, 6rem) 0 4rem;
 }
 
-.entry h1,
-.lesson-page h1,
-.completion-page h1 {
+.entry h1 {
+  max-width: 16ch;
   margin: 0;
   color: var(--ink);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 760;
-  letter-spacing: -0.04em;
+  font-size: var(--t-hero);
+  font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1.08;
+}
+
+.lesson-page h1,
+.completion-page h1 {
+  max-width: 20ch;
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.14;
+}
+
+.completion-page h1 {
+  margin-inline: auto;
 }
 
 .eyebrow {
   margin: 0 0 0.65rem;
-  color: var(--primary);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .lede {
   max-width: 34rem;
   margin: 1.25rem 0 2.5rem;
   color: var(--muted);
-  font-size: 1.15rem;
+  font-size: var(--t-body);
+  line-height: 1.55;
 }
 
 .entry-form {
   display: grid;
   gap: 1rem;
   padding: clamp(1.25rem, 4vw, 2rem);
-  border: 1px solid var(--line-soft);
-  border-radius: 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -245,23 +349,26 @@ summary:hover {
 .field-label,
 .choice-group legend {
   color: var(--ink);
-  font-weight: 720;
+  font-size: var(--t-ui);
+  font-weight: 600;
 }
 
 .optional {
   margin-left: 0.35rem;
   color: var(--muted);
-  font-size: 0.83rem;
-  font-weight: 600;
+  font-size: var(--t-colophon);
+  font-weight: 400;
 }
 
+/* No font-size on the form controls: anything under 16px makes iOS Safari zoom the
+   viewport on focus. They inherit the 16px body face on purpose. */
 select {
   width: 100%;
   min-height: 3rem;
   margin: -0.4rem 0 0.5rem;
   padding: 0.6rem 2.5rem 0.6rem 0.75rem;
   border: 1px solid var(--line);
-  border-radius: 0.45rem;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
 }
@@ -287,7 +394,7 @@ select {
   min-height: 4.7rem;
   padding: 0.8rem;
   border: 1px solid var(--line);
-  border-radius: 0.55rem;
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
@@ -316,10 +423,11 @@ select {
   min-height: 3.2rem;
   padding: 0.75rem 1.2rem;
   border: 2px solid var(--primary);
-  border-radius: 0.55rem;
+  border-radius: var(--radius);
   background: var(--primary);
   color: var(--primary-ink);
-  font-weight: 760;
+  font-size: var(--t-ui);
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -333,155 +441,448 @@ select {
 }
 
 .course {
-  padding: 2rem 0 4rem;
+  padding: var(--s6) 0 var(--s8);
 }
 
+/* ── The folio ────────────────────────────────────────────────────────────────
+   Was a 0.65rem bordered pill — a fitness-app widget on a reading page. It is now
+   the page number and a 2px rule: a book's own progress indicator. The percentage
+   text is gone; the fill IS the percentage. */
 .step-indicator {
-  margin-bottom: clamp(2.5rem, 7vw, 4.5rem);
+  margin-bottom: var(--s5);
 }
 
-.step-copy {
+.folio {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 0.45rem;
+  margin: 0 0 var(--s2);
   color: var(--muted);
-  font-size: 0.88rem;
-  font-weight: 650;
 }
 
 .progress-track {
-  height: 0.65rem;
+  height: 2px;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 99px;
-  background: var(--surface);
+  background: var(--rule);
 }
 
 .progress-track span {
   display: block;
   height: 100%;
   background: var(--primary);
-  transition: width 180ms ease-out;
+  transition: width 400ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.lesson-page {
-  padding: clamp(1.25rem, 5vw, 2.5rem);
-  border: 1px solid var(--line-soft);
-  border-radius: 0.8rem;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.lesson-page h1 {
-  max-width: 16ch;
-  font-size: clamp(2rem, 6vw, 3.25rem);
-}
+/* ── The lesson ───────────────────────────────────────────────────────────────
+   `.lesson-page` has no rules of its own, and that is the point: the lesson is not
+   a card, the lesson IS the page. It had a border, a radius, a shadow, a --surface
+   fill and its own gutter, which put it on a different grid from its own sibling. */
 
 .lesson-text {
-  margin: clamp(2rem, 5vw, 3.5rem) 0;
+  max-width: var(--measure); /* 62ch at 20px. The measure was a SIZE problem: 26px in a
+                                640px column is ~35ch, and between 752px and 853px the
+                                measure DEGRADED as the window grew. */
+  margin: var(--s6) 0 0;
   color: var(--ink);
-  font-size: clamp(1.25rem, 3vw, 1.6rem);
-  line-height: 1.65;
+  font-size: var(--t-body);
+  letter-spacing: -0.003em;
+  line-height: 1.55;
 }
 
+/* An optional aid, not a warning callout. A pale slab with a 4px left rule in the
+   accent colour is the AI-card tell — and it made the *optional* thing the loudest
+   thing on the page. A brass rule in the margin, no fill. */
 .analogy {
-  margin: 0 0 2rem;
-  padding: 1rem 1.15rem;
-  border-left: 4px solid var(--primary);
-  background: var(--analogy);
+  max-width: 56ch;
+  margin: var(--s7) 0 0;
+  padding: 0 0 0 var(--s4);
+  border-left: 2px solid var(--analogy-rule);
+  color: var(--muted);
+  font-size: var(--t-analogy);
+  line-height: 1.55;
 }
 
+/* Was `.analogy p { margin: 0 }` immediately overridden by an !important on a sibling
+   three lines below it. The two rules were fighting; neither had to. */
 .analogy p {
   margin: 0;
 }
 
+.analogy p + p {
+  margin-top: var(--s1);
+}
+
 .analogy-label {
-  margin-bottom: 0.35rem !important;
-  font-weight: 760;
-}
-
-.analogy-label span {
   color: var(--muted);
-  font-size: 0.86rem;
-  font-weight: 650;
 }
 
-.citation {
-  padding-top: 1.4rem;
-  border-top: 1px solid var(--line-soft);
-}
-
-.attribution {
-  margin: 0 0 0.7rem;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.citation details {
-  border: 1px solid var(--line);
-  border-radius: 0.45rem;
-  background: var(--bg);
-}
-
-.citation summary {
-  padding: 0.75rem 0.9rem;
-  font-weight: 720;
+/* ── The footnote mark ────────────────────────────────────────────────────────
+   The summon. `ᵃ` is U+1D43, which is ALREADY a raised glyph — no vertical-align,
+   or it raises twice and clears the cap height. Amber on hover because amber is the
+   source: the hover state is a promise of what the sheet is about to draw. */
+.footnote-mark {
+  margin-left: 1px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--primary);
+  font-family: var(--font-ui);
+  font-size: 0.8em;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
 }
 
-.citation blockquote {
-  margin: 0;
-  padding: 1rem;
-  border-top: 1px solid var(--line-soft);
-  color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.05rem;
-}
-
-mark {
-  padding: 0.05em 0.12em;
+.footnote-mark:hover {
   background: var(--mark);
   color: var(--mark-ink);
 }
 
-.source-context,
-.citation-note {
-  margin: 0;
-  padding: 0.8rem 1rem;
-  border-top: 1px solid var(--line-soft);
-  color: var(--muted);
-  font-size: 0.88rem;
+/* ── The colophon ─────────────────────────────────────────────────────────────
+   Always visible, never loud. It opens with the same `ᵃ` the lesson ends with, so
+   the page reads as an edition: a claim, a mark, a footnote. It replaced
+   "AI-translated from X by Y" — which led with the machine, buried the authority,
+   and disclaimed the product on every single page while the highlighted source sat
+   hidden behind a disclosure triangle. That was the pitch, exactly inverted. */
+.citation {
+  margin-top: var(--s7);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
 }
 
+.colophon {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-colophon);
+  line-height: 1.5;
+}
+
+.colophon-mark {
+  margin-right: 0.3em;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.colophon cite {
+  font-style: italic;
+}
+
+.source-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+/* ── The parallel ─────────────────────────────────────────────────────────────
+   A <dialog> opened with showModal(), which is doing real work and is not a detail:
+   it buys a NATIVE focus trap, Esc, an inert background and the top layer. The top
+   layer is also why no ancestor's overflow or transform can clip this sheet.
+
+   TWO DELIBERATE DEVIATIONS FROM §4.5's NUMBERS. Both were found in a browser.
+
+   1. The spec asks for `width: min(100%, 46rem)` AND the two-column parallel at
+      ">=52rem inside". Those are mutually exclusive: 46rem minus two --s6 gutters is
+      42rem of content, so the parallel could NEVER have fired and this would have
+      shipped as the single-column drawer the spec exists to replace. The parallel is
+      the pitch — a drawer shows the source, the parallel shows the RELATIONSHIP — so
+      the sheet is sized to fit it.
+   2. rem -> px, and this one is a correctness fix, not taste. --t-quote is 19px and
+      --t-ui is 15px: FIXED. So the number of characters per line in each column is a
+      function of the container's PIXEL width and nothing else. Sizing the container
+      in rem makes the measure swing with a root font-size that does not move the type
+      one pixel — verified live, not reasoned: this machine's Chrome runs a 24px root,
+      where `66rem` resolved to a 1584px sheet with 743px columns. That is not a sheet,
+      it is a takeover, and no test in this repo can see it. 1040px is what the content
+      actually wants: ~55ch of 15px sans beside ~50ch of 19px serif. It also matches the
+      px convention every other layout number here already uses (--measure: 620px, the
+      720px column, --s1..--s9).
+
+   The ">=inside" threshold is honoured with a CONTAINER query, which is what "inside"
+   means; a media query would measure the viewport and be wrong for the bottom sheet. */
+.sheet {
+  width: min(100%, 1040px);
+  max-width: none; /* the UA sheet sets max-width: calc(100% - 6px - 2em) */
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 0 0 auto; /* the UA `margin: auto` centres it; this pins it right */
+  padding: 0; /* the padding lives on .sheet-body so the backdrop hit-test stays exact */
+  overflow: auto;
+  border: 0;
+  border-left: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  container-type: inline-size;
+  opacity: 0;
+  transform: translateX(28px);
+  /* cubic-bezier(.32,.72,0,1) is the iOS sheet curve — fast out, long settle. The
+     difference between "a div appeared" and "a thing arrived". allow-discrete on
+     overlay/display is what lets the CLOSE animate too; without it the sheet is
+     display:none on the first frame out and simply vanishes. */
+  transition:
+    transform 260ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 180ms ease-out,
+    overlay 260ms allow-discrete,
+    display 260ms allow-discrete;
+}
+
+.sheet[open] {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@starting-style {
+  .sheet[open] {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+.sheet::backdrop {
+  background: rgba(34, 32, 27, 0.34);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition:
+    opacity 200ms ease-out,
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+
+.sheet[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* The top layer is a RENDERING concept, not a tree move: the dialog is still a DOM
+   descendant of :root, so this selector matches. A --backdrop custom property would
+   have been the DRY move and is the trap — ::backdrop inheritance from the
+   originating element is a late addition, and where it is missing the property never
+   resolves and the backdrop silently disappears entirely. Literals cannot fail. */
+:root[data-theme="dark"] .sheet::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.sheet-body {
+  position: relative;
+  padding: var(--s7) var(--s6);
+}
+
+.sheet-close {
+  position: absolute;
+  top: var(--s4);
+  right: var(--s4);
+  display: grid;
+  width: 2.75rem; /* WCAG 2.5.5 AAA touch target, same as every other control here */
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sheet-close:hover {
+  background: var(--surface-soft);
+}
+
+.parallel {
+  display: grid;
+  gap: var(--s6);
+  margin-top: var(--s6);
+}
+
+/* Stacked: the hairline runs across. Side by side: it runs down. Same rule, same
+   --rule, one hairline between the two texts either way. */
+.parallel-col + .parallel-col {
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
+}
+
+@container (min-width: 880px) {
+  .parallel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .parallel-col + .parallel-col {
+    padding-top: 0;
+    padding-left: var(--s6);
+    border-top: 0;
+    border-left: 1px solid var(--rule);
+  }
+}
+
+.parallel-label {
+  margin: 0 0 var(--s3);
+  color: var(--muted);
+}
+
+/* The doctrine, rendered: the lesson is set in the modern sans (the readable
+   rendering); the source is set in the book serif (the historical authority).
+   Serif for both would collapse the exact distinction this product exists to make.
+   Setting them side by side is the only way the reader SEES that distinction. */
+.parallel-lesson {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: var(--t-ui);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.source-quote {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--t-quote);
+  line-height: 1.62;
+}
+
+/* ── THE WOW ──────────────────────────────────────────────────────────────────
+   The sheet arrives, settles for 220ms, and THEN an amber stroke sweeps
+   left-to-right under the authors' exact words. It says "we know precisely which
+   words back this claim" without a word of UI copy.
+
+   background-color MUST be transparent and this is the whole trick: the UA sheet
+   paints mark with a solid `background-color: mark`, and a solid fill under a
+   growing gradient means the stroke has nothing to reveal — the words are already
+   amber before the animation starts and the sweep is invisible. It would look like
+   nothing was broken.
+
+   box-decoration-break: clone is what makes the stroke survive a line wrap, which a
+   60ch serif passage does constantly. */
+.source-quote mark {
+  padding: 0;
+  background-color: transparent;
+  background-image: linear-gradient(var(--mark), var(--mark));
+  background-repeat: no-repeat;
+  background-position: 0 88%;
+  background-size: 0% 44%; /* a stroke under the words, not a block around them */
+  color: var(--mark-ink);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: draw-in 460ms cubic-bezier(0.22, 0.61, 0.36, 1) 220ms forwards;
+}
+
+@keyframes draw-in {
+  to {
+    background-size: 100% 44%;
+  }
+}
+
+.translators-note {
+  max-width: 60ch;
+  margin: var(--s7) 0 0;
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-family: var(--font-text);
+  font-size: 16px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.translators-note strong {
+  color: var(--ink);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.sheet-foot {
+  max-width: 60ch;
+  margin: var(--s4) 0 0;
+  color: var(--muted);
+  font-size: var(--t-colophon);
+}
+
+/* Was `width: 100%` — a full-bleed slab across the foot of the page. Moving to the
+   next idea is a step, not a form submission. */
 .lesson-next {
-  width: 100%;
-  margin-top: 2rem;
+  display: block;
+  margin: var(--s6) 0 0 auto;
 }
 
 .map-toggle {
-  margin-top: 1.5rem;
+  margin-top: var(--s6);
   text-align: center;
 }
 
-.map-disclosure {
-  margin-top: 1rem;
-  padding: 1rem;
-  border: 1px solid var(--line-soft);
-  background: var(--surface);
-  text-align: left;
+/* ── THE PLATE ────────────────────────────────────────────────────────────────
+   A fold-out map bound into a book: summoned, full-bleed, gone again. It reuses
+   `.sheet` wholesale — the iOS curve, the backdrop, the @starting-style, the
+   reduced-motion cut — and overrides only the GEOMETRY, because a plate arrives
+   differently from a drawer. The right sheet slides in from the right edge it is
+   attached to; the plate is attached to nothing, so it rises and settles.
+
+   `.map-sheet[open]` and `.sheet[open]` have identical specificity (0,2,0), so
+   these rules win ONLY by coming later in the file. Do not move this block above
+   the .sheet block. */
+.map-sheet {
+  inset: var(--s6);
+  width: auto;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  overflow: hidden; /* the plate never scrolls — the canvas pans */
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  transform: translateY(12px) scale(0.994);
 }
 
-.map-disclosure > p {
-  margin: 0 0 1rem;
-  color: var(--muted);
+.map-sheet[open] {
+  transform: none;
 }
 
+@starting-style {
+  .map-sheet[open] {
+    opacity: 0;
+    transform: translateY(12px) scale(0.994);
+  }
+}
+
+/* .sheet-body's reading padding would inset the canvas from a plate that exists to
+   BE canvas. The map card fills it corner to corner; only the × floats above. */
+.map-sheet-body {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  padding: 0;
+}
+
+.map-sheet .sheet-close {
+  z-index: 1; /* above the live canvas */
+}
+
+/* The card carries NO chrome of its own — no border, no radius, no lift, no fill.
+   It only ever exists inside the plate, and the plate already draws all four; a
+   card that redrew them would be a second card 1px inside the first, which is the
+   exact nesting that made the old .map-disclosure wrapper visibly fail to align
+   with its own sibling. It had them, and a `.map-sheet .graph-card` override that
+   turned every one of them back off again — two rules cancelling out. Both gone;
+   the plate is the card. */
 .graph-card {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  background: var(--surface);
 }
 
 .graph-toolbar {
@@ -489,21 +890,18 @@ mark {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.9rem;
-  border-bottom: 1px solid var(--line-soft);
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--rule);
 }
 
 .graph-toolbar p {
   margin: 0.2rem 0 0;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: var(--t-colophon);
 }
 
 .graph-view-label {
   color: var(--ink);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
 }
 
 .view-toggle,
@@ -511,21 +909,28 @@ mark {
   min-height: 2.5rem;
   padding: 0.35rem 0.65rem;
   border: 1px solid var(--line);
-  border-radius: 0.35rem;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
-  font-weight: 680;
+  font-size: var(--t-ui);
+  font-weight: 600;
   cursor: pointer;
+}
+
+.view-toggle:hover,
+.graph-controls button:hover {
+  background: var(--surface-soft);
 }
 
 .map-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
-  padding: 0.65rem 0.9rem;
-  border-bottom: 1px solid var(--line-soft);
+  padding: 0.7rem 1.1rem;
+  border-bottom: 1px solid var(--rule);
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: var(--t-colophon);
+  cursor: default;
 }
 
 .map-legend span {
@@ -544,45 +949,102 @@ mark {
   border-top-style: dashed;
 }
 
-.legend-node {
-  display: inline-grid;
-  width: 1rem;
-  height: 1rem;
-  place-items: center;
+/* The three hues on the map: claret = your route and where you are; amber = the
+   destination; warm grey = everything else.
+   NOTE FOR THE MAP PASS: GraphMap.tsx carries its OWN hardcoded `palette` object
+   (it does not read these tokens), and it is still the old green/olive/orange. Until
+   that object is repainted from §4.1, these swatches and the nodes they describe
+   will disagree. The mapping is in this stage's report. */
+.legend-swatch {
+  display: inline-block;
+  width: 1.3rem;
+  height: 0.62rem;
   border: 2px solid var(--line);
+  border-radius: var(--radius);
   background: var(--surface);
-  font-size: 0.62rem;
   font-style: normal;
+  cursor: default;
 }
 
-.legend-node.done {
-  background: var(--analogy);
+.legend-swatch.understood {
+  border-color: var(--primary);
+  background: var(--surface-soft);
 }
 
-.legend-node.next {
-  border-color: var(--focus);
+.legend-swatch.next {
+  border-color: var(--primary);
+  background: var(--surface);
 }
 
-.legend-node.goal {
-  border: 3px double var(--primary);
+.legend-swatch.goal {
+  border-color: var(--analogy-rule);
+  background: var(--mark);
 }
 
+/* THE MAP GETS THE PLATE, AND ALL OF IT.
+
+   There were two hardcoded heights here and they were sized BACKWARDS: the 5-node
+   guided route got 590px and the 10-node full map got 440px — the view with twice
+   the nodes was given three quarters of the room. Both are gone rather than
+   swapped. The map is summoned into a viewport-sized plate now, so the honest
+   height is "whatever the plate has", which no constant can know.
+
+   This is also the cheap move that keeps the door open for the owner's "tons of
+   nodes": the canvas already grows with the window, so scaling up is a dagre
+   question, never a layout rewrite. And it is what finally makes `fit` HONEST —
+   the old ribbon needed ~0.28 zoom and got clamped to the 0.72 legibility floor,
+   so "Fit visible concepts in view" was a false promise. Given the plate and a
+   top-to-bottom rank order, fit lands above the floor on its own and the floor
+   stops binding. Fix the shape; do not fight it with zoom. */
 .graph-shell {
   position: relative;
-  min-height: 320px;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background: var(--bg);
 }
 
+/* Absolute rather than height:100%: the shell is a flex item, and a percentage
+   height against a flex-basis parent is the classic silently-collapses-to-zero.
+   The shell is the positioning context, so inset:0 cannot be wrong. */
 .graph-viewport {
-  width: 100%;
-  height: 320px;
+  position: absolute;
+  inset: 0;
+  /* Cytoscape never sets `left` on its canvas layers — it relies on `left: auto` resolving to
+     the static position, i.e. the top-left. A <canvas> is inline-level, so ANY inherited
+     `text-align: center` (ours came from .map-toggle, which centres the toggle button, and
+     inherits all the way down through the map dialog) centres that static position instead —
+     shoving every layer right by half the container width and clipping the graph out of frame.
+     Reset the inherited alignment here, and pin left/top on the layers so no future centring
+     rule anywhere above can reach the renderer again. Found by opening the map, not by reading
+     the code: the fit math is correct and every test passed while the graph sat off-screen. */
+  text-align: initial;
 }
 
+.graph-viewport canvas {
+  left: 0;
+  top: 0;
+}
+
+/* KEEP the border and the lift: this is position:absolute OVER the live canvas — a
+   floating overlay, not nested chrome — and the lift is what keeps +/-/Fit legible
+   against the nodes underneath. */
 .graph-controls {
   position: absolute;
   right: 0.75rem;
   bottom: 0.75rem;
   display: flex;
   gap: 0.35rem;
+  padding: 0.28rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: 0 5px 16px rgba(34, 32, 27, 0.1);
+}
+
+.graph-controls button {
+  min-width: 2.5rem;
+  background: var(--surface);
 }
 
 .completion-page {
@@ -594,7 +1056,7 @@ mark {
   max-width: 34rem;
   margin: 1.25rem auto 2rem;
   color: var(--muted);
-  font-size: 1.1rem;
+  font-size: var(--t-body);
 }
 
 .completion-mark {
@@ -607,16 +1069,16 @@ mark {
   border-radius: 50%;
   color: var(--primary);
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 footer {
-  width: min(100% - 2rem, 980px);
+  width: min(100% - 4rem, 980px);
   margin: 1rem auto 0;
   padding: 1.5rem 0 2rem;
-  border-top: 1px solid var(--line-soft);
+  border-top: 1px solid var(--rule);
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: var(--t-colophon);
   text-align: center;
 }
 
@@ -632,7 +1094,49 @@ footer {
   border: 0 !important;
 }
 
+/* Right sheet at >=60rem, bottom sheet below — a sheet arrives from the nearest
+   edge, and on a narrow screen that edge is the bottom. The parallel is NOT keyed to
+   this breakpoint: its container query measures the sheet, so a wide-but-short window
+   still gets two columns in the bottom sheet, which is correct and free. */
+@media (max-width: 959px) {
+  .sheet {
+    width: 100%;
+    height: auto;
+    max-height: 86dvh;
+    margin: auto 0 0;
+    border-top: 1px solid var(--rule);
+    border-left: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(28px);
+  }
+
+  .sheet[open] {
+    transform: translateY(0);
+  }
+
+  @starting-style {
+    .sheet[open] {
+      transform: translateY(28px);
+    }
+  }
+
+  .sheet-body {
+    padding: var(--s6) var(--s4);
+  }
+}
+
 @media (max-width: 640px) {
+  .entry,
+  .course,
+  .completion-page {
+    width: min(100% - 2rem, 720px);
+  }
+
+  .masthead,
+  footer {
+    width: min(100% - 2rem, 980px);
+  }
+
   .masthead {
     min-height: 4rem;
   }
@@ -649,16 +1153,21 @@ footer {
     grid-template-columns: 1fr;
   }
 
-  .lesson-page {
-    padding: 1.2rem;
-  }
-
   .graph-toolbar {
     display: grid;
   }
 
   .view-toggle {
     width: 100%;
+  }
+
+  /* The plate keeps a smaller gutter on a phone, the same way the page does. */
+  .map-sheet {
+    inset: var(--s4);
+  }
+
+  .map-legend {
+    gap: 0.55rem 0.75rem;
   }
 }
 
@@ -673,5 +1182,19 @@ footer {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+
+  /* The block above is a genuine asset — but it caps DURATION, not delay, and it
+     never reaches ::backdrop (not matched by `*`). Left to it, the stroke would still
+     wait its 220ms and then snap on, which is the jump-scare version of the thing.
+     State the end state outright and run nothing. */
+  .source-quote mark {
+    background-size: 100% 44%;
+    animation: none;
+  }
+
+  .sheet,
+  .sheet::backdrop {
+    transition: none;
   }
 }

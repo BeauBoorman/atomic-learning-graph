@@ -64,7 +64,10 @@ describe("Gate 9 architecture", () => {
       ...rootThemeTokens(css, "dark"),
     };
 
-    expect(computedDarkTokens["--bg"]).toBe("#0d1712");
+    // Retargeted from #0d1712 (the old green-black) to the Plain Reading Edition's warm black.
+    // Kept, not deleted: a pinned dark --bg is a cheap tripwire against a palette revert, and
+    // the real check is the contrast suite below. The zero-AI purpose of this gate is untouched.
+    expect(computedDarkTokens["--bg"]).toBe("#14120e");
   });
 
   it("defines an explicit light theme that mirrors the default convention", () => {
