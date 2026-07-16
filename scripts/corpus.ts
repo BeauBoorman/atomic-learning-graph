@@ -261,8 +261,10 @@ Repository content is licensed under CC-BY-SA-4.0; see LICENSE.
 
 The ${entries.length} source documents in data/oer/ are adapted from Dive into Deep Learning by
 ${D2L_AUTHOR}, pinned to ${D2L_TAG} at commit ${D2L_COMMIT}. They are used under
-CC-BY-SA-4.0. Markdown formatting, code and directive blocks, math markup, role directives,
-emphasis delimiters, and link/reference markup were removed to produce the plain-text corpus.
+CC-BY-SA-4.0. To produce the plain-text corpus: fenced code blocks, display and inline math,
+tables, emphasis delimiters, and inline role directives were removed; links and reference
+anchors were resolved to plain text; whitespace was collapsed. Section headings and tab
+directives (:begin_tab: / :end_tab:) are retained inline.
 
 Lessons generated from these sources are modified, AI-translated adaptations. They are not
 endorsed by the Dive into Deep Learning authors. Per-source titles, links, hashes, and

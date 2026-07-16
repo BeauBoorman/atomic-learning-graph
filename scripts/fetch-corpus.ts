@@ -78,7 +78,7 @@ const fetched = await Promise.all(
         licenseName: D2L_LICENSE_STATEMENT,
       },
       modifications:
-        "Extracted from the pinned Markdown: fenced code and directive blocks and display math were removed; simple inline prose tokens were unwrapped while other inline math was removed; role directives and formatting delimiters were removed; links and reference anchors were resolved; whitespace was collapsed.",
+        "Extracted from the pinned Markdown: fenced code blocks, display and inline math, tables, emphasis delimiters, and inline role directives (:numref:, :eqref:, :cite:) were removed; links and reference anchors were resolved to plain text; whitespace was collapsed. Section headings and tab directives (:begin_tab: / :end_tab:) are retained inline.",
       licenseDeed: CC_BY_SA_4_DEED,
     };
     return { spec, markdown, text, entry };
