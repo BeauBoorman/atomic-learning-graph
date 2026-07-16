@@ -7,6 +7,12 @@ import { loadGraph } from "./src/graph/load";
 const graph = loadGraph();
 
 export default defineConfig({
+  // Load-bearing for the public demo. A GitHub Pages PROJECT page serves this app from
+  // /atomic-learning-graph/, not from the domain root. With `base` unset, Vite emits
+  // absolute `/assets/index-*.js` paths, every asset 404s, and the page renders blank
+  // white. If this app is ever moved to a user page or a custom domain (i.e. served from
+  // the root), set this back to "/".
+  base: "/atomic-learning-graph/",
   plugins: [react()],
   build: {
     // This single-chunk app has nothing to module-preload. Omitting Vite's

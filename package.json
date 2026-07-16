@@ -14,6 +14,7 @@
     "fetch:corpus": "tsx scripts/fetch-corpus.ts",
     "verify:corpus": "tsx scripts/verify-corpus.ts",
     "verify:anchors": "tsx scripts/verify-anchors.ts",
+    "gate": "bash scripts/gate.sh",
     "atomize": "tsx src/atomization/atomize.ts",
     "atomize:toy": "tsx src/atomization/atomize.ts --toy"
   },

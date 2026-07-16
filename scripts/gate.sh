@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# Acceptance gate — the AGENTS.md "Acceptance bar" as ONE command.
+#
+#   exit 0 = shippable.  exit 1 = not.  No judgement calls, no reading five bullets.
+#
+# Design notes:
+#
+#   * Every stage runs even if an earlier one fails, then we report a summary.
+#     A gate that bails on the first failure hides the other evidence and turns
+#     debugging into whack-a-mole.
+#   * Hermetic: every stage runs offline from a clean clone. The OER corpus and
+#     data/graph.json are committed, so there is nothing to fetch.
+#
+# What this gate does NOT prove (be honest about the boundary):
+#
+#   * `pnpm atomize` is deliberately NOT run here — it needs a live model key,
+#     costs money, and is non-deterministic. Its fail-closed behaviour on a
+#     missing/non-open licence and on invalid provenance is pinned by unit tests
+#     instead (src/atomization/*.test.ts).
+#   * A green gate means the committed graph, corpus, and UI hold their
+#     invariants. It does not mean the graph was regenerated today.
+#
+set -uo pipefail
+cd "$(dirname "$0")/.."
+
+failed=""
+fail_count=0
+
+run() {
+  name="$1"
+  shift
+  printf '\n==> %s\n' "$name"
+  if "$@"; then
+    printf '    OK    %s\n' "$name"
+  else
+    printf '    FAIL  %s\n' "$name"
+    failed="${failed}  - ${name}"$'\n'
+    fail_count=$((fail_count + 1))
+  fi
+}
+
+printf 'Acceptance gate — atomic-learning-graph\n'
+
+# Bar: `pnpm typecheck` exits 0.
+run "typecheck" pnpm typecheck
+
+# Bar: `pnpm test` passes — including every adversarial/negative test —
+# against the committed data/graph.json. This also covers:
+#   - getPath golden path on the generated graph (src/graph/path.test.ts)
+#   - no request-time LLM call in the browser (src/ui/gate9.test.ts)
+#   - atomizer fail-closed on licence/provenance (src/atomization/*.test.ts)
+run "tests (incl. adversarial, vs committed data/graph.json)" pnpm test
+
+# Provenance + licence integrity of the committed corpus.
+run "corpus integrity (licence allowlist + stored text)" pnpm verify:corpus
+run "golden anchors (quoted text still resolves)" pnpm verify:anchors
+
+# It has to actually build.
+run "build" pnpm build
+
+printf '\n'
+if [ "$fail_count" -eq 0 ]; then
+  printf 'ACCEPTANCE GATE PASSED\n'
+  exit 0
+fi
+
+printf 'ACCEPTANCE GATE FAILED (%s stage(s)):\n%s' "$fail_count" "$failed"
+exit 1
