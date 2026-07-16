@@ -16,7 +16,7 @@ const PROMPT_VERSION = "atomizer-v1-extractive-two-phase";
 const GRAPH_PATH = resolve(OER_DIR, "..", "graph.json");
 const RUN_LOG_PATH = resolve(OER_DIR, "..", "graph.run.json");
 const ATOMICITY_REPORT_PATH = resolve(OER_DIR, "..", "atomicity-report.json");
-const MODEL_CANDIDATES = [process.env.OPENAI_MODEL ?? "gpt-5.6", "gpt-5.4"];
+const MODEL_CANDIDATES = [process.env.OPENAI_MODEL ?? "gpt-5.6-sol", "gpt-5.4"];
 
 type JsonObject = Record<string, unknown>;
 

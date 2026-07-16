@@ -1,135 +1,173 @@
 {
   "concepts": [
     {
+      "id": "attention",
+      "title": "Attention in machine learning",
+      "summary": "Attention determines the relative importance of components within a sequence.",
+      "provenance": {
+        "sourceId": "wikipedia-attention",
+        "quotedText": "In machine learning, attention is a method that determines the importance of each component in a sequence relative to the other components in that sequence."
+      },
+      "tags": [
+        "attention",
+        "sequences",
+        "machine-learning",
+        "weights"
+      ]
+    },
+    {
+      "id": "causal-masking",
+      "title": "Causal masking",
+      "summary": "Causal masking prevents an autoregressive decoder from attending to outputs that have not yet been generated.",
+      "provenance": {
+        "sourceId": "wikipedia-attention",
+        "quotedText": "For decoder self-attention, all-to-all attention is inappropriate, because during the autoregressive decoding process, the decoder cannot attend to future outputs that has yet to be decoded."
+      },
+      "tags": [
+        "self-attention",
+        "causal-masking",
+        "decoder",
+        "autoregression"
+      ]
+    },
+    {
       "id": "dot-product",
-      "title": "Dot product as a scalar from two vectors",
-      "summary": "The dot product combines two equal-length numeric vectors and returns a single scalar value.",
+      "title": "Dot product",
+      "summary": "The dot product maps two equal-length numerical sequences to a single scalar.",
       "provenance": {
         "sourceId": "wikipedia-dot-product",
         "quotedText": "In mathematics, the dot product is an algebraic operation that takes two equal-length sequences of numbers (usually coordinate vectors), and returns a single number."
       },
       "tags": [
-        "mathematics",
-        "linear-algebra",
-        "dot-product"
+        "dot-product",
+        "vectors",
+        "scalar",
+        "algebra"
       ]
     },
     {
       "id": "dot-product-geometry",
       "title": "Geometric meaning of the dot product",
-      "summary": "Geometrically, the dot product depends on vector lengths and the cosine of the angle between them.",
+      "summary": "Geometrically, a dot product combines vector lengths with the cosine of the angle between the vectors.",
       "provenance": {
         "sourceId": "wikipedia-dot-product",
         "quotedText": "Geometrically, the scalar product of two vectors is the product of their lengths and the cosine of the angle between them."
       },
       "tags": [
-        "mathematics",
+        "dot-product",
         "geometry",
-        "dot-product"
-      ]
-    },
-    {
-      "id": "physical-vectors",
-      "title": "Vectors in physics",
-      "summary": "Many physical quantities are represented as vectors because they have magnitude and direction and obey vector addition.",
-      "provenance": {
-        "sourceId": "wikipedia-euclidean-vector",
-        "quotedText": "Vectors are fundamental in the physical sciences. They can be used to represent any quantity that has magnitude, has direction, and which adheres to the rules of vector addition."
-      },
-      "tags": [
-        "physics",
-        "vectors",
-        "applications"
+        "angle",
+        "vector-length"
       ]
     },
     {
       "id": "qkv",
-      "title": "QKV attention inputs and outputs",
-      "summary": "Transformer attention takes a query, keys, and values, and produces a softmax-weighted sum of value vectors.",
+      "title": "Queries, keys, and values",
+      "summary": "QKV attention represents queries in one matrix and associated key-value pairs in two other matrices.",
       "provenance": {
         "sourceId": "wikipedia-attention",
         "quotedText": "Self-attention is essentially the same as cross-attention, except that query, key, and value vectors all come from the same model."
       },
       "tags": [
-        "machine-learning",
         "attention",
-        "transformers",
-        "qkv"
+        "queries",
+        "keys",
+        "values"
       ]
     },
     {
       "id": "self-attention",
-      "title": "Self-attention uses one source for queries, keys, and values",
-      "summary": "Self-attention is the case where query, key, and value vectors are all derived from the same model state sequence.",
+      "title": "Self-attention",
+      "summary": "Self-attention uses query, key, and value vectors produced by the same model.",
       "provenance": {
         "sourceId": "wikipedia-attention",
         "quotedText": "Self-attention is essentially the same as cross-attention, except that query, key, and value vectors all come from the same model."
       },
       "tags": [
-        "machine-learning",
+        "self-attention",
         "attention",
-        "transformers",
-        "self-attention"
-      ]
-    },
-    {
-      "id": "self-attention-global-dependencies",
-      "title": "Self-attention captures global dependencies",
-      "summary": "A key benefit of self-attention is that each element can attend to all others, enabling global dependency modeling.",
-      "provenance": {
-        "sourceId": "wikipedia-attention",
-        "quotedText": "The major breakthrough came with self-attention, where each element in the input sequence attends to all others, enabling the model to capture global dependencies."
-      },
-      "tags": [
-        "machine-learning",
-        "attention",
-        "transformers"
+        "queries",
+        "keys",
+        "values"
       ]
     },
     {
       "id": "softmax",
-      "title": "Softmax as probability normalization",
-      "summary": "The softmax function converts real-valued scores into a probability distribution over possible outcomes.",
+      "title": "Softmax function",
+      "summary": "Softmax converts a tuple of real-valued scores into a probability distribution over possible outcomes.",
       "provenance": {
         "sourceId": "wikipedia-softmax-function",
         "quotedText": "The softmax function, also known as softargmax or normalized exponential function, converts a tuple of K real numbers into a probability distribution over K possible outcomes."
       },
       "tags": [
-        "machine-learning",
+        "softmax",
         "probability",
-        "softmax"
+        "normalization",
+        "machine-learning"
       ]
     },
     {
-      "id": "vector-space-operations",
+      "id": "softmax-temperature",
+      "title": "Softmax temperature",
+      "summary": "Softmax temperature controls whether the output distribution is more uniform or more sharply concentrated.",
+      "provenance": {
+        "sourceId": "wikipedia-softmax-function",
+        "quotedText": "A higher temperature results in a more uniform output distribution (i.e. with higher entropy; it is \"more random\"), while a lower temperature results in a sharper output distribution, with one value dominating."
+      },
+      "tags": [
+        "softmax",
+        "temperature",
+        "entropy",
+        "probability-distribution"
+      ]
+    },
+    {
+      "id": "vector-operations",
       "title": "Vector addition and scaling",
-      "summary": "Euclidean vectors support addition and scaling, which makes them form a vector space.",
+      "summary": "Euclidean vectors can be combined through addition and scalar multiplication to form a vector space.",
       "provenance": {
         "sourceId": "wikipedia-euclidean-vector",
         "quotedText": "Euclidean vectors can be added and scaled to form a vector space."
       },
       "tags": [
-        "mathematics",
-        "linear-algebra",
-        "vectors"
+        "vectors",
+        "vector-space",
+        "addition",
+        "scaling"
       ]
     },
     {
       "id": "vectors",
-      "title": "Euclidean vectors as magnitude and direction",
-      "summary": "A Euclidean vector is a geometric object characterized by magnitude and direction.",
+      "title": "Euclidean vectors",
+      "summary": "A Euclidean vector is a geometric object defined by both magnitude and direction.",
       "provenance": {
         "sourceId": "wikipedia-euclidean-vector",
         "quotedText": "In mathematics, physics, and engineering, a Euclidean vector or simply a vector (sometimes called a geometric vector or spatial vector) is a geometric object that has magnitude (or length) and direction."
       },
       "tags": [
-        "mathematics",
+        "vectors",
         "geometry",
-        "vectors"
+        "magnitude",
+        "direction"
       ]
     }
   ],
   "edges": [
+    {
+      "from": "attention",
+      "to": "qkv",
+      "type": "prereq"
+    },
+    {
+      "from": "attention",
+      "to": "qkv",
+      "type": "related"
+    },
+    {
+      "from": "attention",
+      "to": "self-attention",
+      "type": "related"
+    },
     {
       "from": "dot-product-geometry",
       "to": "vectors",
@@ -152,12 +190,7 @@
     },
     {
       "from": "dot-product",
-      "to": "softmax",
-      "type": "related"
-    },
-    {
-      "from": "physical-vectors",
-      "to": "vectors",
+      "to": "vector-operations",
       "type": "related"
     },
     {
@@ -176,18 +209,28 @@
       "type": "related"
     },
     {
-      "from": "self-attention-global-dependencies",
-      "to": "qkv",
+      "from": "self-attention",
+      "to": "attention",
       "type": "related"
     },
     {
       "from": "self-attention",
-      "to": "self-attention-global-dependencies",
+      "to": "causal-masking",
       "type": "prereq"
     },
     {
       "from": "self-attention",
-      "to": "self-attention-global-dependencies",
+      "to": "causal-masking",
+      "type": "related"
+    },
+    {
+      "from": "softmax",
+      "to": "attention",
+      "type": "prereq"
+    },
+    {
+      "from": "softmax",
+      "to": "attention",
       "type": "related"
     },
     {
@@ -197,27 +240,22 @@
     },
     {
       "from": "softmax",
-      "to": "qkv",
-      "type": "related"
-    },
-    {
-      "from": "vector-space-operations",
-      "to": "dot-product",
+      "to": "softmax-temperature",
       "type": "prereq"
     },
     {
-      "from": "vector-space-operations",
+      "from": "softmax",
+      "to": "softmax-temperature",
+      "type": "related"
+    },
+    {
+      "from": "vector-operations",
       "to": "dot-product",
       "type": "related"
     },
     {
-      "from": "vector-space-operations",
-      "to": "physical-vectors",
-      "type": "prereq"
-    },
-    {
-      "from": "vector-space-operations",
-      "to": "physical-vectors",
+      "from": "vectors",
+      "to": "dot-product-geometry",
       "type": "related"
     },
     {
@@ -232,22 +270,12 @@
     },
     {
       "from": "vectors",
-      "to": "physical-vectors",
-      "type": "related"
-    },
-    {
-      "from": "vectors",
-      "to": "qkv",
+      "to": "vector-operations",
       "type": "prereq"
     },
     {
       "from": "vectors",
-      "to": "vector-space-operations",
-      "type": "prereq"
-    },
-    {
-      "from": "vectors",
-      "to": "vector-space-operations",
+      "to": "vector-operations",
       "type": "related"
     }
   ],

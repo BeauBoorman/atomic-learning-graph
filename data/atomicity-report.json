@@ -1,12 +1,4 @@
 {
   "advisoryOnly": true,
-  "warnings": [
-    {
-      "conceptId": "dot-product-geometry",
-      "summary": "Geometrically, the dot product depends on vector lengths and the cosine of the angle between them.",
-      "signal": "comma-enumeration",
-      "reason": "summary reads as an enumeration: Geometrically, the dot product depends on vector lengths and the cosine of the angle between them.",
-      "confidence": "high"
-    }
-  ]
+  "warnings": []
 }

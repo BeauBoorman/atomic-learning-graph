@@ -1,15 +1,15 @@
 {
-  "model": "gpt-5.4-2026-03-05",
-  "requestedModel": "gpt-5.4",
+  "model": "gpt-5.6-sol",
+  "requestedModel": "gpt-5.6-sol",
   "promptVersion": "atomizer-v1-extractive-two-phase",
   "strictStructuredOutputs": true,
   "manifestSha256": "3c21c8e2062173530a74a6f207f34aad439b3223ce66c5b69a9093b9f29291b6",
-  "graphSha256": "3125c1f210978cb3ba032e09558d8afd59e1aa3d5a5b5011ec1cd895572050a7",
+  "graphSha256": "8b412198ccae97061807c0583ad0e213f11a74e21e340b9942a8b102e5958d0a",
   "responseIds": [
-    "resp_0244aed858c2c0a4006a585a444ea881969a216bae4a3c06f4",
-    "resp_097e99fef83a5f33006a585a452e64819588174ada89c86837",
-    "resp_00854c93dd4e7eec006a585a4ee3a88197b246bd7f7f12e51d",
-    "resp_0553fa835174f157006a585a50982c8190b1464ab84f024cc1"
+    "resp_0388a764f9e7e0bd006a585c9c184c8190894f0299dcf47097",
+    "resp_04bc218df588c65b006a585c9db030819492000d7ca286ff4d",
+    "resp_09ee51a36aa699dc006a585cbef5f08196953925967565f2e1",
+    "resp_046bebdf49db3132006a585cc40b108193b1de69e084f41ef6"
   ],
   "convergence": [
     {
