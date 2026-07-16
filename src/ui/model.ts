@@ -15,6 +15,8 @@ export interface CoursePage {
 }
 
 export interface CourseProgress {
+  /** Every page of this course, in order, whatever the learner has done. Never shrinks. */
+  pages: CoursePage[];
   remaining: CoursePage[];
   completeCount: number;
   total: number;
@@ -32,8 +34,6 @@ export interface ResolvedPassage {
   context: string;
 }
 
-export const DEEPDIVES_KEY = "atomic-learning-graph.deep-dives.v1";
-
 export function pathFor(
   graph: LearningGraph,
   goalId: ConceptId,
@@ -42,6 +42,15 @@ export function pathFor(
   return getPath(graph, goalId, known);
 }
 
+/**
+ * Recomputes the route with one more concept treated as already understood.
+ *
+ * No product code calls this any more — progress is recorded page keys now, and
+ * `understoodConcepts` derives the map styling that `known` used to carry. It is kept
+ * deliberately: it is correct, it is tested, it costs eight lines, and `gate9.test.ts`
+ * asserts the path module is called exactly twice from this file. Deleting it turns that
+ * gate red for zero behavioural gain.
+ */
 export function markUnderstood(
   graph: LearningGraph,
   goalId: ConceptId,
@@ -106,27 +115,48 @@ export function coursePageKey(page: CoursePage): string {
   return `${page.conceptId}:${page.stepIndex}`;
 }
 
-/** One source for every progress readout and for the completion boundary. */
+/** One source for every progress readout and for the completion boundary.
+ *  The course page list is a pure function of {goal, depth}. It NEVER shrinks under the
+ *  learner. Completion is a recorded fact, not a length difference — the old form inferred
+ *  it from `total - remaining.length`, which conflated "you already knew this" with
+ *  "you completed this" and opened fresh courses at Page 3 of 8, 25%. */
 export function deriveProgress(
   graph: LearningGraph,
-  known: ConceptId[],
   goalId: ConceptId = graph.goalId,
   depth: Depth = "quick",
   completedPageKeys: string[] = [],
 ): CourseProgress {
-  const total = courseFor(graph, goalId, depth, []).length;
+  const pages = courseFor(graph, goalId, depth, []); // <- ALWAYS []. Same array, both sides.
   const completed = new Set(completedPageKeys);
-  const remaining = courseFor(graph, goalId, depth, known).filter(
-    (page) => !completed.has(coursePageKey(page)),
-  );
-  const completeCount = Math.max(0, total - remaining.length);
+  const done = pages.filter((page) => completed.has(coursePageKey(page)));
+  const remaining = pages.filter((page) => !completed.has(coursePageKey(page)));
+  const total = pages.length;
   return {
+    pages,
     remaining,
-    completeCount,
+    completeCount: done.length,
     total,
-    percent: total === 0 ? 100 : Math.round((completeCount / total) * 100),
+    percent: total === 0 ? 100 : Math.round((done.length / total) * 100),
     complete: remaining.length === 0,
   };
+}
+
+/** The map's "understood" styling was the only real consumer of `known`. Derive it; do not
+ *  store it. A concept is understood when every page of it IN THIS COURSE is recorded. */
+export function understoodConcepts(
+  graph: LearningGraph,
+  goalId: ConceptId,
+  depth: Depth,
+  completedPageKeys: string[],
+): ConceptId[] {
+  const completed = new Set(completedPageKeys);
+  const byConcept = new Map<ConceptId, CoursePage[]>();
+  for (const page of courseFor(graph, goalId, depth, [])) {
+    byConcept.set(page.conceptId, [...(byConcept.get(page.conceptId) ?? []), page]);
+  }
+  return [...byConcept]
+    .filter(([, pages]) => pages.every((page) => completed.has(coursePageKey(page))))
+    .map(([conceptId]) => conceptId);
 }
 
 function findConcept(graph: LearningGraph, conceptId: ConceptId): Concept {

@@ -7,16 +7,15 @@ import { LessonPage } from "./LessonPage";
 import { MapToggle } from "./MapToggle";
 import { StepIndicator } from "./StepIndicator";
 import {
-  courseFor,
   coursePageKey,
-  DEEPDIVES_KEY,
   deriveProgress,
-  markUnderstood,
   resolveCitation,
+  understoodConcepts,
   type CoursePage,
   type CourseProgress,
   type Depth,
 } from "./model";
+import { titleFor } from "./titles";
 
 interface AppProps {
   graph: LearningGraph;
@@ -24,29 +23,56 @@ interface AppProps {
 
 type Theme = "light" | "dark";
 
-// v2: the graph was rebuilt (new d2l corpus, new concept ids, lesson steps). Progress saved
-// against the OLD graph is meaningless but its ids still resolve, so it silently marked
-// concepts "known" and dropped returning learners into the middle of a course. Bumping the
-// key retires that stale state instead of honouring it.
-const PROGRESS_KEY = "atomic-learning-graph.progress.v2";
+// v3: progress is COMPLETED PAGE KEYS, scoped to one course. v1/v2 stored a global
+// known-concept list with no course scope, so finishing one course silently marked five
+// other goals complete. That is not migratable — "you knew this" and "you read this" were
+// never distinguishable in the old shape — so the old keys are retired, not converted.
+const COURSE_KEY = "atomic-learning-graph.course.v3";
+/** Exported for the scoping regression test: cross-course contamination is prevented HERE and
+ *  nowhere else. `deriveProgress` is course-pure but page keys overlap between courses, so the
+ *  storage key is the only thing that stops course A's pages being read as course B's. */
+export const courseKey = (goalId: ConceptId, depth: Depth) => `${COURSE_KEY}:${goalId}:${depth}`;
+
+const LEGACY_KEYS = [
+  "atomic-learning-graph.progress.v1", // orphaned by the .v2 bump; still on real machines
+  "atomic-learning-graph.progress.v2", // the leak that produced "Page 3 of 8"
+  "atomic-learning-graph.deep-dives.v1", // equally unscoped; same class of leak
+];
+
+// The .v2 bump reset the value once and left the bug dormant. Bumping again without changing
+// the SHAPE is how this ships a third time, so the old keys are deleted, never migrated.
+function retireLegacyProgress() {
+  if (typeof window === "undefined") return;
+  try {
+    for (const key of LEGACY_KEYS) window.localStorage.removeItem(key);
+  } catch {
+    // Nothing to retire.
+  }
+}
+
 const THEME_KEY = "atomic-learning-graph.theme.v1";
 const PASSION_KEY = "atomic-learning-graph.passion.v1";
 
-function storedIds(key: string, allowed?: Set<string>): string[] {
+/** A page key that is not in this course is inert — `deriveProgress` only ever counts keys it
+ *  finds IN the course — so nothing here needs to know the graph to be safe. */
+function storedPages(key: string): string[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(window.localStorage.getItem(key) ?? "[]") as unknown;
     if (!Array.isArray(parsed)) return [];
-    return [...new Set(parsed.filter(
-      (value): value is string => typeof value === "string" && (!allowed || allowed.has(value)),
-    ))];
+    return [...new Set(parsed.filter((value): value is string => typeof value === "string"))];
   } catch {
     return [];
   }
 }
 
-function storedKnown(graph: LearningGraph): ConceptId[] {
-  return storedIds(PROGRESS_KEY, new Set(graph.concepts.map((concept) => concept.id)));
+function savePages(key: string, pages: string[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(pages));
+  } catch {
+    // Progress remains available for this visit.
+  }
 }
 
 function storedPassion(): PassionId | undefined {
@@ -83,15 +109,41 @@ function uniqueConcepts(pages: CoursePage[]): ConceptId[] {
   return [...new Set(pages.map((page) => page.conceptId))];
 }
 
+/** The completed pages and the course they belong to are ONE value, never two.
+ *  Held apart, the save effect fires once mid-switch holding course A's pages and course B's
+ *  key — writing A's progress into B. That is the same leak the v3 key retires, one frame wide
+ *  instead of forever. Married, a page key cannot reach the wrong course's storage at all. */
+interface CourseState {
+  key: string;
+  pages: string[];
+}
+
+/** A stable empty list: a fresh `[]` each render would churn every downstream useMemo. */
+const NO_PAGES: string[] = [];
+
+/** aria-live announces only when the text NODE changes. The old string was byte-identical on
+ *  pages 2 through 7, so React bailed on Object.is and six of eight page turns announced
+ *  nothing. Naming the page and the lesson is unique by construction, and says the same thing
+ *  the step indicator shows sighted learners. */
+function pageAnnouncement(
+  graph: LearningGraph,
+  page: CoursePage,
+  pageNumber: number,
+  total: number,
+): string {
+  const concept = graph.concepts.find((candidate) => candidate.id === page.conceptId);
+  return `Page ${pageNumber} of ${total}: ${concept ? titleFor(concept) : page.conceptId}`;
+}
+
 interface CourseScreenProps {
   graph: LearningGraph;
   goalId: ConceptId;
-  depth: Depth;
   passion?: PassionId;
   known: ConceptId[];
   theme: Theme;
   progress: CourseProgress;
   onNext: () => void;
+  onOpenLesson: (id: ConceptId) => void;
   onRestart: () => void;
 }
 
@@ -99,12 +151,12 @@ interface CourseScreenProps {
 export function CourseScreen({
   graph,
   goalId,
-  depth,
   passion,
   known,
   theme,
   progress,
   onNext,
+  onOpenLesson,
   onRestart,
 }: CourseScreenProps) {
   if (progress.complete) return <CompletionPage onRestart={onRestart} />;
@@ -114,7 +166,8 @@ export function CourseScreen({
   const step = concept?.lesson?.steps[page.stepIndex];
   if (!concept || !step) throw new Error(`missing course page: ${coursePageKey(page)}`);
 
-  const initialPages = courseFor(graph, goalId, depth, []);
+  // The whole course, from `progress` — the one place the page list is built. Rebuilding it
+  // here with a second `courseFor` call is how two views of one course drift apart.
   const path = uniqueConcepts(progress.remaining);
   const nextLabel = progress.remaining.length === 1
     ? "Finish course"
@@ -140,9 +193,10 @@ export function CourseScreen({
         goalId={goalId}
         currentId={page.conceptId}
         path={path}
-        initialPath={uniqueConcepts(initialPages)}
+        initialPath={uniqueConcepts(progress.pages)}
         known={known}
         theme={theme}
+        onOpenLesson={onOpenLesson}
       />
     </main>
   );
@@ -153,37 +207,46 @@ export function App({ graph }: AppProps) {
   const [goalId, setGoalId] = useState<ConceptId>(graph.goalId);
   const [depth, setDepth] = useState<Depth>("quick");
   const [passion, setPassion] = useState<PassionId | undefined>(storedPassion);
-  const [known, setKnown] = useState<ConceptId[]>(() => storedKnown(graph));
-  const [deepDivePages, setDeepDivePages] = useState<string[]>(() => storedIds(DEEPDIVES_KEY));
-  const [sessionPages, setSessionPages] = useState<string[]>([]);
+  const activeCourse = courseKey(goalId, depth);
+  const [course, setCourse] = useState<CourseState>(
+    () => ({ key: activeCourse, pages: storedPages(activeCourse) }),
+  );
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [themeIsExplicit, setThemeIsExplicit] = useState(hasStoredTheme);
   const [announcement, setAnnouncement] = useState("");
+  // Parked seed for the gated side-quest feature. The map can already name a concept the
+  // learner wants to look at; nothing renders from it yet, and deliberately so — a peek must
+  // never replace the lesson on screen. Kept because reading it must never touch progress.
+  const [peekedConceptId, setPeekedConceptId] = useState<ConceptId | undefined>();
 
-  const completedPages = useMemo(
-    () => [...new Set([...deepDivePages, ...sessionPages])],
-    [deepDivePages, sessionPages],
-  );
+  // The v1/v2 keys are unscoped and unreadable in the new shape. Delete them on sight.
+  useEffect(() => { retireLegacyProgress(); }, []);
+
+  // Load on switch. Same course -> same object -> React bails; no needless re-render at mount.
+  useEffect(() => {
+    setCourse((current) => (
+      current.key === activeCourse ? current : { key: activeCourse, pages: storedPages(activeCourse) }
+    ));
+  }, [activeCourse]);
+
+  useEffect(() => {
+    if (course.key !== activeCourse) return; // mid-switch: these pages belong to the OLD course.
+    savePages(course.key, course.pages);
+  }, [activeCourse, course]);
+
+  const completedPages = course.key === activeCourse ? course.pages : NO_PAGES;
+  // A map peek is navigation only. Keep it out of this dependency list and out of every
+  // completed-page write so deriveProgress remains the sole progress authority.
   const progress = useMemo(
-    () => deriveProgress(graph, known, goalId, depth, completedPages),
-    [completedPages, depth, goalId, graph, known],
+    () => deriveProgress(graph, goalId, depth, completedPages),
+    [completedPages, depth, goalId, graph],
   );
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(PROGRESS_KEY, JSON.stringify(known));
-    } catch {
-      // Progress remains available for this visit.
-    }
-  }, [known]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(DEEPDIVES_KEY, JSON.stringify(deepDivePages));
-    } catch {
-      // Deep-dive progress remains available for this visit.
-    }
-  }, [deepDivePages]);
+  // The map's "understood" styling, derived from the same recorded fact. Never stored: a
+  // stored known-list is what let one finished course mark five other goals complete.
+  const known = useMemo(
+    () => understoodConcepts(graph, goalId, depth, completedPages),
+    [completedPages, depth, goalId, graph],
+  );
 
   useEffect(() => {
     try {
@@ -232,49 +295,41 @@ export function App({ graph }: AppProps) {
     const page = progress.remaining[0];
     if (!page) return;
     const key = coursePageKey(page);
-    const spineIds = new Set(
-      courseFor(graph, goalId, "quick", []).map((candidate) => candidate.conceptId),
-    );
-    const currentStep = graph.concepts
-      .find((concept) => concept.id === page.conceptId)
-      ?.lesson?.steps[page.stepIndex];
-    const isCoreSpinePage = spineIds.has(page.conceptId) && currentStep?.stepTier === "core";
-    const anotherCorePageForConcept = progress.remaining.some(
-      (candidate, index) => index > 0
-        && candidate.conceptId === page.conceptId
-        && graph.concepts
-          .find((concept) => concept.id === candidate.conceptId)
-          ?.lesson?.steps[candidate.stepIndex]?.stepTier === "core",
-    );
-
-    if (isCoreSpinePage) {
-      setSessionPages((current) => current.includes(key) ? current : [...current, key]);
-      if (!anotherCorePageForConcept) {
-        const next = markUnderstood(graph, goalId, known, page.conceptId);
-        setKnown(next.known);
-      }
-    } else {
-      setDeepDivePages((current) => current.includes(key) ? current : [...current, key]);
-    }
+    // Finishing a page is one recorded fact. There is no second bookkeeping path: no known
+    // list to advance, no core/deep split, no session copy — the tier decides which pages are
+    // IN the course, never what "done" means.
+    setCourse((current) => (
+      current.key !== activeCourse || current.pages.includes(key)
+        ? current
+        : { key: current.key, pages: [...current.pages, key] }
+    ));
+    const arriving = progress.remaining[1];
     setAnnouncement(
-      progress.remaining.length === 1 ? "Final page finished." : "Next lesson page ready.",
+      arriving
+        // +2: recording this page raises completeCount by one, and the indicator numbers the
+        // page on screen as completeCount + 1. Announce what arrives, not what just left.
+        ? pageAnnouncement(graph, arriving, progress.completeCount + 2, progress.total)
+        : "Final page finished.",
     );
-  }, [goalId, graph, known, progress.remaining]);
+  }, [activeCourse, graph, progress.completeCount, progress.remaining, progress.total]);
 
+  // None of these clear progress any more. The course load effect is keyed on the course, so
+  // switching cannot carry the old course's pages across: the leak is gone by construction,
+  // not by remembering to reset.
   const chooseCourse = () => {
     setStarted(false);
-    setSessionPages([]);
+    setPeekedConceptId(undefined);
     setAnnouncement("Choose a learning goal.");
   };
 
   const updateGoal = (nextGoal: ConceptId) => {
     setGoalId(nextGoal);
-    setSessionPages([]);
+    setPeekedConceptId(undefined);
   };
 
   const updateDepth = (nextDepth: Depth) => {
     setDepth(nextDepth);
-    setSessionPages([]);
+    setPeekedConceptId(undefined);
   };
 
   const currentThemeName = theme === "light" ? "Light" : "Dark";
@@ -315,12 +370,12 @@ export function App({ graph }: AppProps) {
         <CourseScreen
           graph={graph}
           goalId={goalId}
-          depth={depth}
           passion={passion}
           known={known}
           theme={theme}
           progress={progress}
           onNext={handleNext}
+          onOpenLesson={setPeekedConceptId}
           onRestart={chooseCourse}
         />
       ) : (
@@ -333,7 +388,6 @@ export function App({ graph }: AppProps) {
           onDepthChange={updateDepth}
           onPassionChange={setPassion}
           onStart={() => {
-            setSessionPages([]);
             setStarted(true);
             setAnnouncement("Your first lesson is ready.");
           }}

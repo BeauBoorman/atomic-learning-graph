@@ -8,6 +8,7 @@ import {
   pathFor,
   resolveCitation,
   resolveLesson,
+  understoodConcepts,
 } from "./model";
 
 const graph = loadGraph();
@@ -95,22 +96,47 @@ describe("UI learning model", () => {
     expect(afterCoreIsKnown).toContainEqual({ conceptId: "vectors", stepIndex: 1 });
   });
 
-  it("derives completion and percentage from the same remaining course pages", () => {
-    const initial = deriveProgress(fixtureGraph, [], "softmax", "quick");
-    expect(initial).toMatchObject({ completeCount: 0, total: 3, percent: 0, complete: false });
-    expect(initial.remaining).toHaveLength(3);
+  // These two replace "derives completion and percentage from the same remaining course
+  // pages", which asserted the defect as correct on the FIXTURE. It required
+  // `deriveProgress(fixtureGraph, ["vectors"], "softmax", "quick")` — no page recorded, one
+  // concept "known" — to report completeCount 1, 33%, remaining[0] = dot-product:0. That
+  // blessed both halves of the live bug: completion inferred from a length difference
+  // (`total - remaining.length`), and the page you were reading pruned out of the course.
+  // It also required a course with NOTHING recorded to report 100% complete. It passed only
+  // because every fixture concept has exactly ONE core page, so "concept known" and "page
+  // read" coincide there. On the real graph `vectors` has two, and the same call opens a
+  // fresh course at "Page 3 of 8", 25%, on the wrong lesson. Test the real graph.
+  it("counts a page complete only when its page key is recorded", () => {
+    expect(courseFor(graph, "self-attention", "quick", [])).toHaveLength(8);
 
-    const afterOne = deriveProgress(fixtureGraph, ["vectors"], "softmax", "quick");
-    expect(afterOne).toMatchObject({ completeCount: 1, total: 3, percent: 33, complete: false });
-    expect(afterOne.remaining[0]).toEqual({ conceptId: "dot-product", stepIndex: 0 });
+    const fresh = deriveProgress(graph, "self-attention", "quick", []);
+    expect(fresh).toMatchObject({ completeCount: 0, total: 8, percent: 0, complete: false });
+    expect(fresh.remaining[0]).toEqual({ conceptId: "vectors", stepIndex: 0 });
 
-    const done = deriveProgress(
-      fixtureGraph,
-      ["vectors", "dot-product", "softmax"],
-      "softmax",
-      "quick",
-    );
-    expect(done).toMatchObject({ remaining: [], completeCount: 3, total: 3, percent: 100, complete: true });
+    // The killer assertion, checked by re-running the old code: with known=["vectors"] in
+    // localStorage — reachable in one clean session by finishing vectors under ANY other goal —
+    // the old form pruned BOTH vectors pages out of the course and returned completeCount 2,
+    // remaining[0] = dot-product:0. That is "Page 3 of 8", 25%, opening on the wrong lesson
+    // with nothing read. There is no `known` channel left for that to leak through.
+    const afterOne = deriveProgress(graph, "self-attention", "quick", ["vectors:0"]);
+    expect(afterOne).toMatchObject({ completeCount: 1, total: 8 });
+    expect(afterOne.remaining[0]).toEqual({ conceptId: "vectors", stepIndex: 1 });
+  });
+
+  it("opens every goal at page 1 on a fresh course", () => {
+    for (const concept of graph.concepts) {
+      const p = deriveProgress(graph, concept.id, "quick", []);
+      expect(p).toMatchObject({ completeCount: 0, percent: 0, complete: false });
+      expect(p.remaining[0]).toEqual(courseFor(graph, concept.id, "quick", [])[0]);
+    }
+  });
+
+  it("derives understood concepts from recorded pages, never from a stored list", () => {
+    // `vectors` has TWO core pages. Reading the first understands nothing — the exact
+    // conflation that pruned both pages out of the course and skipped to dot-product.
+    expect(understoodConcepts(graph, "self-attention", "quick", ["vectors:0"])).toEqual([]);
+    expect(understoodConcepts(graph, "self-attention", "quick", ["vectors:0", "vectors:1"]))
+      .toEqual(["vectors"]);
   });
 
   it("resolves the citation attached to the exact lesson page", () => {
