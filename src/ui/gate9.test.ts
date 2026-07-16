@@ -22,6 +22,19 @@ function rootThemeTokens(css: string, theme?: string): Record<string, string> {
   );
 }
 
+function contrastRatio(first: string, second: string): number {
+  const luminance = (hex: string) => {
+    const channels = hex.match(/[\da-f]{2}/gi)?.map((channel) => Number.parseInt(channel, 16) / 255);
+    if (!channels || channels.length !== 3) throw new Error(`expected six-digit hex color, received ${hex}`);
+    const [red, green, blue] = channels.map((value) =>
+      value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+    );
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  };
+  const values = [luminance(first), luminance(second)].sort((a, b) => b - a);
+  return (values[0] + 0.05) / (values[1] + 0.05);
+}
+
 describe("Gate 9 architecture", () => {
   it("loads the committed graph at build time through loadGraph", () => {
     const config = read("vite.config.ts");
@@ -52,6 +65,36 @@ describe("Gate 9 architecture", () => {
     };
 
     expect(computedDarkTokens["--bg"]).toBe("#0d1712");
+  });
+
+  it("defines an explicit light theme that mirrors the default convention", () => {
+    const css = read("src/ui/styles.css");
+    const defaults = rootThemeTokens(css);
+    const light = rootThemeTokens(css, "light");
+
+    for (const token of ["--bg", "--surface", "--ink", "--muted", "--line", "--focus", "--primary", "--primary-ink", "--mark", "--mark-ink"]) {
+      expect(light[token]).toBe(defaults[token]);
+    }
+    expect(css).toMatch(/:root\[data-theme="light"\]\s*\{[^}]*color-scheme:\s*light;/s);
+    expect(css).toMatch(/:root\[data-theme="dark"\]\s*\{[^}]*color-scheme:\s*dark;/s);
+  });
+
+  it("keeps text, controls, focus, and cited marks at WCAG AA contrast in both themes", () => {
+    const css = read("src/ui/styles.css");
+    const themes = [rootThemeTokens(css, "light"), rootThemeTokens(css, "dark")];
+
+    for (const tokens of themes) {
+      expect(contrastRatio(tokens["--ink"], tokens["--bg"])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(tokens["--muted"], tokens["--bg"])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(tokens["--muted"], tokens["--surface"])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(tokens["--primary-ink"], tokens["--primary"])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(tokens["--mark-ink"], tokens["--mark"])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(tokens["--line"], tokens["--bg"])).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(tokens["--line"], tokens["--surface"])).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(tokens["--focus"], tokens["--bg"])).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(tokens["--focus"], tokens["--surface"])).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(tokens["--primary"], tokens["--surface"])).toBeGreaterThanOrEqual(3);
+    }
   });
 
   it("routes progress through the deterministic path module", () => {

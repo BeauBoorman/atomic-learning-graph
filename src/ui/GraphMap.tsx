@@ -7,6 +7,7 @@ cytoscape.use(dagre);
 
 interface GraphMapProps {
   graph: LearningGraph;
+  goalId: ConceptId;
   selectedId: ConceptId;
   currentId?: ConceptId;
   path: ConceptId[];
@@ -173,6 +174,7 @@ function stylesFor(theme: "light" | "dark", reduceMotion = false): cytoscape.Sty
 
 export function GraphMap({
   graph,
+  goalId,
   selectedId,
   currentId,
   path,
@@ -294,7 +296,7 @@ export function GraphMap({
         node.removeClass("on-route known goal current selected");
         node.toggleClass("on-route", remaining.has(id));
         node.toggleClass("known", knownIds.has(id));
-        node.toggleClass("goal", id === graph.goalId);
+        node.toggleClass("goal", id === goalId);
         node.toggleClass("current", id === currentId);
         node.toggleClass("selected", id === selectedId);
         const status = knownIds.has(id)
@@ -325,7 +327,7 @@ export function GraphMap({
       if (reduceMotion) cy.center(selected);
       else cy.animate({ center: { eles: selected }, duration: 280 });
     }
-  }, [currentId, graph, initialPath, known, path, selectedId, showFullMap]);
+  }, [currentId, goalId, graph, initialPath, known, path, selectedId, showFullMap]);
 
   const zoomBy = (factor: number) => {
     const cy = graphRef.current;
@@ -368,8 +370,8 @@ export function GraphMap({
         <div>
           <span className="graph-view-label">{showFullMap ? "FULL MAP · OPTIONAL VIEW" : "YOUR GUIDED ROUTE"}</span>
           <p>{showFullMap
-            ? `All ${graph.concepts.length} concepts are visible. Select one to open its lesson.`
-            : `Only the ${initialPath.length} concepts needed for your goal are shown. Select one to learn.`}</p>
+            ? `All ${graph.concepts.length} concepts are visible. This view does not change your course.`
+            : `These ${initialPath.length} concepts lead to your goal.`}</p>
         </div>
         <button
           className="view-toggle"
