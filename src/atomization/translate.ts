@@ -1,4 +1,11 @@
-import type { Concept, LearningGraph, Lesson, LessonStep, Source } from "../types";
+import type {
+  AlternateFormat,
+  Concept,
+  LearningGraph,
+  Lesson,
+  LessonStep,
+  Source,
+} from "../types";
 import { groundedQuote } from "./grounding";
 import { convergeLessonCitations } from "./repair";
 
@@ -28,6 +35,23 @@ export const TRANSLATE_INSTRUCTIONS = `You are a translator, not an author. Rewr
 4. Mark each step \`stepTier\`: \`"core"\` if it is essential to understand the concept (shown on the quick path), \`"deep"\` if it is enrichment.
 5. \`plainTitle\`: a jargon-free title for this concept.
 Output ONLY the JSON matching the schema.`;
+
+const RENDERING_QUESTIONS: Record<AlternateFormat, string> = {
+  "why-it-exists":
+    "Answer ONE question: why does this concept exist — what problem does it solve, what came before it, what breaks without it. Do NOT define the concept; the reader already has a definition. Ground every step in a span about motivation, prior approaches, or limitations.",
+  "how-it-works":
+    "Answer ONE question: what actually happens, step by step, when this runs. Do NOT motivate it and do NOT define it. Ground every step in a span describing the mechanism or procedure.",
+};
+
+export function renderInstructions(format: AlternateFormat): string {
+  return `You are a translator, not an author. Rewrite ONE concept from the SOURCE excerpt below into plain language an average adult can read (US grade 8–10). ${RENDERING_QUESTIONS[format]} Rules:
+1. Produce 2–4 ordered \`steps\`, each one short page (1–2 sentences, ≤~45 words). Everyday words; define any unavoidable technical term inline in plain words.
+2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. If you cannot ground a step in a verbatim span, DROP that step.
+3. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.
+4. Mark each step \`stepTier\`: \`"core"\` if it is essential to answer the question (shown on the quick path), \`"deep"\` if it is enrichment.
+5. \`plainTitle\`: a jargon-free title for this rendering.
+Output ONLY the JSON matching the schema.`;
+}
 
 const citationSchema: JsonObject = {
   type: "object",
@@ -176,7 +200,7 @@ export function excerptAroundAnchor(sourceText: string, anchorQuote: string): st
   return sourceText.slice(start, end).trim();
 }
 
-function sourceForConcept(graph: LearningGraph, concept: Concept): Source {
+export function sourceForConcept(graph: LearningGraph, concept: Concept): Source {
   const matches = graph.sources.filter(({ id }) => id === concept.provenance.sourceId);
   if (matches.length !== 1) {
     throw new Error(`concept ${concept.id} does not resolve to exactly one source`);
@@ -184,7 +208,7 @@ function sourceForConcept(graph: LearningGraph, concept: Concept): Source {
   return matches[0]!;
 }
 
-function snapLesson(lesson: Lesson, source: Source): Lesson {
+export function snapLesson(lesson: Lesson, source: Source): Lesson {
   return {
     ...lesson,
     steps: lesson.steps.map((step) => {
@@ -200,7 +224,7 @@ const requestOptions: TranslationRequestOptions = {
   maxOutputTokens: 3000,
 };
 
-function translationInput(concept: Concept, source: Source, excerpt: string): string {
+export function translationInput(concept: Concept, source: Source, excerpt: string): string {
   return `CONCEPT_ID=${concept.id}
 CONCEPT_TITLE=${concept.title}
 CONCEPT_SUMMARY=${concept.summary}
