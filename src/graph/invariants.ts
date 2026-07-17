@@ -269,7 +269,7 @@ export function hasCycle(graph: LearningGraph): boolean {
  * until it fails on the real atomized graph — i.e. during the demo.
  *
  * Terms. Consider ONLY the prerequisite relation (edges of type `"prereq"`). A prereq edge
- * `u -> v` means "u must be understood before v" — it points in the direction of learning
+ * `u -> v` means "u comes before v" — it points in the direction of learning
  * progression. For a concept `c`:
  *   - inbound(c)  = prereq edges INTO c   = c's own prerequisites
  *   - outbound(c) = prereq edges OUT of c = the concepts c unlocks (c is their prerequisite)

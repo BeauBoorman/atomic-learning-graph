@@ -8,7 +8,7 @@ interface MapToggleProps {
   currentId: ConceptId;
   path: ConceptId[];
   initialPath: ConceptId[];
-  known: ConceptId[];
+  covered: ConceptId[];
   theme: "light" | "dark";
   onOpenLesson: (id: ConceptId) => void;
 }
@@ -33,7 +33,7 @@ export function MapToggle({
   currentId,
   path,
   initialPath,
-  known,
+  covered,
   theme,
   onOpenLesson,
 }: MapToggleProps) {
@@ -113,7 +113,7 @@ export function MapToggle({
               currentId={currentId}
               path={path}
               initialPath={initialPath}
-              known={known}
+              covered={covered}
               theme={theme}
               onSelect={setSelectedId}
               onActivate={(id) => {

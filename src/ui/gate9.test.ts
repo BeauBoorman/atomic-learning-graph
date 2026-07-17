@@ -115,6 +115,33 @@ describe("Gate 9 architecture", () => {
   it("routes progress through the deterministic path module", () => {
     const model = read("src/ui/model.ts");
     expect(model).toContain('import { getPath } from "../graph/path"');
-    expect(model.match(/getPath\(/g)?.length).toBe(2);
+    expect(model.match(/getPath\(/g)?.length).toBe(1);
+  });
+
+  it("keeps self-explanation outside persistence, progression, and covered status", () => {
+    const lesson = read("src/ui/LessonPage.tsx");
+    const promptStart = lesson.indexOf("function SelfExplanation");
+    const promptEnd = lesson.indexOf("function RenderingStep", promptStart);
+    const promptComponent = lesson.slice(promptStart, promptEnd);
+    expect(promptStart).toBeGreaterThanOrEqual(0);
+    expect(promptEnd).toBeGreaterThan(promptStart);
+    expect(promptComponent).not.toMatch(/\b(?:useState|localStorage|sessionStorage|onChange|onInput|required)\b/);
+    expect(promptComponent).not.toContain("name=");
+
+    const app = read("src/ui/App.tsx");
+    const nextStart = app.indexOf("const handleNext");
+    const nextEnd = app.indexOf("// None of these clear progress", nextStart);
+    const nextHandler = app.slice(nextStart, nextEnd);
+    expect(nextStart).toBeGreaterThanOrEqual(0);
+    expect(nextEnd).toBeGreaterThan(nextStart);
+    expect(nextHandler).not.toMatch(/explanation|response/i);
+
+    const model = read("src/ui/model.ts");
+    const coveredStart = model.indexOf("export function coveredConcepts");
+    const coveredEnd = model.indexOf("export function selfExplanationPrompt", coveredStart);
+    const coveredFunction = model.slice(coveredStart, coveredEnd);
+    expect(coveredStart).toBeGreaterThanOrEqual(0);
+    expect(coveredEnd).toBeGreaterThan(coveredStart);
+    expect(coveredFunction).not.toMatch(/explanation|response/i);
   });
 });

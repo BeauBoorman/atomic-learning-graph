@@ -33,11 +33,10 @@ import type { ConceptId, LearningGraph } from "../types";
  * output a pure function of the graph's CONTENT, not of the order the atomizer happened to write
  * the arrays in — so re-atomizing and re-sorting `graph.json` cannot silently reorder the demo.
  *
- * `known` — the concepts the learner has already marked understood (`LearnerState.known`). They are
- * REMOVED from the returned path; everything else about the computation is unchanged. This is what
- * makes "mark understood → the path advances" a deterministic recomputation rather than a UI
- * animation. Note a concept is dropped ONLY if it is itself known: knowing `softmax` does not imply
- * knowing `vectors`, so ancestors of a known concept stay in the path unless they too are known.
+ * `known` — concepts the learner self-declared on the entry screen. They are REMOVED from the
+ * returned path; everything else about the computation is unchanged. A concept is dropped ONLY if
+ * it is itself declared: knowing `softmax` does not imply knowing `vectors`, so ancestors of a known
+ * concept stay in the path unless they too are declared known.
  *
  * THROWS if `goalId` is not a concept in the graph. A goal that does not exist is a caller bug, and
  * an empty array would silently render an empty path — a false green in the UI.

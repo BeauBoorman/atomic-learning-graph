@@ -82,10 +82,9 @@ describe("getPath — the ordered deterministic walk (fixture)", () => {
     expect(getPath(fixture, "vectors")).toEqual(["vectors"]);
   });
 
-  // THE DEMO LOOP: "mark understood -> the path advances." That advance must be a deterministic
-  // RECOMPUTATION over the graph, not a UI animation. KILLS: a `getPath` that ignores `known` — the
-  // mark-understood button would then be decorative, and the README's core loop a lie.
-  it("drops concepts the learner already knows (the 'mark understood' advance)", () => {
+  // Entry declarations alter the route by deterministic recomputation, not a UI animation.
+  // KILLS: a `getPath` that ignores `known`, which would make the entry choices decorative.
+  it("drops concepts the learner declares they already know", () => {
     expect(getPath(fixture, "self-attention", ["vectors", "dot-product"])).toEqual([
       "softmax",
       "qkv",

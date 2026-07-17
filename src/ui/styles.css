@@ -830,6 +830,49 @@ select {
   font-size: var(--t-ui);
 }
 
+/* A quiet invitation at the same visual volume as the alternate-route summon. It stays in the
+   page flow, has no modal or form boundary, and the ordinary Next control remains available. */
+.self-explanation {
+  margin-top: var(--s6);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
+}
+
+.self-explanation label {
+  display: block;
+  max-width: var(--measure);
+  color: var(--ink);
+  font-size: var(--t-ui);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.self-explanation textarea {
+  display: block;
+  width: 100%;
+  max-width: var(--measure);
+  margin-top: var(--s3);
+  padding: var(--s3);
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.self-explanation textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.self-explanation p {
+  margin: var(--s2) 0 0;
+  color: var(--muted);
+  font-size: var(--t-colophon);
+}
+
 /* A summoned route is still a lesson page: no card, tab rail or competing panel. The ordered
    steps make the new route whole, while every step keeps the edition's existing receipt. */
 .route-return-top {
@@ -1039,7 +1082,7 @@ select {
   cursor: default;
 }
 
-.legend-swatch.understood {
+.legend-swatch.covered {
   border-color: var(--primary);
   background: var(--surface-soft);
 }

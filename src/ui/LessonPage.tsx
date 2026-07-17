@@ -17,6 +17,7 @@ interface LessonPageProps {
   renderings?: Rendering[];
   resolveRendering?: (rendering: Rendering, stepIndex: number) => ResolvedPassage;
   passion?: PassionId;
+  selfExplanation?: string;
   nextLabel: string;
   onNext: () => void;
 }
@@ -35,6 +36,23 @@ const analogyVoices: Record<PassionId, string> = {
 const routeLabel = (format: AlternateFormat): string => (
   format === "why-it-exists" ? "See why it matters" : "See how it works"
 );
+
+/** Uncontrolled on purpose: the browser holds the optional text only until this page leaves. */
+function SelfExplanation({ question }: { question?: string }) {
+  if (!question) return null;
+  return (
+    <section className="self-explanation" aria-labelledby="self-explanation-question">
+      <label id="self-explanation-question" htmlFor="self-explanation-response">{question}</label>
+      <textarea
+        key={question}
+        id="self-explanation-response"
+        rows={2}
+        aria-describedby="self-explanation-note"
+      />
+      <p id="self-explanation-note">Optional. Nothing checks or saves what you write.</p>
+    </section>
+  );
+}
 
 function RenderingStep({
   rendering,
@@ -72,6 +90,7 @@ interface RenderingRouteProps {
   rendering: Rendering;
   otherRenderings: Rendering[];
   resolveCitation: (rendering: Rendering, stepIndex: number) => ResolvedPassage;
+  selfExplanation?: string;
   nextLabel: string;
   onNext: () => void;
   onReturn: () => void;
@@ -85,6 +104,7 @@ export function RenderingRoute({
   rendering,
   otherRenderings,
   resolveCitation,
+  selfExplanation,
   nextLabel,
   onNext,
   onReturn,
@@ -126,6 +146,7 @@ export function RenderingRoute({
           </button>
         ))}
       </div>
+      <SelfExplanation question={selfExplanation} />
       <button className="primary-button lesson-next" type="button" onClick={onNext}>
         {nextLabel}
       </button>
@@ -140,6 +161,7 @@ export function LessonPage({
   renderings = [],
   resolveRendering,
   passion,
+  selfExplanation,
   nextLabel,
   onNext,
 }: LessonPageProps) {
@@ -210,6 +232,7 @@ export function LessonPage({
           (rendering) => rendering.format !== activeRendering.format,
         )}
         resolveCitation={resolveRendering}
+        selfExplanation={selfExplanation}
         nextLabel={nextLabel}
         onNext={onNext}
         onReturn={() => setActiveFormat(undefined)}
@@ -258,6 +281,7 @@ export function LessonPage({
           </button>
         </section>
       )}
+      <SelfExplanation question={selfExplanation} />
       <button className="primary-button lesson-next" type="button" onClick={onNext}>
         {nextLabel}
       </button>
