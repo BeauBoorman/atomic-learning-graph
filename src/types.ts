@@ -159,6 +159,10 @@ export interface LearningGraph {
   sources: Source[];
   /** The node the demo path terminates at. */
   goalId: ConceptId;
+  /** Present only on an explicitly unpinned experimental artifact. Omitted from the product graph. */
+  unpinned?: true;
+  /** Intrinsic camera-safe warning for an unpinned artifact; never inferred from its directory. */
+  artifactNote?: string;
 }
 
 /**

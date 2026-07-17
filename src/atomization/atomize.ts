@@ -23,6 +23,9 @@ import {
 } from "./translate";
 
 const repoRoot = resolve(OER_DIR, "..", "..");
+const UNPINNED_ARTIFACT_NOTE =
+  "UNPINNED EXPERIMENTAL RUN — not the product. No concept or prerequisite chain was pinned; " +
+  "this artifact may not contain the product demo goal self-attention.";
 
 type JsonObject = Record<string, unknown>;
 
@@ -245,7 +248,12 @@ function mergeRelationships(inventory: AtomizedConcept[], relations: AtomizedCon
   }));
 }
 
-function buildGraph(concepts: AtomizedConcept[], sources: Source[], goalId: string): LearningGraph {
+function buildGraph(
+  concepts: AtomizedConcept[],
+  sources: Source[],
+  goalId: string,
+  unpinned = false,
+): LearningGraph {
   const nodes: Concept[] = concepts.map(({ prerequisites: _prerequisites, related: _related, ...concept }) => concept);
   const edges: Edge[] = [];
   for (const concept of concepts) {
@@ -265,7 +273,23 @@ function buildGraph(concepts: AtomizedConcept[], sources: Source[], goalId: stri
     }),
     sources,
     goalId,
+    ...(unpinned ? { unpinned: true as const, artifactNote: UNPINNED_ARTIFACT_NOTE } : {}),
   };
+}
+
+function selectUnpinnedGoal(concepts: AtomizedConcept[]): string {
+  const ids = new Set(concepts.map((concept) => concept.id));
+  const outgoing = new Set(
+    concepts.flatMap((concept) => concept.prerequisites.filter((id) => ids.has(id))),
+  );
+  const sinks = concepts
+    .filter((concept) => concept.prerequisites.some((id) => ids.has(id)) && !outgoing.has(concept.id))
+    .map((concept) => concept.id)
+    .sort();
+  const fallback = concepts.map((concept) => concept.id).sort();
+  const goalId = sinks.at(-1) ?? fallback.at(-1);
+  if (!goalId) throw new Error("unpinned atomization produced no concept to use as its goal");
+  return goalId;
 }
 
 function hasRequiredChain(concepts: AtomizedConcept[], path: readonly string[]): boolean {
@@ -289,8 +313,10 @@ async function inventoryPhase(
     "Use only listed sourceId values. Summaries should describe exactly one self-contained concept.";
   const requiredIdInstruction = requiredIds.length > 0
     ? `Required stable IDs: ${requiredIds.join(", ")}.`
-    : "Choose exactly three stable kebab-case IDs grounded in the supplied source.";
-  const demoGroundingMap = toy
+    : toy
+      ? "Choose exactly three stable kebab-case IDs grounded in the supplied source."
+      : "Choose 8 to 10 stable kebab-case IDs grounded in the supplied source.";
+  const demoGroundingMap = toy || requiredIds.length === 0
     ? ""
     : "For the full demo run, use this grounding map: vectors -> d2l-linear-algebra; dot-product -> d2l-linear-algebra; softmax -> d2l-softmax-regression; qkv -> d2l-queries-keys-values; self-attention -> d2l-self-attention.\n";
   const input = `${toy ? "Produce exactly 3" : "Produce 8 to 10"} distinct concepts. ${requiredIdInstruction}
@@ -338,9 +364,11 @@ async function relationshipPhase(
   const instructions =
     "Infer learning relations only among a frozen concept inventory. Return AtomizedConcept objects, copying id, title, summary, provenance, and tags exactly. " +
     "Fill prerequisites and related only with IDs from the frozen set. A prerequisite p in node n means edge p -> n. Never mint an ID.";
+  const requiredPathInstruction = requiredPath.length > 0
+    ? `Required direct prerequisite chain: ${requiredPath.join(" -> ")}. Every consecutive pair MUST be encoded in the later node's prerequisites array.\n`
+    : "";
   const input = `Frozen IDs: ${ids.join(", ")}.
-Required direct prerequisite chain: ${requiredPath.join(" -> ")}. Every consecutive pair MUST be encoded in the later node's prerequisites array.
-Make every non-root concept participate in the prerequisite graph; avoid cycles. Related links do not count as prerequisites.
+${requiredPathInstruction}Make every non-root concept participate in the prerequisite graph; avoid cycles. Related links do not count as prerequisites.
 
 Frozen inventory JSON:
 ${JSON.stringify({ concepts: inventory }, null, 2)}`;
@@ -357,7 +385,10 @@ ${JSON.stringify({ concepts: inventory }, null, 2)}`;
       console.warn(`Relationship attempt ${attempt} failed: ${String(error)}`);
     }
   }
-  throw new GoldenGraphHalt(`required golden edges remain unrepairable: ${String(lastError)}`);
+  if (requiredPath.length > 0) {
+    throw new GoldenGraphHalt(`required golden edges remain unrepairable: ${String(lastError)}`);
+  }
+  throw new Error(`relationship phase failed after 3 attempts: ${String(lastError)}`);
 }
 
 export function selectToySource(sources: Source[]): Source {
@@ -405,6 +436,7 @@ export interface AtomizeOptions {
   outDir?: string;
   overwriteExisting: boolean;
   toyOnly: boolean;
+  noSpine: boolean;
 }
 
 export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
@@ -414,10 +446,12 @@ export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
   let outDir: string | undefined;
   let overwriteExisting = false;
   let toyOnly = false;
+  let noSpine = false;
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--toy") toyOnly = true;
+    else if (arg === "--no-spine") noSpine = true;
     else if (arg === "--overwrite-existing") overwriteExisting = true;
     else if (arg === "--manifest" || arg === "--out-dir") {
       const value = args[index + 1];
@@ -432,7 +466,8 @@ export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
   if (!toyOnly && !outDir) {
     throw new Error("--out-dir is required; atomization never writes into data/ implicitly");
   }
-  return { manifestPath, outDir, overwriteExisting, toyOnly };
+  if (toyOnly && noSpine) throw new Error("--no-spine is only valid for a full artifact run");
+  return { manifestPath, outDir, overwriteExisting, toyOnly, noSpine };
 }
 
 export async function main(args: readonly string[] = process.argv.slice(2)): Promise<void> {
@@ -465,14 +500,17 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
     return;
   }
 
-  const inventory = await inventoryPhase(client, sources, GOLDEN_PATH, false);
-  const atomized = await relationshipPhase(client, inventory, GOLDEN_PATH);
-  const initialGraph = buildGraph(atomized, sources, "self-attention");
+  const spine = options.noSpine ? [] : GOLDEN_PATH;
+  const inventory = await inventoryPhase(client, sources, spine, false);
+  const atomized = await relationshipPhase(client, inventory, spine);
+  const goalId = options.noSpine ? selectUnpinnedGoal(atomized) : GOLDEN_PATH.at(-1)!;
+  const initialGraph = buildGraph(atomized, sources, goalId, options.noSpine);
   const expectedSources: ExpectedSource[] = sources.map((source) => ({ ...source }));
   const attemptLog: Array<{ attempt: number; issues: unknown[] }> = [];
 
   const baseConverged = await convergeGraph(initialGraph, {
     expectedSources,
+    spine,
     onAttempt: (attempt, issues) => {
       attemptLog.push({ attempt, issues });
       console.log(`Convergence attempt ${attempt}: ${issues.length === 0 ? "PASS" : issues.map((issue) => issue.kind).join(", ")}`);
@@ -493,9 +531,12 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
       return graph;
     },
     repairOrphan: async (graph, conceptId, frozenIds) => {
+      const orphanConstraint = spine.length > 0
+        ? "Do not create a self-loop or an edge that reverses the required golden chain."
+        : "Do not create a self-loop.";
       const raw = await client.request(
         "Connect one orphan concept to a prerequisite DAG using only frozen IDs. Return one prereq edge from -> to; from must be learned before to.",
-        `Orphan: ${conceptId}\nFrozen IDs: ${frozenIds.join(", ")}\nDo not create a self-loop or an edge that reverses the required golden chain.`,
+        `Orphan: ${conceptId}\nFrozen IDs: ${frozenIds.join(", ")}\n${orphanConstraint}`,
         orphanRepairSchema,
         "orphan_repair",
       );
@@ -532,6 +573,7 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
     graphSha256: sha256(graphBytes),
     responseIds: client.responseIds,
     convergence: attemptLog,
+    ...(options.noSpine ? { unpinned: true, artifactNote: UNPINNED_ARTIFACT_NOTE } : {}),
   };
 
   writeJsonArtifact(runLogPath as string, runLog, writeOptions);

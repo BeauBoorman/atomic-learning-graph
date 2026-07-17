@@ -20,13 +20,12 @@ export const GOLDEN_PATH: readonly ConceptId[] = [
   "self-attention",
 ] as const;
 
-const GOLDEN_NODES = new Set<ConceptId>(GOLDEN_PATH);
 const edgeKey = (edge: Pick<Edge, "from" | "to">): string => `${edge.from}->${edge.to}`;
-const PROTECTED_EDGE_KEYS = new Set(
-  GOLDEN_PATH.slice(0, -1).map((from, index) => `${from}->${GOLDEN_PATH[index + 1]}`),
-);
-const isProtectedEdge = (edge: Edge): boolean =>
-  edge.type === "prereq" && PROTECTED_EDGE_KEYS.has(edgeKey(edge));
+const protectedNodes = (spine: readonly ConceptId[]): Set<ConceptId> => new Set(spine);
+const protectedEdgeKeys = (spine: readonly ConceptId[]): Set<string> =>
+  new Set(spine.slice(0, -1).map((from, index) => `${from}->${spine[index + 1]}`));
+const isProtectedEdge = (edge: Edge, spine: readonly ConceptId[]): boolean =>
+  edge.type === "prereq" && protectedEdgeKeys(spine).has(edgeKey(edge));
 
 export class GoldenGraphHalt extends Error {
   constructor(message: string) {
@@ -160,6 +159,8 @@ export interface ExpectedSource {
 export interface ConvergenceOptions {
   minConcepts?: number;
   expectedSources?: ExpectedSource[];
+  /** Empty only for an explicit unpinned experiment; defaults to the protected product spine. */
+  spine?: readonly ConceptId[];
   onAttempt?: (attempt: number, issues: ConvergenceIssue[]) => void;
   repairOrphan?: (
     graph: LearningGraph,
@@ -228,13 +229,14 @@ function sameSource(actual: Source, expected: ExpectedSource): boolean {
 
 export function convergenceIssues(
   graph: LearningGraph,
-  options: Pick<ConvergenceOptions, "minConcepts" | "expectedSources"> = {},
+  options: Pick<ConvergenceOptions, "minConcepts" | "expectedSources" | "spine"> = {},
 ): ConvergenceIssue[] {
   const issues: ConvergenceIssue[] = [];
   const minConcepts = options.minConcepts ?? 6;
+  const spine = options.spine ?? GOLDEN_PATH;
   const conceptIds = new Set(graph.concepts.map((concept) => concept.id));
 
-  const missingGolden = GOLDEN_PATH.filter((id) => !conceptIds.has(id));
+  const missingGolden = spine.filter((id) => !conceptIds.has(id));
   if (missingGolden.length > 0) {
     issues.push({
       kind: "golden-node",
@@ -243,8 +245,8 @@ export function convergenceIssues(
     });
   }
 
-  const missingGoldenEdges = GOLDEN_PATH.slice(0, -1)
-    .map((from, index): Edge => ({ from, to: GOLDEN_PATH[index + 1], type: "prereq" }))
+  const missingGoldenEdges = spine.slice(0, -1)
+    .map((from, index): Edge => ({ from, to: spine[index + 1], type: "prereq" }))
     .filter(
       (required) =>
         !graph.edges.some(
@@ -279,14 +281,14 @@ export function convergenceIssues(
       message: `invalid provenance: ${badProvenance.join(", ")}`,
     });
   }
-  if (!pathExists(graph, "self-attention")) {
-    issues.push({ kind: "path", message: "self-attention is not reachable from a prerequisite root" });
+  if (!pathExists(graph, graph.goalId)) {
+    issues.push({ kind: "path", message: `${graph.goalId} is not reachable from a prerequisite root` });
   }
 
-  if (missingGolden.length === 0 && !hasCycle(graph)) {
+  if (spine.length > 0 && missingGolden.length === 0 && !hasCycle(graph)) {
     try {
-      const path = getPath(graph, "self-attention");
-      const positions = GOLDEN_PATH.map((id) => path.indexOf(id));
+      const path = getPath(graph, graph.goalId);
+      const positions = spine.map((id) => path.indexOf(id));
       if (positions.some((position) => position < 0) || positions.some((position, index) => index > 0 && position <= positions[index - 1])) {
         issues.push({ kind: "golden-order", message: `golden route is out of order: ${path.join(" -> ")}` });
       }
@@ -346,9 +348,11 @@ async function repairOnce(
 ): Promise<LearningGraph> {
   let repaired: LearningGraph = JSON.parse(JSON.stringify(graph));
   const minConcepts = options.minConcepts ?? 6;
+  const spine = options.spine ?? GOLDEN_PATH;
+  const goldenNodes = protectedNodes(spine);
 
   for (const edge of issues.flatMap((issue) => (issue.kind === "dangling" ? issue.edges ?? [] : []))) {
-    if (isProtectedEdge(edge)) {
+    if (isProtectedEdge(edge, spine)) {
       throw new GoldenGraphHalt(`protected edge ${edgeKey(edge)} is dangling`);
     }
     repaired.edges = repaired.edges.filter((candidate) => candidate !== edge && edgeKey(candidate) !== edgeKey(edge));
@@ -358,10 +362,10 @@ async function repairOnce(
     const cycle = findCycleEdges(repaired);
     const backEdge = cycle.at(-1);
     const removable =
-      backEdge && !isProtectedEdge(backEdge)
+      backEdge && !isProtectedEdge(backEdge, spine)
         ? backEdge
         : [...cycle]
-            .filter((edge) => !isProtectedEdge(edge))
+            .filter((edge) => !isProtectedEdge(edge, spine))
             .sort((left, right) => edgeKey(right).localeCompare(edgeKey(left)))[0];
     if (!removable) {
       throw new GoldenGraphHalt(`cycle contains only protected edges: ${cycle.map(edgeKey).join(", ")}`);
@@ -381,7 +385,7 @@ async function repairOnce(
       repaired = await options.repairProvenance(repaired, conceptId);
       if (!invalidProvenance(repaired).includes(conceptId)) continue;
     }
-    if (GOLDEN_NODES.has(conceptId)) {
+    if (goldenNodes.has(conceptId)) {
       const concept = repaired.concepts.find((candidate) => candidate.id === conceptId);
       throw new GoldenGraphHalt(
         `unrepairable provenance for ${conceptId}; offending span ${JSON.stringify(concept?.provenance?.quotedText)}`,
@@ -395,7 +399,7 @@ async function repairOnce(
       repaired = await options.repairOrphan(repaired, conceptId, frozenIds);
       if (!findOrphans(repaired).includes(conceptId)) continue;
     }
-    if (GOLDEN_NODES.has(conceptId)) {
+    if (goldenNodes.has(conceptId)) {
       throw new GoldenGraphHalt(`protected golden node ${conceptId} remains orphaned`);
     }
     if (repaired.concepts.length - 1 >= minConcepts) repaired = dropConcept(repaired, conceptId);
