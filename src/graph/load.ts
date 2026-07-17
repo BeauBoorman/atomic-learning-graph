@@ -71,6 +71,13 @@ export function loadRenderingsForVerification(
 ): RenderingSet {
   if (!existsSync(path)) throw new Error(`no renderings artifact at ${path}`);
   const set = parseRenderings(path);
+  return requireRenderingsForVerification(set, path);
+}
+
+export function requireRenderingsForVerification(
+  set: RenderingSet,
+  path: string = RENDERINGS_PATH,
+): RenderingSet {
   if (set.renderings.length === 0) throw new Error(`empty renderings artifact at ${path}`);
   return set;
 }

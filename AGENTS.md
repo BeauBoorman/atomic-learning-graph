@@ -70,8 +70,10 @@ What remains is **shipping**, not building. Deadline **2026-07-21 17:00 PT**:
 
 1. **Secret + history audit** → a SAFE / NOT-SAFE verdict. Gates everything below. Publishing is
    irreversible; `data/graph.run.json` carries real API response IDs that need a ruling.
-2. **Publish a public repo** — the only remote today is a Tailscale-private forgejo. A public repo
-   is a hard submission requirement. **Beau's hands, gated on 1.**
+2. **Provide repository access** — the rules allow either a public repository with relevant
+   licensing or a private repository shared with `testing@devpost.com` and
+   `build-week-event@openai.com`. Public launch is preferred, but it is not a submission blocker.
+   **Beau's hands, gated on 1.**
 3. **Demo video < 3:00, YouTube.** Beau.
 4. **Codex `/feedback` session ID** from the session where the core was built. Beau.
 

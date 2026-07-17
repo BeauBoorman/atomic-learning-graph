@@ -48,7 +48,19 @@ Every claim on this page is a property of the committed artifact, not a descript
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it — a single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 chapters, licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
 
-The build pins a golden spine (`src/atomization/repair.ts:15-27`): the model must independently produce `vectors → dot-product → softmax → qkv → self-attention` or the build **HALTS**. It is a regression gate, never an injection: no node, edge, quote or lesson step is ever written by hand.
+The demo spine is deliberately specified, not independently discovered. The atomizer prompt gives the
+model five stable concept IDs, five source assignments across four chapters, and four direct
+prerequisite edges in order; code fixes `self-attention` as the goal. `pnpm verify:anchors` separately
+checks that five named corpus passages remain verbatim in the extracted sources. Those passages are
+not inserted into the graph as constants: the model proposes each concept quote, and code only snaps
+a whitespace-equivalent proposal to the stored source bytes. If a required quote fails grounding, a
+concept-specific regex narrows the stored-source excerpt for a separate model repair. The build
+refuses to write an artifact missing a pinned node, direct edge, ordered route, or goal path.
+
+In the committed graph, those pins account for 5 of 10 concepts and 4 of 9 prerequisite edges. The
+model proposed the other 5 concepts, the other 5 edges, all 10 concept-level quote selections, all
+31 lesson steps, and all 186 analogies. The graph and citations then face deterministic gates;
+analogies remain optional illustrations.
 
 The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (17 core,
 14 deep) and **186 optional analogies** across 6 interests — plus the complete text of the four
@@ -79,10 +91,20 @@ language model, bounded at every step by deterministic checks it cannot talk its
 
 Model output is allowed to *propose* the map. It is not trusted until the deterministic checks pass.
 
-The brief that drove the build is committed verbatim at [`docs/kickoff-prompt.md`](docs/kickoff-prompt.md)
-— the phase-gated instructions the model was held to, including the rule it was never permitted to break:
-*never fake green*. It is a record of what was **asked for**, not a claim about what happened. The
-acceptance gate above is the evidence for that.
+## How this was built with Codex
+
+Each negative test names the cheating implementation it kills. A `() => []` stub, a hard-coded
+golden path, a substring shortcut, and a first-match source lookup each have a test built to catch
+them. That adversarial suite fenced Codex with executable constraints it could not talk past.
+
+Codex was the coding agent that wrote this repository in a phase-gated RED→GREEN run. The committed
+[`docs/kickoff-prompt.md`](docs/kickoff-prompt.md) is the collaboration record: it fixed the
+acceptance gates, resumed Codex phase by phase, and forbade weakening tests or hand-writing the
+graph.
+
+GPT-5.6 (`gpt-5.6-sol`) has a different role. It is the build-time atomizer inside the product. It
+produces candidate concepts, relationships, lessons, and analogies for deterministic validation. It
+never runs when a learner reads; the browser receives only committed artifacts.
 
 ## Run it
 
@@ -183,12 +205,13 @@ Honest limits, stated up front:
   substrate and the provenance, not coverage.
 - **Only prerequisite edges exist today.** All 9 committed edges are `prereq`; there are zero
   `related` edges, so no "related ideas" browsing is offered.
-- **The golden spine is pinned; the rest is model-chosen.** Pinned by the build: 5 concept IDs, 5
-  source assignments, 4 spine edges, and the goal. Chosen by the model: the other 5 concepts, all
-  10 concept-level quote selections, all 31 lesson steps, and all 186 analogies.
-- **Extension points are not features.** Validated multi-format renderings, on-demand renderings, and
-  a learned atomicity scorer are marked in [ROADMAP.md](ROADMAP.md) and are not represented as
-  working today.
+- **The golden spine is pinned; the rest is model-supplied.** Pinned by the build: 5 concept IDs, 5
+  source assignments, 4 spine edges, and the goal. The exact specified-versus-supplied split is
+  disclosed above.
+- **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
+  alternate renderings — `why-it-exists` and `how-it-works` for each of 10 concepts — with 68 cited
+  steps. Their citations and run-log hash are gated. On-demand renderings and a learned atomicity
+  scorer remain in [ROADMAP.md](ROADMAP.md).
 
 ## Licences
 
