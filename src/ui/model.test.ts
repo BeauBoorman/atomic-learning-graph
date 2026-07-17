@@ -4,13 +4,14 @@ import { loadGraph } from "../graph/load";
 import {
   courseFor,
   coursePageKey,
+  coveredConcepts,
   deriveProgress,
-  markUnderstood,
   pathFor,
   resolveCitation,
   resolveLesson,
-  understoodConcepts,
+  selfExplanationPrompt,
 } from "./model";
+import { titleFor } from "./titles";
 
 const graph = loadGraph();
 
@@ -24,34 +25,11 @@ describe("UI learning model", () => {
     expect(path).toContain("qkv");
   });
 
-  it("mark understood recomputes and advances the path without mutating the graph", () => {
-    const original = JSON.stringify(graph);
-    const current = pathFor(graph, graph.goalId, [])[0];
-    const next = markUnderstood(graph, graph.goalId, [], current);
-
-    expect(next.known).toEqual([current]);
-    expect(next.path).not.toContain(current);
-    expect(next.path[0]).not.toBe(current);
-    expect(JSON.stringify(graph)).toBe(original);
-  });
-
   it("renders lesson material from resolved, quote-primary provenance", () => {
     const lesson = resolveLesson(graph, graph.goalId);
     expect(lesson.source.id).toBe(lesson.concept.provenance.sourceId);
     expect(lesson.source.text).toContain(lesson.concept.provenance.quotedText);
     expect(lesson.context).toContain(lesson.concept.provenance.quotedText);
-  });
-
-  it("threads a selected goal through path and progress updates", () => {
-    expect(pathFor(fixtureGraph, "softmax", [])).toEqual([
-      "vectors",
-      "dot-product",
-      "softmax",
-    ]);
-
-    const next = markUnderstood(fixtureGraph, "softmax", [], "vectors");
-    expect(next.path).toEqual(["dot-product", "softmax"]);
-    expect(next.path).not.toContain("self-attention");
   });
 
   it("builds quick courses from core pages and thorough courses from all related enrichment", () => {
@@ -177,12 +155,21 @@ describe("UI learning model", () => {
     }
   });
 
-  it("derives understood concepts from recorded pages, never from a stored list", () => {
-    // `vectors` has TWO core pages. Reading the first understands nothing — the exact
-    // conflation that pruned both pages out of the course and skipped to dot-product.
-    expect(understoodConcepts(graph, "self-attention", "quick", ["vectors:0"])).toEqual([]);
-    expect(understoodConcepts(graph, "self-attention", "quick", ["vectors:0", "vectors:1"]))
+  it("derives covered concepts from recorded pages, never a comprehension claim", () => {
+    // `vectors` has TWO core pages. Reading the first has not covered the concept's course pages.
+    expect(coveredConcepts(graph, "self-attention", "quick", ["vectors:0"])).toEqual([]);
+    expect(coveredConcepts(graph, "self-attention", "quick", ["vectors:0", "vectors:1"]))
       .toEqual(["vectors"]);
+  });
+
+  it("builds a claim-free self-explanation question from display titles only", () => {
+    const prerequisite = fixtureGraph.concepts.find((concept) => concept.id === "vectors");
+    const concept = fixtureGraph.concepts.find((concept) => concept.id === "dot-product");
+    if (!prerequisite || !concept) throw new Error("fixture concepts missing");
+
+    expect(selfExplanationPrompt(concept, prerequisite)).toBe(
+      `Before you continue — in your own words, why does ${titleFor(concept)} need ${titleFor(prerequisite)}?`,
+    );
   });
 
   it("resolves the citation attached to the exact lesson page", () => {

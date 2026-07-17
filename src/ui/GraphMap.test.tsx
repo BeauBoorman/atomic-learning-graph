@@ -138,7 +138,7 @@ describe("the map's stylesheet survives Cytoscape's parser", () => {
 });
 
 describe("the map speaks the app's vocabulary", () => {
-  const render = (graph: LearningGraph) =>
+  const render = (graph: LearningGraph, covered: string[] = []) =>
     renderToStaticMarkup(
       <GraphMap
         graph={graph}
@@ -147,7 +147,7 @@ describe("the map speaks the app's vocabulary", () => {
         currentId="vectors"
         path={graph.concepts.map((concept) => concept.id)}
         initialPath={graph.concepts.map((concept) => concept.id)}
-        known={[]}
+        covered={covered}
         theme="light"
         onSelect={() => undefined}
         onActivate={() => undefined}
@@ -169,6 +169,15 @@ describe("the map speaks the app's vocabulary", () => {
     // The sr-only route list is the map's text alternative; it must not fall back to the
     // textbook title. ">vectors," is the shape the old `${title}, ${status}` produced.
     expect(html).not.toContain(">vectors,");
+  });
+
+  it("announces page completion as covered, never as comprehension", () => {
+    const vectors = fixtureGraph.concepts.find((concept) => concept.id === "vectors");
+    if (!vectors) throw new Error("fixture vectors concept missing");
+
+    const html = render(fixtureGraph, [vectors.id]);
+    expect(html).toContain(`Step 1: ${titleFor(vectors)}, covered.`);
+    expect(html).not.toMatch(/understood/i);
   });
 
   /* DELIBERATELY NOT TESTED HERE — and this note exists so the next agent does not helpfully
@@ -204,7 +213,7 @@ describe("the map's key is gated on the data, not the view", () => {
         currentId="vectors"
         path={[]}
         initialPath={fixtureGraph.concepts.map((concept) => concept.id)}
-        known={[]}
+        covered={[]}
         theme="light"
         onSelect={() => undefined}
         onActivate={() => undefined}
@@ -227,7 +236,7 @@ describe("the map's key is gated on the data, not the view", () => {
         currentId="vectors"
         path={[]}
         initialPath={withSideQuest.concepts.map((concept) => concept.id)}
-        known={[]}
+        covered={[]}
         theme="light"
         onSelect={() => undefined}
         onActivate={() => undefined}

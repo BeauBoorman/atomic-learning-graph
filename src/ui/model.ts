@@ -7,6 +7,7 @@ import type {
   Source,
 } from "../types";
 import { getPath } from "../graph/path";
+import { titleFor } from "./titles";
 
 export type Depth = "quick" | "thorough";
 
@@ -59,25 +60,6 @@ export function knownForGoal(
 ): ConceptId[] {
   const offered = new Set(prerequisitesForGoal(graph, goalId));
   return known.filter((conceptId) => offered.has(conceptId));
-}
-
-/**
- * Recomputes the route with one more concept treated as already understood.
- *
- * No product code calls this any more — progress is recorded page keys now, and
- * `understoodConcepts` derives the map styling that `known` used to carry. It is kept
- * deliberately: it is correct, it is tested, it costs eight lines, and `gate9.test.ts`
- * asserts the path module is called exactly twice from this file. Deleting it turns that
- * gate red for zero behavioural gain.
- */
-export function markUnderstood(
-  graph: LearningGraph,
-  goalId: ConceptId,
-  known: ConceptId[],
-  conceptId: ConceptId,
-): { known: ConceptId[]; path: ConceptId[] } {
-  const nextKnown = known.includes(conceptId) ? known : [...known, conceptId];
-  return { known: nextKnown, path: getPath(graph, goalId, nextKnown) };
 }
 
 function pagesFor(graph: LearningGraph, conceptIds: ConceptId[], depth: Depth): CoursePage[] {
@@ -163,10 +145,10 @@ export function deriveProgress(
   };
 }
 
-/** Derive the map's understood styling; do not store a second progress fact. A concept is
- *  understood when it was declared before the course or every page of it IN THIS COURSE is
- *  recorded. The declaration itself remains fixed. */
-export function understoodConcepts(
+/** Derive the map's covered styling; do not store a second progress fact. A concept is
+ *  covered by this course when it was declared known before the course or every page of it IN
+ *  THIS COURSE is recorded. This is course progress, never a comprehension claim. */
+export function coveredConcepts(
   graph: LearningGraph,
   goalId: ConceptId,
   depth: Depth,
@@ -182,6 +164,11 @@ export function understoodConcepts(
     .filter(([, pages]) => pages.every((page) => completed.has(coursePageKey(page))))
     .map(([conceptId]) => conceptId);
   return [...new Set([...known, ...completedConcepts])];
+}
+
+/** A domain-claim-free invitation computed only from the two concepts at a prerequisite edge. */
+export function selfExplanationPrompt(concept: Concept, prerequisite: Concept): string {
+  return `Before you continue — in your own words, why does ${titleFor(concept)} need ${titleFor(prerequisite)}?`;
 }
 
 function findConcept(graph: LearningGraph, conceptId: ConceptId): Concept {

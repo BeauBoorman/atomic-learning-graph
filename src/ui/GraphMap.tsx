@@ -13,7 +13,7 @@ interface GraphMapProps {
   currentId?: ConceptId;
   path: ConceptId[];
   initialPath: ConceptId[];
-  known: ConceptId[];
+  covered: ConceptId[];
   theme: "light" | "dark";
   onSelect: (id: ConceptId) => void;
   onActivate: (id: ConceptId) => void;
@@ -283,7 +283,7 @@ export function stylesFor(
       },
     },
     {
-      selector: "node.known",
+      selector: "node.covered",
       style: {
         "background-color": color.done,
         "border-color": color.route,
@@ -350,7 +350,7 @@ export function GraphMap({
   currentId,
   path,
   initialPath,
-  known,
+  covered,
   theme,
   onSelect,
   onActivate,
@@ -506,7 +506,7 @@ export function GraphMap({
 
     const remaining = new Set(path);
     const wholeRoute = new Set(initialPath);
-    const knownIds = new Set(known);
+    const coveredIds = new Set(covered);
     /* STATUS IS NEVER TEXT. There was a ternary here that prefixed "✓ ", "Next · " or "Goal · "
        onto the label and rewrote `displayLabel` on every progress change. That prefix is what
        manufactured the clip the owner saw: "Vectors" is 7 characters and fits; "Next · Vectors"
@@ -515,15 +515,15 @@ export function GraphMap({
 
        It was also saying the same thing three times: the node is already ringed claret with an
        underlay when it is current, filled amber when it is the goal, and filled soft when it is
-       understood — and the key beside the map spells all three out. The status prefix was a
+       covered — and the key beside the map spells all three out. The status prefix was a
        fourth channel that only cost the label its room. The sr-only route list below still
        states every status in words, so nothing is lost for a screen reader. */
     cy.batch(() => {
       cy.nodes().forEach((node) => {
         const id = node.id();
-        node.removeClass("on-route known goal current selected");
+        node.removeClass("on-route covered goal current selected");
         node.toggleClass("on-route", remaining.has(id));
-        node.toggleClass("known", knownIds.has(id));
+        node.toggleClass("covered", coveredIds.has(id));
         node.toggleClass("goal", id === goalId);
         node.toggleClass("current", id === currentId);
         node.toggleClass("selected", id === selectedId);
@@ -535,9 +535,9 @@ export function GraphMap({
         edge.removeClass("on-route completed");
         edge.toggleClass(
           "on-route",
-          prerequisite && wholeRoute.has(from) && wholeRoute.has(to) && !knownIds.has(to),
+          prerequisite && wholeRoute.has(from) && wholeRoute.has(to) && !coveredIds.has(to),
         );
-        edge.toggleClass("completed", prerequisite && knownIds.has(from) && knownIds.has(to));
+        edge.toggleClass("completed", prerequisite && coveredIds.has(from) && coveredIds.has(to));
       });
     });
 
@@ -558,10 +558,10 @@ export function GraphMap({
        Deleting the status ternary took away this effect's last direct READ of `graph`, so it now
        reads nothing from it. It stays because it is the proxy for "the Cytoscape core was
        rebuilt": the mount effect above keys on [graph, initialPath, showFullMap] and throws the
-       old core away. If a new graph arrived while path/known/selectedId kept their identities,
+       old core away. If a new graph arrived while path/covered/selectedId kept their identities,
        this effect would not re-run and the fresh nodes would carry NO classes at all — no route,
        no goal, no current. An unstyled map, from an "unused" dependency. */
-  }, [currentId, goalId, graph, initialPath, known, path, selectedId, showFullMap]);
+  }, [covered, currentId, goalId, graph, initialPath, path, selectedId, showFullMap]);
 
   const zoomBy = (factor: number) => {
     const cy = graphRef.current;
@@ -591,7 +591,7 @@ export function GraphMap({
   const selectedTitle = nameOf(selectedId);
   const visibleCount = showFullMap ? graph.concepts.length : initialPath.length;
   const textAlternativeIds = showFullMap ? keyboardOrder : initialPath;
-  const knownIds = new Set(known);
+  const coveredIds = new Set(covered);
 
   return (
     // `is-full-map` / `is-guided-route` are gone with the two hardcoded heights that were their
@@ -628,7 +628,7 @@ export function GraphMap({
         {graph.edges.some((edge) => edge.type === "related") && (
           <span><i className="legend-line related" aria-hidden="true" /> Side quest</span>
         )}
-        <span><i className="legend-swatch understood" aria-hidden="true" /> Understood</span>
+        <span><i className="legend-swatch covered" aria-hidden="true" /> Covered</span>
         <span><i className="legend-swatch next" aria-hidden="true" /> Next</span>
         <span><i className="legend-swatch goal" aria-hidden="true" /> Goal</span>
       </div>
@@ -655,8 +655,8 @@ export function GraphMap({
       <ol className="sr-only" id="graph-text-alternative">
         {textAlternativeIds.map((id, index) => {
           const title = nameOf(id);
-          const status = knownIds.has(id)
-            ? "understood"
+          const status = coveredIds.has(id)
+            ? "covered"
             : id === currentId
               ? "next step"
               : id === goalId

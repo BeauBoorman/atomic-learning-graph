@@ -8,11 +8,12 @@ import { MapToggle } from "./MapToggle";
 import { StepIndicator } from "./StepIndicator";
 import {
   coursePageKey,
+  coveredConcepts,
   deriveProgress,
   knownForGoal,
   resolveCitation,
   resolveRenderingCitation,
-  understoodConcepts,
+  selfExplanationPrompt,
   type CoursePage,
   type CourseProgress,
   type Depth,
@@ -162,7 +163,7 @@ interface CourseScreenProps {
   renderings?: RenderingSet;
   goalId: ConceptId;
   passion?: PassionId;
-  understood: ConceptId[];
+  covered: ConceptId[];
   theme: Theme;
   progress: CourseProgress;
   onNext: () => void;
@@ -176,7 +177,7 @@ export function CourseScreen({
   renderings = { renderings: [] },
   goalId,
   passion,
-  understood,
+  covered,
   theme,
   progress,
   onNext,
@@ -192,6 +193,21 @@ export function CourseScreen({
   const alternateRenderings = renderings.renderings.filter(
     (rendering) => rendering.conceptId === concept.id,
   );
+  const pageIndex = progress.pages.findIndex(
+    (candidate) => coursePageKey(candidate) === coursePageKey(page),
+  );
+  const previousPage = pageIndex > 0 ? progress.pages[pageIndex - 1] : undefined;
+  const prerequisite = previousPage && previousPage.conceptId !== page.conceptId
+    && graph.edges.some((edge) => (
+      edge.type === "prereq"
+      && edge.from === previousPage.conceptId
+      && edge.to === page.conceptId
+    ))
+    ? graph.concepts.find((candidate) => candidate.id === previousPage.conceptId)
+    : undefined;
+  const explanation = prerequisite
+    ? selfExplanationPrompt(concept, prerequisite)
+    : undefined;
 
   // The whole course, from `progress` — the one place the page list is built. Rebuilding it
   // here with a second `courseFor` call is how two views of one course drift apart.
@@ -216,6 +232,7 @@ export function CourseScreen({
           resolveRenderingCitation(graph, rendering, stepIndex)
         )}
         passion={passion}
+        selfExplanation={explanation}
         nextLabel={nextLabel}
         onNext={onNext}
       />
@@ -225,7 +242,7 @@ export function CourseScreen({
         currentId={page.conceptId}
         path={path}
         initialPath={uniqueConcepts(progress.pages)}
-        known={understood}
+        covered={covered}
         theme={theme}
         onOpenLesson={onOpenLesson}
       />
@@ -274,10 +291,10 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
     () => deriveProgress(graph, goalId, depth, completedPages, declaredKnown),
     [completedPages, declaredKnown, depth, goalId, graph],
   );
-  // The map's "understood" styling combines the fixed entry declaration with concepts whose
-  // course pages are recorded. It is derived, never stored as a second progress channel.
-  const understood = useMemo(
-    () => understoodConcepts(graph, goalId, depth, completedPages, declaredKnown),
+  // The map's "covered" styling combines the fixed entry declaration with concepts whose
+  // course pages are recorded. It describes course scope, never learner comprehension.
+  const covered = useMemo(
+    () => coveredConcepts(graph, goalId, depth, completedPages, declaredKnown),
     [completedPages, declaredKnown, depth, goalId, graph],
   );
 
@@ -406,7 +423,7 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
           renderings={renderings}
           goalId={goalId}
           passion={passion}
-          understood={understood}
+          covered={covered}
           theme={theme}
           progress={progress}
           onNext={handleNext}

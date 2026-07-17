@@ -5,7 +5,7 @@ import type { RenderingSet } from "../types";
 import { App, courseKey, CourseScreen } from "./App";
 import { Entry } from "./Entry";
 import { GraphMap } from "./GraphMap";
-import { deriveProgress } from "./model";
+import { coveredConcepts, deriveProgress, selfExplanationPrompt } from "./model";
 
 describe("Phase 5 learning flow", () => {
   it("offers another route only when the current concept has one", () => {
@@ -26,7 +26,7 @@ describe("Phase 5 learning flow", () => {
         graph={fixtureGraph}
         renderings={renderings}
         goalId={fixtureGraph.goalId}
-        understood={[]}
+        covered={[]}
         theme="light"
         progress={progress}
         onNext={() => undefined}
@@ -56,7 +56,7 @@ describe("Phase 5 learning flow", () => {
         graph={fixtureGraph}
         renderings={renderings}
         goalId={fixtureGraph.goalId}
-        understood={[]}
+        covered={[]}
         theme="light"
         progress={progress}
         onNext={() => undefined}
@@ -75,7 +75,7 @@ describe("Phase 5 learning flow", () => {
     const props = {
       graph: fixtureGraph,
       goalId: fixtureGraph.goalId,
-      understood: [],
+      covered: [],
       theme: "light" as const,
       progress,
       onNext: () => undefined,
@@ -95,7 +95,7 @@ describe("Phase 5 learning flow", () => {
       <CourseScreen
         graph={fixtureGraph}
         goalId={fixtureGraph.goalId}
-        understood={[]}
+        covered={[]}
         theme="light"
         progress={progress}
         onNext={() => undefined}
@@ -132,6 +132,89 @@ describe("Phase 5 learning flow", () => {
     expect(courseKey("softmax", "quick", [])).toContain("course.v4");
   });
 
+  it("quietly asks for self-explanation on the first page after a direct prerequisite", () => {
+    const progress = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      ["vectors:0"],
+    );
+    const concept = fixtureGraph.concepts.find((candidate) => candidate.id === "dot-product");
+    const prerequisite = fixtureGraph.concepts.find((candidate) => candidate.id === "vectors");
+    if (!concept || !prerequisite) throw new Error("fixture concepts missing");
+
+    const html = renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        goalId={fixtureGraph.goalId}
+        covered={["vectors"]}
+        theme="light"
+        progress={progress}
+        onNext={() => undefined}
+        onOpenLesson={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(html).toContain(selfExplanationPrompt(concept, prerequisite));
+    expect(html).toContain("<textarea");
+    expect(html).toContain("Optional. Nothing checks or saves what you write.");
+    expect(html).not.toContain("required");
+    expect(html).toContain(">Next idea<");
+  });
+
+  it("renders no self-explanation prompt for a root concept with no prerequisite", () => {
+    const progress = deriveProgress(fixtureGraph, "vectors", "quick", []);
+    const html = renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        goalId="vectors"
+        covered={[]}
+        theme="light"
+        progress={progress}
+        onNext={() => undefined}
+        onOpenLesson={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(html).not.toContain("Before you continue");
+    expect(html).not.toContain("<textarea");
+  });
+
+  it("keeps progress and covered status byte-identical when the optional prompt is skipped", () => {
+    const completedPages = ["vectors:0"];
+    const progress = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      completedPages,
+    );
+    const progressBefore = JSON.stringify(progress);
+    const coveredBefore = JSON.stringify(
+      coveredConcepts(fixtureGraph, fixtureGraph.goalId, "quick", completedPages),
+    );
+
+    const html = renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        goalId={fixtureGraph.goalId}
+        covered={["vectors"]}
+        theme="light"
+        progress={progress}
+        onNext={() => undefined}
+        onOpenLesson={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(html).toContain("<textarea");
+    expect(JSON.stringify(progress)).toBe(progressBefore);
+    expect(JSON.stringify(
+      coveredConcepts(fixtureGraph, fixtureGraph.goalId, "quick", completedPages),
+    )).toBe(coveredBefore);
+  });
+
   it("offers only the selected goal's prerequisite spine using display titles", () => {
     const html = renderToStaticMarkup(
       <Entry
@@ -163,7 +246,7 @@ describe("Phase 5 learning flow", () => {
         currentId="vectors"
         path={[...fixtureGraph.concepts.map((concept) => concept.id)]}
         initialPath={[...fixtureGraph.concepts.map((concept) => concept.id)]}
-        known={[]}
+        covered={[]}
         theme="light"
         onSelect={() => undefined}
         onActivate={() => undefined}
@@ -173,7 +256,9 @@ describe("Phase 5 learning flow", () => {
     // Anchor to the VISIBLE text node. An aria-label on the role-less legend div is inert
     // (ARIA prohibits name-from on `generic`), so asserting it would certify a no-op.
     expect(html).toContain(">Key<");
-    expect(html).toContain('class="legend-swatch understood"');
+    expect(html).toContain('class="legend-swatch covered"');
+    expect(html).toContain("> Covered</span>");
+    expect(html).not.toMatch(/understood/i);
     // The bordered ✓ box read as a checked checkbox; the swatch pills replaced it.
     expect(html).not.toContain("✓");
   });
