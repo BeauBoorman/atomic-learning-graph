@@ -51,15 +51,16 @@ export interface Source {
 /**
  * Where a node was atomized from.
  *
- * `quotedText` is the CONTRACT: it must occur in the referenced Source, compared after
- * whitespace normalization (a raw substring match is byte-exact and will false-fail on any
- * source whose whitespace differs from the model's rendering of the quote). If it does not
- * occur, the node is invalid and the atomizer hallucinated it. That check is the demo's
+ * `quotedText` is the CONTRACT: it must be a substantial content-bearing span and occur in the
+ * referenced Source, compared after whitespace normalization (a raw substring match is byte-exact
+ * and will false-fail on any source whose whitespace differs from the model's rendering of the
+ * quote). If it is too weak or does not occur, the node is invalid. That check is the demo's
  * credibility claim, and it is a boolean, on camera.
  *
- * SCOPE — state this honestly, a judge may ask: a quote occurring in the source proves the node
- * is NOT FABRICATED. It does not prove the node is CORRECT. Correctness is what the rest of the
- * invariant suite and the algebra reconstruction test are for. Do not overclaim it.
+ * SCOPE — state this honestly, a judge may ask: a sufficiently strong quote occurring in the source
+ * proves the receipt is a real passage, not a stopword-shaped token. It does not prove the node's
+ * interpretation is CORRECT. Correctness is what the rest of the invariant suite and the algebra
+ * reconstruction test are for. Do not overclaim it.
  */
 export interface Provenance {
   sourceId: SourceId;

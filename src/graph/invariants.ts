@@ -29,8 +29,8 @@
 // prerequisites from edges; do not reintroduce a field for them.
 //
 // ✅ PROVENANCE IS QUOTE-PRIMARY (see types.ts). `invalidProvenance` must resolve
-// `provenance.sourceId` against `graph.sources[]` and check that `provenance.quotedText`
-// ACTUALLY OCCURS in that source's text.
+// `provenance.sourceId` against `graph.sources[]` and check that `provenance.quotedText` is a
+// substantial content-bearing span that ACTUALLY OCCURS in that source's text.
 //
 // ⚠ MATCH ON NORMALIZED WHITESPACE, NOT RAW SUBSTRING. `source.text.includes(quotedText)` is
 // byte-exact and will FALSE-FAIL whenever the source's whitespace differs from the model's
@@ -52,20 +52,50 @@ import type {
 export interface LessonCitationIssue {
   conceptId: ConceptId;
   stepIndex: number;
-  reason: "empty-lesson" | "unresolved-source" | "ambiguous-source" | "quote-not-found";
+  reason:
+    | "empty-lesson"
+    | "unresolved-source"
+    | "ambiguous-source"
+    | "quote-not-found"
+    | "quote-too-weak";
 }
 
 const normalizeWhitespace = (value: string): string => value.replace(/\s+/g, " ").trim();
 
+const MIN_QUOTE_WORDS = 8;
+const MIN_QUOTE_CONTENT_WORDS = 4;
+
+// Closed-class/function words do grammatical work but carry too little subject matter to ground a
+// lesson claim by themselves. This intentionally small, conservative list avoids pretending that
+// an offline heuristic can understand semantics; the separate total-word floor supplies the
+// substantial-span requirement.
+const QUOTE_STOPWORDS = new Set([
+  "a", "an", "and", "are", "as", "at", "be", "been", "being", "but", "by", "did", "do",
+  "does", "for", "from", "had", "has", "have", "he", "her", "hers", "him", "his", "i", "if",
+  "in", "into", "is", "it", "its", "me", "my", "no", "nor", "not", "of", "on", "or", "our",
+  "ours", "she", "so", "than", "that", "the", "their", "theirs", "them", "then", "there",
+  "these", "they", "this", "those", "through", "to", "too", "under", "up", "was", "we",
+  "were", "what", "when", "where", "which", "who", "whom", "why", "will", "with", "you",
+  "your", "yours",
+]);
+
+const quoteStrongEnough = (normalizedQuote: string): boolean => {
+  const words = normalizedQuote.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) ?? [];
+  if (words.length < MIN_QUOTE_WORDS) return false;
+  const contentWords = words.filter((word) => !QUOTE_STOPWORDS.has(word.toLowerCase()));
+  return contentWords.length >= MIN_QUOTE_CONTENT_WORDS;
+};
+
 /**
  * The single definition of a grounded quote. The source ID must be non-empty and resolve to
- * exactly one source, and the non-empty quote must occur after whitespace normalization.
+ * exactly one source. The quote must be a substantial, content-bearing span (at least eight words,
+ * including four non-stopwords) and must occur contiguously after whitespace normalization.
  */
 export function quoteGrounded(sources: Source[], sourceId: string, quotedText: string): boolean {
   if (typeof sourceId !== "string" || sourceId.trim().length === 0) return false;
   if (typeof quotedText !== "string") return false;
   const normalizedQuote = normalizeWhitespace(quotedText);
-  if (normalizedQuote.length === 0) return false;
+  if (!quoteStrongEnough(normalizedQuote)) return false;
   const matches = sources.filter((source) => source.id === sourceId);
   if (matches.length !== 1) return false;
   if (typeof matches[0].text !== "string") return false;
@@ -84,6 +114,10 @@ export function lessonCitationReason(
   if (typeof quotedText !== "string" || normalizeWhitespace(quotedText).length === 0) {
     return "quote-not-found";
   }
+  const normalizedQuote = normalizeWhitespace(quotedText);
+  if (typeof matches[0].text !== "string") return "quote-not-found";
+  if (!normalizeWhitespace(matches[0].text).includes(normalizedQuote)) return "quote-not-found";
+  if (!quoteStrongEnough(normalizedQuote)) return "quote-too-weak";
   return "quote-not-found";
 }
 
@@ -124,7 +158,8 @@ export interface RenderingCitationIssue {
     | "unknown-concept"
     | "unresolved-source"
     | "ambiguous-source"
-    | "quote-not-found";
+    | "quote-not-found"
+    | "quote-too-weak";
 }
 
 /**
@@ -352,7 +387,8 @@ export function pathExists(graph: LearningGraph, target: ConceptId): boolean {
  *
  * This is the credibility invariant — the boolean that goes on camera — so it is specified
  * exhaustively. `provenance.sourceId` must resolve to exactly one `graph.sources[]` entry, and
- * `provenance.quotedText` must ACTUALLY OCCUR in that source's `text` after whitespace
+ * `provenance.quotedText` must be a substantial content-bearing span (at least eight lexical words,
+ * including four non-stopwords) and ACTUALLY OCCUR in that source's `text` after whitespace
  * normalization (collapse runs of whitespace to one space, trim both ends, both sides).
  *
  * A concept is INVALID if ANY of:
@@ -364,6 +400,7 @@ export function pathExists(graph: LearningGraph, target: ConceptId): boolean {
  *     `text.includes("")` is TRUE for every string, and a whitespace-only quote NORMALIZES to the
  *     empty string — so the naive implementation reports an empty quote as VALID. An empty quote is
  *     a citation-shaped string with nothing in it; it is the cheapest possible hallucination;
+ *   - the quote is shorter than the strength floor or carries fewer than four content words;
  *   - the normalized `quotedText` does not occur in the normalized source `text`.
  *
  * OFFSETS ARE NOT VALIDATED. `estimatedStartOffset` / `estimatedEndOffset` are HINTS (see
@@ -373,8 +410,8 @@ export function pathExists(graph: LearningGraph, target: ConceptId): boolean {
  * that was a leftover from the REJECTED offset-primary model). `provenance-offsets-are-hints` in
  * invariants.test.ts pins this: garbage offsets on a real quote must still be VALID.
  *
- * SCOPE, stated honestly: a quote occurring in the source proves the node was NOT FABRICATED. It
- * does not prove the node is CORRECT. Do not overclaim it.
+ * SCOPE, stated honestly: a sufficiently strong quote occurring in the source proves the receipt
+ * is a real passage, not that the node's interpretation is CORRECT. Do not overclaim it.
  */
 export function invalidProvenance(graph: LearningGraph): ConceptId[] {
   return graph.concepts

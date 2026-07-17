@@ -44,16 +44,33 @@ function isRendering(value: unknown): value is Rendering {
   });
 }
 
-/**
- * Load optional build-time alternate renderings. A missing artifact means RUN 3 has not produced
- * any alternates yet. Once the file exists, malformed contents throw instead of becoming a
- * vacuously valid empty set that would silently disarm the generated-artifact gate.
- */
-export function loadRenderings(path: string = RENDERINGS_PATH): RenderingSet {
-  if (!existsSync(path)) return { renderings: [] };
+function parseRenderings(path: string): RenderingSet {
   const raw = JSON.parse(readFileSync(path, "utf8")) as unknown;
   if (!isObject(raw) || !Array.isArray(raw.renderings) || !raw.renderings.every(isRendering)) {
     throw new Error(`invalid renderings artifact at ${path}`);
   }
   return { renderings: raw.renderings };
+}
+
+/**
+ * Load optional build-time alternate renderings for the UI. Absence means the app has no
+ * alternate route to claim or display, so it deliberately degrades to the base lesson product.
+ */
+export function loadRenderings(path: string = RENDERINGS_PATH): RenderingSet {
+  if (!existsSync(path)) return { renderings: [] };
+  return parseRenderings(path);
+}
+
+/**
+ * Load the committed renderings artifact for verification. A verifier must not accept absence or
+ * an empty set as proof that every generated rendering is grounded: both states are vacuously
+ * valid under `invalidRenderingCitations`, whose job is to classify the renderings that exist.
+ */
+export function loadRenderingsForVerification(
+  path: string = RENDERINGS_PATH,
+): RenderingSet {
+  if (!existsSync(path)) throw new Error(`no renderings artifact at ${path}`);
+  const set = parseRenderings(path);
+  if (set.renderings.length === 0) throw new Error(`empty renderings artifact at ${path}`);
+  return set;
 }

@@ -42,7 +42,7 @@ Every claim on this page is a property of the committed artifact, not a descript
 | Claim | Where it is enforced |
 |---|---|
 | Nothing is generated at read time | `src/ui/gate9.test.ts` greps the entire browser runtime for network clients and model vendors. No `fetch(`, no socket, no SDK. The app runs offline. |
-| Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
+| Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it — a single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 chapters, licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
@@ -146,7 +146,8 @@ sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside th
 - `src/ui/` — static React interface over the embedded graph, with local-only interactions.
 
 Relations live only in `LearningGraph.edges[]`. Provenance is quote-primary: normalized `quotedText`
-must occur in exactly one resolved source, while offsets remain non-load-bearing hints.
+must clear the shared strength floor and occur in exactly one resolved source, while offsets remain
+non-load-bearing hints.
 
 ## Why a graph, not a chatbot?
 

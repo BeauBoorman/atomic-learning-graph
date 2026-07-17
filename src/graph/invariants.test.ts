@@ -29,7 +29,7 @@ import {
   quoteGrounded,
   isSingleConcept,
 } from "./invariants";
-import { loadGraph, loadRenderings } from "./load"; // Codex: reads committed build artifacts
+import { loadGraph, loadRenderingsForVerification } from "./load"; // Codex: reads committed build artifacts
 import { fixtureGraph, SOURCE_TEXT } from "./fixture-graph";
 
 // The hand-built fixture lives in `./fixture-graph` — it is a FIXTURE, never `data/graph.json`
@@ -279,6 +279,42 @@ describe("pathExists — teeth", () => {
 });
 
 describe("invalidProvenance — teeth (this is the credibility claim)", () => {
+  it("rejects a substantial all-stopword span even when it occurs in the source", () => {
+    const stopwordQuote = "the and of to in a for on with by from as at is are";
+    const allStopwords: LearningGraph = {
+      ...fixture,
+      sources: fixture.sources.map((source) => ({
+        ...source,
+        text: `${source.text} ${stopwordQuote}`,
+      })),
+      concepts: fixture.concepts.map((concept) =>
+        concept.id === "vectors"
+          ? { ...concept, provenance: { ...concept.provenance, quotedText: stopwordQuote } }
+          : concept
+      ),
+    };
+
+    expect(invalidProvenance(allStopwords)).toEqual(["vectors"]);
+  });
+
+  it("requires at least four content-bearing words, not merely eight words", () => {
+    const weakQuote = "the vector and the matrix of a model";
+    const tooLittleContent: LearningGraph = {
+      ...fixture,
+      sources: fixture.sources.map((source) => ({
+        ...source,
+        text: `${source.text} ${weakQuote}`,
+      })),
+      concepts: fixture.concepts.map((concept) =>
+        concept.id === "vectors"
+          ? { ...concept, provenance: { ...concept.provenance, quotedText: weakQuote } }
+          : concept
+      ),
+    };
+
+    expect(invalidProvenance(tooLittleContent)).toEqual(["vectors"]);
+  });
+
   it("catches a FABRICATED quote (the hallucination case — this is the pitch)", () => {
     const fabricated: LearningGraph = {
       ...fixture,
@@ -501,6 +537,17 @@ describe("invalidRenderingCitations", () => {
     ]);
   });
 
+  it("uses the shared quote-strength floor for rendering citations", () => {
+    const set = renderingFixture();
+    set.renderings[0].steps[0].citation.quotedText = "The dot product";
+    expect(invalidRenderingCitations(fixture, set)).toContainEqual({
+      conceptId: "vectors",
+      format: "why-it-exists",
+      stepIndex: 0,
+      reason: "quote-too-weak",
+    });
+  });
+
   it("rejects two renderings for the same concept and format", () => {
     const set = renderingFixture();
     set.renderings.push(structuredClone(set.renderings[0]));
@@ -568,13 +615,13 @@ describe("invalidRenderingCitations", () => {
         title: "A unique source",
         license: "CC-BY-4.0",
         author: "Another fixture author",
-        text: "A separate grounded sentence.",
+        text: "A separate grounded sentence contains enough meaningful words to support this lesson step.",
       },
     );
     const set = renderingFixture();
     set.renderings[0].steps[1].citation = {
       sourceId: "s2",
-      quotedText: "A separate grounded sentence.",
+      quotedText: "A separate grounded sentence contains enough meaningful words to support this lesson step.",
     };
     expect(invalidRenderingCitations(graph, set)).toEqual([
       {
@@ -620,12 +667,29 @@ describe("generated data/graph.json", () => {
     expect(invalidProvenance(g)).toEqual([]);
   });
 
+  it("rejects a one-word stopword citation on a real generated concept", () => {
+    const g = structuredClone(loadGraph());
+    const concept = g.concepts[0];
+    if (!concept) throw new Error("test setup: committed graph has no concepts");
+    concept.provenance.quotedText = "the";
+
+    expect(invalidProvenance(g)).toEqual([concept.id]);
+  });
+
+  it("keeps all 10 committed concept provenance quotes valid", () => {
+    const g = loadGraph();
+    expect(g.concepts).toHaveLength(10);
+    expect(invalidProvenance(g)).toEqual([]);
+  });
+
   it("grounds every generated lesson step in its declared source", () => {
     expect(invalidLessonCitations(loadGraph())).toEqual([]);
   });
 
   it("grounds every generated rendering in its declared source", () => {
-    expect(invalidRenderingCitations(loadGraph(), loadRenderings())).toEqual([]);
+    const set = loadRenderingsForVerification();
+    expect(set.renderings.flatMap((rendering) => rendering.steps)).toHaveLength(68);
+    expect(invalidRenderingCitations(loadGraph(), set)).toEqual([]);
   });
 
   it("reaches the demo goal 'self-attention'", () => {
