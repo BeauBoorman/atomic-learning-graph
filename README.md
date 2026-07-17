@@ -22,7 +22,8 @@ of a passage from *Dive into Deep Learning* (Zhang, Lipton, Li & Smola), pinned 
 page shows you the exact sentence it came from, highlighted.
 
 The translation was made once, before publication, and checked against the source. **Nothing is
-generated while you read.** No key, no network, no model call — enforced by a test, not a promise.
+generated while you read.** No key, no network, no model call — enforced against the shipped
+JavaScript bytes, not left as a promise.
 
 ### The routes
 
@@ -41,7 +42,7 @@ Every claim on this page is a property of the committed artifact, not a descript
 
 | Claim | Where it is enforced |
 |---|---|
-| Nothing is generated at read time | `src/ui/gate9.test.ts` greps the entire browser runtime for network clients and model vendors. No `fetch(`, no socket, no SDK. The app runs offline. |
+| Nothing is generated at read time | After `pnpm build`, `pnpm verify:bundle` scans every emitted JavaScript chunk for network clients and the model vendor. `src/ui/gate9.test.ts` keeps a faster source-level tripwire, but the hard claim rests on the bytes shipped to the learner. The app runs offline. |
 | Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it — a single hand-edited character turns the suite red. |
@@ -87,13 +88,23 @@ acceptance gate above is the evidence for that.
 
 Requires Node.js and pnpm. No API key is needed to run, test, or build the committed graph and UI.
 
+`pnpm gate` is the acceptance bar. A passing `pnpm test` is not: it skips corpus verification, the
+gap through which a false licence notice nearly shipped. The gate brings the repository's checks
+together and states what it **does not** prove on every run. Green is bounded evidence, not a claim
+that the model's interpretation is correct or that every product quality is solved.
+
 ```bash
 pnpm install
+pnpm gate
 pnpm typecheck
 pnpm test
 pnpm verify:corpus
 pnpm dev
 ```
+
+`pnpm verify:corpus` is hermetic by default: it validates the committed manifest, source hashes,
+extraction transform, and derived notices without a network request. To additionally prove the pins
+still match the real upstream source and licence bytes, run `VERIFY_UPSTREAM=1 pnpm verify:corpus`.
 
 A production build:
 
@@ -144,6 +155,8 @@ sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside th
 - `src/graph/path.ts` — deterministic prerequisite-ancestor walk with a stable tie-break.
 - `src/graph/load.ts` — fail-closed loader for the committed graph.
 - `src/ui/` — static React interface over the embedded graph, with local-only interactions.
+- `scripts/verify-bundle.ts` — post-build scan of every emitted JavaScript chunk; the shipped-bytes
+  enforcement boundary for the no-network browser claim.
 
 Relations live only in `LearningGraph.edges[]`. Provenance is quote-primary: normalized `quotedText`
 must clear the shared strength floor and occur in exactly one resolved source, while offsets remain
