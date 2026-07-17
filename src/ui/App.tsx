@@ -9,6 +9,7 @@ import { StepIndicator } from "./StepIndicator";
 import {
   coursePageKey,
   deriveProgress,
+  knownForGoal,
   resolveCitation,
   understoodConcepts,
   type CoursePage,
@@ -23,28 +24,47 @@ interface AppProps {
 
 type Theme = "light" | "dark";
 
-// v3: progress is COMPLETED PAGE KEYS, scoped to one course. v1/v2 stored a global
+// v4: progress is COMPLETED PAGE KEYS, scoped to goal + depth + the learner's fixed entry-screen
+// declaration. v1/v2 stored a global
 // known-concept list with no course scope, so finishing one course silently marked five
 // other goals complete. That is not migratable — "you knew this" and "you read this" were
 // never distinguishable in the old shape — so the old keys are retired, not converted.
-const COURSE_KEY = "atomic-learning-graph.course.v3";
+const COURSE_KEY = "atomic-learning-graph.course.v4";
 /** Exported for the scoping regression test: cross-course contamination is prevented HERE and
  *  nowhere else. `deriveProgress` is course-pure but page keys overlap between courses, so the
  *  storage key is the only thing that stops course A's pages being read as course B's. */
-export const courseKey = (goalId: ConceptId, depth: Depth) => `${COURSE_KEY}:${goalId}:${depth}`;
+export const courseKey = (
+  goalId: ConceptId,
+  depth: Depth,
+  known: ConceptId[] = [],
+) => {
+  const declaration = encodeURIComponent(JSON.stringify([...new Set(known)].sort()));
+  return `${COURSE_KEY}:${encodeURIComponent(goalId)}:${depth}:${declaration}`;
+};
 
 const LEGACY_KEYS = [
   "atomic-learning-graph.progress.v1", // orphaned by the .v2 bump; still on real machines
   "atomic-learning-graph.progress.v2", // the leak that produced "Page 3 of 8"
   "atomic-learning-graph.deep-dives.v1", // equally unscoped; same class of leak
 ];
+const LEGACY_COURSE_PREFIXES = ["atomic-learning-graph.course.v3:"];
 
-// The .v2 bump reset the value once and left the bug dormant. Bumping again without changing
-// the SHAPE is how this ships a third time, so the old keys are deleted, never migrated.
+// The .v2 bump reset the value once and left the bug dormant. The v3 page-key shape was sound,
+// but it had no declaration in its identity and therefore cannot be migrated to v4 safely.
+// Retire every predecessor instead of guessing which declaration an old course belonged to.
 function retireLegacyProgress() {
   if (typeof window === "undefined") return;
   try {
     for (const key of LEGACY_KEYS) window.localStorage.removeItem(key);
+    const storedKeys = Array.from(
+      { length: window.localStorage.length },
+      (_, index) => window.localStorage.key(index),
+    ).filter((key): key is string => key !== null);
+    for (const key of storedKeys) {
+      if (LEGACY_COURSE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+        window.localStorage.removeItem(key);
+      }
+    }
   } catch {
     // Nothing to retire.
   }
@@ -139,7 +159,7 @@ interface CourseScreenProps {
   graph: LearningGraph;
   goalId: ConceptId;
   passion?: PassionId;
-  known: ConceptId[];
+  understood: ConceptId[];
   theme: Theme;
   progress: CourseProgress;
   onNext: () => void;
@@ -152,7 +172,7 @@ export function CourseScreen({
   graph,
   goalId,
   passion,
-  known,
+  understood,
   theme,
   progress,
   onNext,
@@ -194,7 +214,7 @@ export function CourseScreen({
         currentId={page.conceptId}
         path={path}
         initialPath={uniqueConcepts(progress.pages)}
-        known={known}
+        known={understood}
         theme={theme}
         onOpenLesson={onOpenLesson}
       />
@@ -206,8 +226,10 @@ export function App({ graph }: AppProps) {
   const [started, setStarted] = useState(false);
   const [goalId, setGoalId] = useState<ConceptId>(graph.goalId);
   const [depth, setDepth] = useState<Depth>("quick");
+  // Captured only on the entry screen. Course progress never writes to this state.
+  const [declaredKnown, setDeclaredKnown] = useState<ConceptId[]>([]);
   const [passion, setPassion] = useState<PassionId | undefined>(storedPassion);
-  const activeCourse = courseKey(goalId, depth);
+  const activeCourse = courseKey(goalId, depth, declaredKnown);
   const [course, setCourse] = useState<CourseState>(
     () => ({ key: activeCourse, pages: storedPages(activeCourse) }),
   );
@@ -219,7 +241,7 @@ export function App({ graph }: AppProps) {
   // never replace the lesson on screen. Kept because reading it must never touch progress.
   const [peekedConceptId, setPeekedConceptId] = useState<ConceptId | undefined>();
 
-  // The v1/v2 keys are unscoped and unreadable in the new shape. Delete them on sight.
+  // The v1/v2 keys are unscoped; v3 lacks the fixed declaration identity. Delete them on sight.
   useEffect(() => { retireLegacyProgress(); }, []);
 
   // Load on switch. Same course -> same object -> React bails; no needless re-render at mount.
@@ -238,14 +260,14 @@ export function App({ graph }: AppProps) {
   // A map peek is navigation only. Keep it out of this dependency list and out of every
   // completed-page write so deriveProgress remains the sole progress authority.
   const progress = useMemo(
-    () => deriveProgress(graph, goalId, depth, completedPages),
-    [completedPages, depth, goalId, graph],
+    () => deriveProgress(graph, goalId, depth, completedPages, declaredKnown),
+    [completedPages, declaredKnown, depth, goalId, graph],
   );
-  // The map's "understood" styling, derived from the same recorded fact. Never stored: a
-  // stored known-list is what let one finished course mark five other goals complete.
-  const known = useMemo(
-    () => understoodConcepts(graph, goalId, depth, completedPages),
-    [completedPages, depth, goalId, graph],
+  // The map's "understood" styling combines the fixed entry declaration with concepts whose
+  // course pages are recorded. It is derived, never stored as a second progress channel.
+  const understood = useMemo(
+    () => understoodConcepts(graph, goalId, depth, completedPages, declaredKnown),
+    [completedPages, declaredKnown, depth, goalId, graph],
   );
 
   useEffect(() => {
@@ -295,9 +317,9 @@ export function App({ graph }: AppProps) {
     const page = progress.remaining[0];
     if (!page) return;
     const key = coursePageKey(page);
-    // Finishing a page is one recorded fact. There is no second bookkeeping path: no known
-    // list to advance, no core/deep split, no session copy — the tier decides which pages are
-    // IN the course, never what "done" means.
+    // Finishing a page is one recorded fact. There is no second bookkeeping path: the fixed
+    // declaration is not advanced, and there is no core/deep split or session copy — the tier
+    // decides which pages are IN the course, never what "done" means.
     setCourse((current) => (
       current.key !== activeCourse || current.pages.includes(key)
         ? current
@@ -324,6 +346,7 @@ export function App({ graph }: AppProps) {
 
   const updateGoal = (nextGoal: ConceptId) => {
     setGoalId(nextGoal);
+    setDeclaredKnown((current) => knownForGoal(graph, nextGoal, current));
     setPeekedConceptId(undefined);
   };
 
@@ -371,7 +394,7 @@ export function App({ graph }: AppProps) {
           graph={graph}
           goalId={goalId}
           passion={passion}
-          known={known}
+          understood={understood}
           theme={theme}
           progress={progress}
           onNext={handleNext}
@@ -383,9 +406,11 @@ export function App({ graph }: AppProps) {
           graph={graph}
           goalId={goalId}
           depth={depth}
+          known={declaredKnown}
           passion={passion}
           onGoalChange={updateGoal}
           onDepthChange={updateDepth}
+          onKnownChange={setDeclaredKnown}
           onPassionChange={setPassion}
           onStart={() => {
             setStarted(true);

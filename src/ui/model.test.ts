@@ -3,6 +3,7 @@ import { fixtureGraph } from "../graph/fixture-graph";
 import { loadGraph } from "../graph/load";
 import {
   courseFor,
+  coursePageKey,
   deriveProgress,
   markUnderstood,
   pathFor,
@@ -117,10 +118,55 @@ describe("UI learning model", () => {
     // localStorage — reachable in one clean session by finishing vectors under ANY other goal —
     // the old form pruned BOTH vectors pages out of the course and returned completeCount 2,
     // remaining[0] = dot-product:0. That is "Page 3 of 8", 25%, opening on the wrong lesson
-    // with nothing read. There is no `known` channel left for that to leak through.
+    // with nothing read. There is no progress-derived `known` channel left for that to leak
+    // through; the explicit declaration argument for this course is still empty.
     const afterOne = deriveProgress(graph, "self-attention", "quick", ["vectors:0"]);
     expect(afterOne).toMatchObject({ completeCount: 1, total: 8 });
     expect(afterOne.remaining[0]).toEqual({ conceptId: "vectors", stepIndex: 1 });
+  });
+
+  it("starts after explicitly declared prerequisites and builds a shorter fixed course", () => {
+    const fromScratch = deriveProgress(graph, "self-attention", "quick", [], []);
+    const declaredKnown = ["vectors", "dot-product"];
+    const fresh = deriveProgress(graph, "self-attention", "quick", [], declaredKnown);
+
+    expect(fresh.pages.length).toBeLessThan(fromScratch.pages.length);
+    expect(fresh.remaining[0]).toEqual({ conceptId: "softmax", stepIndex: 0 });
+
+    const afterOnePage = deriveProgress(
+      graph,
+      "self-attention",
+      "quick",
+      [coursePageKey(fresh.remaining[0])],
+      declaredKnown,
+    );
+    expect(afterOnePage.pages).toEqual(fresh.pages);
+    expect(afterOnePage.total).toBe(fresh.total);
+    expect(afterOnePage.remaining[0]).toEqual({ conceptId: "qkv", stepIndex: 0 });
+  });
+
+  it("drops declarations that are not prerequisites of a newly selected goal", async () => {
+    const model = await import("./model") as Record<string, unknown>;
+    expect(model).toHaveProperty("knownForGoal");
+    const knownForGoal = model.knownForGoal as (
+      graph: typeof fixtureGraph,
+      goalId: string,
+      known: string[],
+    ) => string[];
+
+    expect(knownForGoal(
+      fixtureGraph,
+      "softmax",
+      ["vectors", "qkv", "self-attention"],
+    )).toEqual(["vectors"]);
+  });
+
+  it("keeps an empty declaration byte-identical to the pre-declaration course", () => {
+    const expected =
+      '{"pages":[{"conceptId":"vectors","stepIndex":0},{"conceptId":"vectors","stepIndex":1},{"conceptId":"dot-product","stepIndex":0},{"conceptId":"dot-product","stepIndex":1},{"conceptId":"softmax","stepIndex":0},{"conceptId":"qkv","stepIndex":0},{"conceptId":"self-attention","stepIndex":0},{"conceptId":"self-attention","stepIndex":1}],"remaining":[{"conceptId":"vectors","stepIndex":0},{"conceptId":"vectors","stepIndex":1},{"conceptId":"dot-product","stepIndex":0},{"conceptId":"dot-product","stepIndex":1},{"conceptId":"softmax","stepIndex":0},{"conceptId":"qkv","stepIndex":0},{"conceptId":"self-attention","stepIndex":0},{"conceptId":"self-attention","stepIndex":1}],"completeCount":0,"total":8,"percent":0,"complete":false}';
+
+    expect(JSON.stringify(deriveProgress(graph, "self-attention", "quick", [], [])))
+      .toBe(expected);
   });
 
   it("opens every goal at page 1 on a fresh course", () => {

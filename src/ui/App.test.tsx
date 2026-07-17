@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureGraph } from "../graph/fixture-graph";
 import { App, courseKey, CourseScreen } from "./App";
+import { Entry } from "./Entry";
 import { GraphMap } from "./GraphMap";
 import { deriveProgress } from "./model";
 
@@ -14,7 +15,7 @@ describe("Phase 5 learning flow", () => {
       <CourseScreen
         graph={fixtureGraph}
         goalId={fixtureGraph.goalId}
-        known={[]}
+        understood={[]}
         theme="light"
         progress={progress}
         onNext={() => undefined}
@@ -27,7 +28,7 @@ describe("Phase 5 learning flow", () => {
     expect(html).not.toContain("Course complete");
   });
 
-  it("stores progress under a key scoped to one goal and one depth", () => {
+  it("stores progress under a key scoped to one goal, one depth, and one declaration", () => {
     // Page keys are NOT unique to a course — `vectors:0` is page 1 of six different courses.
     // So this key is the ONLY thing keeping one course's progress out of another's, which is
     // what the global v1/v2 keys failed to do: finishing one course marked five other goals
@@ -42,6 +43,35 @@ describe("Phase 5 learning flow", () => {
     expect(courseKey("softmax", "quick")).toContain("quick");
     expect(courseKey("softmax", "quick")).not.toBe(courseKey("self-attention", "quick"));
     expect(courseKey("softmax", "quick")).not.toBe(courseKey("softmax", "thorough"));
+    expect(courseKey("softmax", "quick", ["vectors"])).not.toBe(
+      courseKey("softmax", "quick", ["vectors", "dot-product"]),
+    );
+    expect(courseKey("softmax", "quick", ["vectors", "dot-product"])).toBe(
+      courseKey("softmax", "quick", ["dot-product", "vectors"]),
+    );
+    expect(courseKey("softmax", "quick", [])).toContain("course.v4");
+  });
+
+  it("offers only the selected goal's prerequisite spine using display titles", () => {
+    const html = renderToStaticMarkup(
+      <Entry
+        graph={fixtureGraph}
+        goalId="softmax"
+        depth="quick"
+        known={[]}
+        onGoalChange={() => undefined}
+        onDepthChange={() => undefined}
+        onKnownChange={() => undefined}
+        onPassionChange={() => undefined}
+        onStart={() => undefined}
+      />,
+    );
+
+    expect(html.match(/type="checkbox"/g)).toHaveLength(2);
+    expect(html).toContain("Vectors as fixed-length lists");
+    expect(html).toContain("Multiply matching values, then add");
+    expect(html).not.toContain('type="checkbox" value="qkv"');
+    expect(html).not.toMatch(/<input[^>]*type="checkbox"[^>]*checked=/);
   });
 
   it("renders the map legend as a key with swatches, not checkmark glyphs", () => {

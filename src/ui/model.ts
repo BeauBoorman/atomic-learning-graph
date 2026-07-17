@@ -42,6 +42,24 @@ export function pathFor(
   return getPath(graph, goalId, known);
 }
 
+/** The entry-screen choices for one goal, in the same deterministic order as the route. */
+export function prerequisitesForGoal(
+  graph: LearningGraph,
+  goalId: ConceptId,
+): ConceptId[] {
+  return pathFor(graph, goalId, []).filter((conceptId) => conceptId !== goalId);
+}
+
+/** Keep a declaration only when it is still relevant to the newly selected goal. */
+export function knownForGoal(
+  graph: LearningGraph,
+  goalId: ConceptId,
+  known: ConceptId[],
+): ConceptId[] {
+  const offered = new Set(prerequisitesForGoal(graph, goalId));
+  return known.filter((conceptId) => offered.has(conceptId));
+}
+
 /**
  * Recomputes the route with one more concept treated as already understood.
  *
@@ -116,7 +134,7 @@ export function coursePageKey(page: CoursePage): string {
 }
 
 /** One source for every progress readout and for the completion boundary.
- *  The course page list is a pure function of {goal, depth}. It NEVER shrinks under the
+ *  The course page list is a pure function of {goal, depth, known}. It NEVER shrinks under the
  *  learner. Completion is a recorded fact, not a length difference — the old form inferred
  *  it from `total - remaining.length`, which conflated "you already knew this" with
  *  "you completed this" and opened fresh courses at Page 3 of 8, 25%. */
@@ -125,8 +143,11 @@ export function deriveProgress(
   goalId: ConceptId = graph.goalId,
   depth: Depth = "quick",
   completedPageKeys: string[] = [],
+  known: ConceptId[] = [],
 ): CourseProgress {
-  const pages = courseFor(graph, goalId, depth, []); // <- ALWAYS []. Same array, both sides.
+  // `known` is captured before this course starts. It is fixed course input, never inferred
+  // from `completedPageKeys` and never changed by finishing a page.
+  const pages = courseFor(graph, goalId, depth, known);
   const completed = new Set(completedPageKeys);
   const done = pages.filter((page) => completed.has(coursePageKey(page)));
   const remaining = pages.filter((page) => !completed.has(coursePageKey(page)));
@@ -141,22 +162,25 @@ export function deriveProgress(
   };
 }
 
-/** The map's "understood" styling was the only real consumer of `known`. Derive it; do not
- *  store it. A concept is understood when every page of it IN THIS COURSE is recorded. */
+/** Derive the map's understood styling; do not store a second progress fact. A concept is
+ *  understood when it was declared before the course or every page of it IN THIS COURSE is
+ *  recorded. The declaration itself remains fixed. */
 export function understoodConcepts(
   graph: LearningGraph,
   goalId: ConceptId,
   depth: Depth,
   completedPageKeys: string[],
+  known: ConceptId[] = [],
 ): ConceptId[] {
   const completed = new Set(completedPageKeys);
   const byConcept = new Map<ConceptId, CoursePage[]>();
-  for (const page of courseFor(graph, goalId, depth, [])) {
+  for (const page of courseFor(graph, goalId, depth, known)) {
     byConcept.set(page.conceptId, [...(byConcept.get(page.conceptId) ?? []), page]);
   }
-  return [...byConcept]
+  const completedConcepts = [...byConcept]
     .filter(([, pages]) => pages.every((page) => completed.has(coursePageKey(page))))
     .map(([conceptId]) => conceptId);
+  return [...new Set([...known, ...completedConcepts])];
 }
 
 function findConcept(graph: LearningGraph, conceptId: ConceptId): Concept {

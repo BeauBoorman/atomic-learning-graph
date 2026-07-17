@@ -1,15 +1,17 @@
 import type { ConceptId, LearningGraph, PassionId } from "../types";
 import { PASSION_IDS } from "../types";
-import type { Depth } from "./model";
+import { prerequisitesForGoal, type Depth } from "./model";
 import { titleFor } from "./titles";
 
 interface EntryProps {
   graph: LearningGraph;
   goalId: ConceptId;
   depth: Depth;
+  known: ConceptId[];
   passion?: PassionId;
   onGoalChange: (goalId: ConceptId) => void;
   onDepthChange: (depth: Depth) => void;
+  onKnownChange: (known: ConceptId[]) => void;
   onPassionChange: (passion?: PassionId) => void;
   onStart: () => void;
 }
@@ -27,12 +29,17 @@ export function Entry({
   graph,
   goalId,
   depth,
+  known,
   passion,
   onGoalChange,
   onDepthChange,
+  onKnownChange,
   onPassionChange,
   onStart,
 }: EntryProps) {
+  const concepts = new Map(graph.concepts.map((concept) => [concept.id, concept]));
+  const prerequisites = prerequisitesForGoal(graph, goalId);
+
   return (
     <main className="entry" id="main-content">
       <p className="eyebrow">Build a short learning path</p>
@@ -54,6 +61,39 @@ export function Entry({
             </option>
           ))}
         </select>
+
+        {prerequisites.length > 0 && (
+          <fieldset className="choice-group known-choice-group">
+            <legend>
+              What do you already know? <span className="optional">Optional</span>
+            </legend>
+            {prerequisites.map((conceptId) => {
+              const concept = concepts.get(conceptId);
+              if (!concept) return null;
+              const selected = known.includes(conceptId);
+              return (
+                <label className={selected ? "choice is-selected" : "choice"} key={conceptId}>
+                  <input
+                    type="checkbox"
+                    value={conceptId}
+                    checked={selected}
+                    onChange={(event) => {
+                      onKnownChange(
+                        event.target.checked
+                          ? [...known, conceptId]
+                          : known.filter((knownId) => knownId !== conceptId),
+                      );
+                    }}
+                  />
+                  <span>
+                    <strong>{titleFor(concept)}</strong>
+                    <small>Skip this prerequisite</small>
+                  </span>
+                </label>
+              );
+            })}
+          </fieldset>
+        )}
 
         <fieldset className="choice-group">
           <legend>How much time do you have?</legend>
