@@ -43,6 +43,14 @@ describe("Gate 9 architecture", () => {
     expect(read("src/ui/main.tsx")).toContain("__LEARNING_GRAPH__");
   });
 
+  it("loads committed renderings at build time through loadRenderings", () => {
+    const config = read("vite.config.ts");
+    expect(config).toContain('import { loadRenderings } from "./src/graph/load"');
+    expect(config).toContain("const renderings = loadRenderings()");
+    expect(config).toContain("__RENDERINGS__: JSON.stringify(renderings)");
+    expect(read("src/ui/main.tsx")).toContain("__RENDERINGS__");
+  });
+
   it("keeps every browser interaction free of network clients and remote CSS assets", () => {
     const runtime = uiRuntimeFiles.map(read).join("\n");
     const css = globSync("src/ui/**/*.css", { cwd: root }).map(read).join("\n");

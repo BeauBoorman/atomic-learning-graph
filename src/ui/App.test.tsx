@@ -1,12 +1,92 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureGraph } from "../graph/fixture-graph";
+import type { RenderingSet } from "../types";
 import { App, courseKey, CourseScreen } from "./App";
 import { Entry } from "./Entry";
 import { GraphMap } from "./GraphMap";
 import { deriveProgress } from "./model";
 
 describe("Phase 5 learning flow", () => {
+  it("offers another route only when the current concept has one", () => {
+    const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
+    const concept = fixtureGraph.concepts.find((candidate) => candidate.id === "vectors");
+    if (!concept?.lesson) throw new Error("fixture vectors lesson missing");
+    const renderings: RenderingSet = {
+      renderings: [{
+        conceptId: concept.id,
+        format: "why-it-exists",
+        plainTitle: "Why fixed-length lists help",
+        steps: concept.lesson.steps,
+      }],
+    };
+
+    const html = renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        renderings={renderings}
+        goalId={fixtureGraph.goalId}
+        understood={[]}
+        theme="light"
+        progress={progress}
+        onNext={() => undefined}
+        onOpenLesson={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(html).toContain(">Try another way in<");
+  });
+
+  it("stays silent when alternates belong to a different concept", () => {
+    const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
+    const other = fixtureGraph.concepts.find((candidate) => candidate.id === "dot-product");
+    if (!other?.lesson) throw new Error("fixture dot-product lesson missing");
+    const renderings: RenderingSet = {
+      renderings: [{
+        conceptId: other.id,
+        format: "how-it-works",
+        plainTitle: "How matching positions combine",
+        steps: other.lesson.steps,
+      }],
+    };
+
+    const html = renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        renderings={renderings}
+        goalId={fixtureGraph.goalId}
+        understood={[]}
+        theme="light"
+        progress={progress}
+        onNext={() => undefined}
+        onOpenLesson={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(html).not.toContain("Try another way in");
+    expect(html).not.toContain("alternate-route");
+    expect(html).not.toMatch(/no other route|coming soon|not available/i);
+  });
+
+  it("renders an empty optional artifact exactly like no artifact", () => {
+    const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
+    const props = {
+      graph: fixtureGraph,
+      goalId: fixtureGraph.goalId,
+      understood: [],
+      theme: "light" as const,
+      progress,
+      onNext: () => undefined,
+      onOpenLesson: () => undefined,
+      onRestart: () => undefined,
+    };
+
+    expect(renderToStaticMarkup(<CourseScreen {...props} renderings={{ renderings: [] }} />))
+      .toBe(renderToStaticMarkup(<CourseScreen {...props} />));
+  });
+
   it("shows one progressbar and no completion message while course pages remain", () => {
     const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
     expect(progress.remaining.length).toBeGreaterThan(0);

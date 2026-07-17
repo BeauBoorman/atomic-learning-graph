@@ -8,6 +8,6 @@ if (!root) throw new Error("missing #root mount point");
 
 createRoot(root).render(
   <StrictMode>
-    <App graph={__LEARNING_GRAPH__} />
+    <App graph={__LEARNING_GRAPH__} renderings={__RENDERINGS__} />
   </StrictMode>,
 );

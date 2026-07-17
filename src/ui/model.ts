@@ -3,6 +3,7 @@ import type {
   ConceptId,
   LearningGraph,
   Provenance,
+  Rendering,
   Source,
 } from "../types";
 import { getPath } from "../graph/path";
@@ -238,5 +239,22 @@ export function resolveCitation(
   const concept = findConcept(graph, conceptId);
   const step = concept.lesson?.steps[stepIndex];
   if (!step) throw new Error(`unknown lesson page: ${conceptId}:${stepIndex}`);
+  return resolvePassage(graph, concept, step.citation);
+}
+
+/** Resolve one pre-built alternate step against the same embedded source corpus as the home
+ *  lesson. The rendering gate has already proved the quote; this keeps the browser path pure. */
+export function resolveRenderingCitation(
+  graph: LearningGraph,
+  rendering: Rendering,
+  stepIndex: number,
+): ResolvedPassage {
+  const concept = findConcept(graph, rendering.conceptId);
+  const step = rendering.steps[stepIndex];
+  if (!step) {
+    throw new Error(
+      `unknown rendering page: ${rendering.conceptId}:${rendering.format}:${stepIndex}`,
+    );
+  }
   return resolvePassage(graph, concept, step.citation);
 }

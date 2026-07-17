@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import type { Concept, LessonStep, PassionId } from "../types";
+import type {
+  AlternateFormat,
+  Concept,
+  LessonStep,
+  PassionId,
+  Rendering,
+} from "../types";
 import { Citation, FootnoteMark } from "./Citation";
 import type { ResolvedPassage } from "./model";
 import { titleFor } from "./titles";
@@ -8,6 +14,8 @@ interface LessonPageProps {
   concept: Concept;
   step: LessonStep;
   resolved: ResolvedPassage;
+  renderings?: Rendering[];
+  resolveRendering?: (rendering: Rendering, stepIndex: number) => ResolvedPassage;
   passion?: PassionId;
   nextLabel: string;
   onNext: () => void;
@@ -24,10 +32,113 @@ const analogyVoices: Record<PassionId, string> = {
   gardening: "In the garden",
 };
 
+const routeLabel = (format: AlternateFormat): string => (
+  format === "why-it-exists" ? "See why it matters" : "See how it works"
+);
+
+function RenderingStep({
+  rendering,
+  stepIndex,
+  resolved,
+}: {
+  rendering: Rendering;
+  stepIndex: number;
+  resolved: ResolvedPassage;
+}) {
+  const step = rendering.steps[stepIndex];
+  const mark = useRef<HTMLButtonElement>(null);
+  const [sourceOpen, setSourceOpen] = useState(false);
+
+  return (
+    <li className="rendering-step">
+      <p className="rendering-step-number">Step {stepIndex + 1} of {rendering.steps.length}</p>
+      <p className="rendering-step-text">
+        {step.text}
+        <FootnoteMark ref={mark} open={sourceOpen} onOpen={() => setSourceOpen(true)} />
+      </p>
+      <Citation
+        resolved={resolved}
+        stepText={step.text}
+        open={sourceOpen}
+        onOpen={() => setSourceOpen(true)}
+        onClose={() => setSourceOpen(false)}
+      />
+    </li>
+  );
+}
+
+interface RenderingRouteProps {
+  concept: Concept;
+  rendering: Rendering;
+  otherRenderings: Rendering[];
+  resolveCitation: (rendering: Rendering, stepIndex: number) => ResolvedPassage;
+  nextLabel: string;
+  onNext: () => void;
+  onReturn: () => void;
+  onSelect: (format: AlternateFormat) => void;
+}
+
+/** A summoned route replaces the lesson rather than competing beside it. Each sentence keeps the
+ *  edition's full receipt; the learner can return home before or after reading the route. */
+export function RenderingRoute({
+  concept,
+  rendering,
+  otherRenderings,
+  resolveCitation,
+  nextLabel,
+  onNext,
+  onReturn,
+  onSelect,
+}: RenderingRouteProps) {
+  const title = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => title.current?.focus(), [rendering.format]);
+
+  return (
+    <article className="lesson-page rendering-route" aria-labelledby="rendering-title">
+      <button className="text-button route-return route-return-top" type="button" onClick={onReturn}>
+        Back to the lesson
+      </button>
+      <p className="eyebrow">Another route to {titleFor(concept)}</p>
+      <h1 id="rendering-title" ref={title} tabIndex={-1}>{rendering.plainTitle}</h1>
+
+      <ol className="rendering-steps">
+        {rendering.steps.map((step, stepIndex) => (
+          <RenderingStep
+            key={`${rendering.format}:${stepIndex}:${step.text}`}
+            rendering={rendering}
+            stepIndex={stepIndex}
+            resolved={resolveCitation(rendering, stepIndex)}
+          />
+        ))}
+      </ol>
+
+      <div className="route-actions" aria-label="Lesson routes">
+        <button className="text-button" type="button" onClick={onReturn}>Back to the lesson</button>
+        {otherRenderings.map((candidate) => (
+          <button
+            key={candidate.format}
+            className="text-button"
+            type="button"
+            onClick={() => onSelect(candidate.format)}
+          >
+            {routeLabel(candidate.format)}
+          </button>
+        ))}
+      </div>
+      <button className="primary-button lesson-next" type="button" onClick={onNext}>
+        {nextLabel}
+      </button>
+    </article>
+  );
+}
+
 export function LessonPage({
   concept,
   step,
   resolved,
+  renderings = [],
+  resolveRendering,
   passion,
   nextLabel,
   onNext,
@@ -36,6 +147,13 @@ export function LessonPage({
   const title = useRef<HTMLHeadingElement>(null);
   const mark = useRef<HTMLButtonElement>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
+  const [activeFormat, setActiveFormat] = useState<AlternateFormat>();
+  const availableRenderings = renderings.filter(
+    (rendering) => rendering.conceptId === concept.id,
+  );
+  const activeRendering = availableRenderings.find(
+    (rendering) => rendering.format === activeFormat,
+  );
 
   // A summoned sheet must never outlive the claim it backs. Without this, turning the page with
   // the sheet open leaves page 4's source sitting over page 5's lesson — a wrong receipt, which
@@ -45,7 +163,10 @@ export function LessonPage({
   // module-level graph so their identity is stable, but that is an assumption this file cannot
   // enforce: the day anyone maps or clones the step list, an identity dep fires on EVERY render
   // and the sheet slams shut the instant it opens. A primitive cannot rot that way.
-  useEffect(() => setSourceOpen(false), [concept.id, step.text]);
+  useEffect(() => {
+    setSourceOpen(false);
+    setActiveFormat(undefined);
+  }, [concept.id, step.text]);
 
   // `S` summons the source. Bound here rather than in App.tsx because the source belongs to the
   // step, and the state that owns it is this component's.
@@ -53,6 +174,9 @@ export function LessonPage({
   // next · Esc dismiss). Whoever builds that map must NOT also bind `S`, or it toggles twice and
   // nets to nothing. Esc is already handled — natively, by the dialog.
   useEffect(() => {
+    // A complete alternate route has several independently cited steps, so there is no single
+    // source for `S` to summon. Its visible footnote marks remain the honest controls there.
+    if (activeRendering) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName ?? "")) return;
@@ -66,7 +190,7 @@ export function LessonPage({
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, []);
+  }, [activeRendering]);
 
   // The h1 has carried tabIndex={-1} since before this pass and nothing ever focused it.
   // Keyed on the CONCEPT, not the page key: the Next button survives reconciliation and keeps
@@ -74,8 +198,25 @@ export function LessonPage({
   // new idea earns the move; the next step of the same idea does not. Mouse users see no ring
   // — the outline is on :focus-visible, which programmatic focus does not trigger for them.
   useEffect(() => {
-    title.current?.focus();
-  }, [concept.id]);
+    if (!activeRendering) title.current?.focus();
+  }, [activeRendering, concept.id]);
+
+  if (activeRendering && resolveRendering) {
+    return (
+      <RenderingRoute
+        concept={concept}
+        rendering={activeRendering}
+        otherRenderings={availableRenderings.filter(
+          (rendering) => rendering.format !== activeRendering.format,
+        )}
+        resolveCitation={resolveRendering}
+        nextLabel={nextLabel}
+        onNext={onNext}
+        onReturn={() => setActiveFormat(undefined)}
+        onSelect={setActiveFormat}
+      />
+    );
+  }
 
   return (
     <article className="lesson-page" aria-labelledby="lesson-title">
@@ -102,6 +243,21 @@ export function LessonPage({
         onOpen={() => setSourceOpen(true)}
         onClose={() => setSourceOpen(false)}
       />
+      {availableRenderings.length > 0 && resolveRendering && (
+        <section className="rendering-summon" aria-label="Another route through this idea">
+          <p>Need another way into this idea?</p>
+          <button
+            className="text-button"
+            type="button"
+            onClick={() => setActiveFormat(
+              availableRenderings.find((rendering) => rendering.format === "why-it-exists")
+                ?.format ?? availableRenderings[0].format,
+            )}
+          >
+            Try another way in
+          </button>
+        </section>
+      )}
       <button className="primary-button lesson-next" type="button" onClick={onNext}>
         {nextLabel}
       </button>

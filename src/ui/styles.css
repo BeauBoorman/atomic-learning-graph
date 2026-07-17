@@ -812,6 +812,79 @@ select {
   font-size: var(--t-colophon);
 }
 
+/* The route control comes only after the lesson and its receipt. It is a question at the foot of
+   the page, never permanent navigation asking the learner to choose before reading. */
+.rendering-summon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3) var(--s4);
+  margin-top: var(--s6);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
+}
+
+.rendering-summon p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-ui);
+}
+
+/* A summoned route is still a lesson page: no card, tab rail or competing panel. The ordered
+   steps make the new route whole, while every step keeps the edition's existing receipt. */
+.route-return-top {
+  margin-bottom: var(--s5);
+}
+
+.rendering-route .eyebrow {
+  margin-bottom: var(--s2);
+}
+
+.rendering-steps {
+  margin: var(--s6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rendering-step + .rendering-step {
+  margin-top: var(--s7);
+  padding-top: var(--s6);
+  border-top: 1px solid var(--rule);
+}
+
+.rendering-step-number {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--t-folio);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.rendering-step-text {
+  max-width: var(--measure);
+  margin: var(--s3) 0 0;
+  color: var(--ink);
+  font-size: var(--t-body);
+  letter-spacing: -0.003em;
+  line-height: 1.55;
+}
+
+.rendering-step .citation {
+  margin-top: var(--s5);
+}
+
+.route-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-top: var(--s7);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
+}
+
 /* Was `width: 100%` — a full-bleed slab across the foot of the page. Moving to the
    next idea is a step, not a form submission. */
 .lesson-next {

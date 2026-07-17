@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ConceptId, LearningGraph, PassionId } from "../types";
+import type { ConceptId, LearningGraph, PassionId, RenderingSet } from "../types";
 import { PASSION_IDS } from "../types";
 import { CompletionPage } from "./CompletionPage";
 import { Entry } from "./Entry";
@@ -11,6 +11,7 @@ import {
   deriveProgress,
   knownForGoal,
   resolveCitation,
+  resolveRenderingCitation,
   understoodConcepts,
   type CoursePage,
   type CourseProgress,
@@ -20,6 +21,7 @@ import { titleFor } from "./titles";
 
 interface AppProps {
   graph: LearningGraph;
+  renderings?: RenderingSet;
 }
 
 type Theme = "light" | "dark";
@@ -157,6 +159,7 @@ function pageAnnouncement(
 
 interface CourseScreenProps {
   graph: LearningGraph;
+  renderings?: RenderingSet;
   goalId: ConceptId;
   passion?: PassionId;
   understood: ConceptId[];
@@ -170,6 +173,7 @@ interface CourseScreenProps {
 /** Pure course boundary used by the progress regression test. */
 export function CourseScreen({
   graph,
+  renderings = { renderings: [] },
   goalId,
   passion,
   understood,
@@ -185,6 +189,9 @@ export function CourseScreen({
   const concept = graph.concepts.find((candidate) => candidate.id === page.conceptId);
   const step = concept?.lesson?.steps[page.stepIndex];
   if (!concept || !step) throw new Error(`missing course page: ${coursePageKey(page)}`);
+  const alternateRenderings = renderings.renderings.filter(
+    (rendering) => rendering.conceptId === concept.id,
+  );
 
   // The whole course, from `progress` — the one place the page list is built. Rebuilding it
   // here with a second `courseFor` call is how two views of one course drift apart.
@@ -204,6 +211,10 @@ export function CourseScreen({
         concept={concept}
         step={step}
         resolved={resolveCitation(graph, page.conceptId, page.stepIndex)}
+        renderings={alternateRenderings}
+        resolveRendering={(rendering, stepIndex) => (
+          resolveRenderingCitation(graph, rendering, stepIndex)
+        )}
         passion={passion}
         nextLabel={nextLabel}
         onNext={onNext}
@@ -222,7 +233,7 @@ export function CourseScreen({
   );
 }
 
-export function App({ graph }: AppProps) {
+export function App({ graph, renderings = { renderings: [] } }: AppProps) {
   const [started, setStarted] = useState(false);
   const [goalId, setGoalId] = useState<ConceptId>(graph.goalId);
   const [depth, setDepth] = useState<Depth>("quick");
@@ -392,6 +403,7 @@ export function App({ graph }: AppProps) {
       {started ? (
         <CourseScreen
           graph={graph}
+          renderings={renderings}
           goalId={goalId}
           passion={passion}
           understood={understood}
