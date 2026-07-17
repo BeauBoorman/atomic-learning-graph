@@ -105,19 +105,36 @@ pnpm preview
 Use `pnpm preview` rather than opening `dist/index.html` directly — a `file://` origin cannot load
 the built module.
 
-Regenerating the graph is a separate build-time operation and requires `OPENAI_API_KEY`:
+Atomization is a separate build-time operation and requires `OPENAI_API_KEY`. Output is always
+explicit; a run cannot silently replace the committed demo graph:
 
 ```bash
-pnpm atomize
+pnpm atomize -- --out-dir .artifacts/d2l
 ```
 
-`data/graph.json` is a committed build artifact and must never be hand-edited — see
-[ADR 001](docs/adr/001-commit-the-generated-graph.md). Display-layer editorial choices (such as
+An existing `graph.json`, `graph.run.json`, or `atomicity-report.json` makes the run fail closed.
+Replacing the committed demo artifacts therefore requires an unmistakable, deliberate command:
+
+```bash
+pnpm atomize -- --out-dir data --overwrite-existing
+pnpm test
+```
+
+The second checked corpus proves that the pipeline is not tied to machine-learning prose. Its toy
+run uses one pinned CC-BY-4.0 OpenStax Physics section and writes no artifact:
+
+```bash
+pnpm atomize:toy -- --manifest data/corpora/openstax-physics/sources.json
+```
+
+`data/graph.json` remains a committed build artifact and must never be hand-edited — see [ADR
+001](docs/adr/001-commit-the-generated-graph.md). Display-layer editorial choices (such as
 sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside the pinned artifact.
 
 ## Architecture
 
 - `data/oer/` — pinned upstream Markdown, deterministically extracted source text, and the fail-closed source manifest.
+- `data/corpora/openstax-physics/` — a separate one-source CC-BY-4.0 corpus proving manifest-relative ingestion.
 - `src/atomization/manifest.ts` — exact-match SPDX allowlist and manifest validation.
 - `src/atomization/atomize.ts` — three-phase inventory, relationship, and cited-translation build.
 - `src/atomization/translate.ts` — strict lesson schema, anchored excerpts, quote repair, and floors.
@@ -161,7 +178,8 @@ Honest limits, stated up front:
 
 ## Licences
 
-**Code: MIT. Content: CC-BY-SA-4.0. Source text: CC-BY-SA-4.0 from [d2l.ai](https://d2l.ai).**
+**Code: MIT. Demo content and D2L source text: CC-BY-SA-4.0. OpenStax proof corpus:
+CC-BY-4.0.**
 
 The source code — `src/`, `scripts/` and the build configuration — is licensed
 [MIT](LICENSE-CODE). Creative Commons recommends against CC licences for software, and ShareAlike
@@ -172,9 +190,12 @@ Zachary C. Lipton, Mu Li and Alexander J. Smola, translated into plain English a
 modified from the originals. As adaptations of ShareAlike material, **the lessons are themselves
 licensed CC-BY-SA-4.0**.
 
-Redistributed OER text under `data/oer/`, and the same text embedded in `data/graph.json`, remains
-under its recorded open licence. The content of this repository — the lessons, the corpus and the
-prose — is licensed [CC-BY-SA-4.0](LICENSE).
+Redistributed D2L text under `data/oer/`, and the same text embedded in `data/graph.json`, remains
+under CC-BY-SA-4.0. The separate OpenStax source under `data/corpora/openstax-physics/` remains
+CC-BY-4.0; its adjacent README and manifest record attribution, modifications, licence evidence,
+revision, and hashes. The original project lessons and prose are licensed
+[CC-BY-SA-4.0](LICENSE).
 
-See [NOTICE](NOTICE), [DATA-LICENSE](DATA-LICENSE) and [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for
-per-source attribution, revision pins, licence evidence, and modification notices.
+For the D2L demo corpus, see [NOTICE](NOTICE), [DATA-LICENSE](DATA-LICENSE) and
+[ATTRIBUTIONS.md](ATTRIBUTIONS.md) for per-source attribution, revision pins, licence evidence, and
+modification notices.

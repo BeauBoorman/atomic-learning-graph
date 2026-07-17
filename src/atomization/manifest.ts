@@ -44,7 +44,7 @@ export interface SourceManifestEntry {
   license: string;
   /** Required attribution copied into the shipped graph. */
   author: string;
-  /** Path to the source text, RELATIVE to `data/oer/`. The file must exist and be non-empty. */
+  /** Path to the source text, relative to the manifest's directory. */
   textPath: string;
 }
 
@@ -93,11 +93,14 @@ export const ALLOWED_LICENSES: readonly string[] = [
  *   - any `license` is not an EXACT member of ALLOWED_LICENSES (this is the whole point);
  *   - two entries share an `id` — provenance citing an ambiguous source ID is unresolvable
  *     (see `invalidProvenance` in ../graph/invariants.ts, which rejects the same thing downstream);
- *   - any `textPath` escapes `data/oer/` (`..`, absolute paths). The corpus is a closed set.
+ *   - any `textPath` escapes the manifest's directory (`..`, absolute paths). The corpus is closed.
  *
  * Returns the validated entries, in manifest order.
  */
-export function validateManifest(raw: unknown): SourceManifestEntry[] {
+export function validateManifest(
+  raw: unknown,
+  corpusDir: string = OER_DIR,
+): SourceManifestEntry[] {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     throw new Error("invalid source manifest: expected an object with a non-empty sources array");
   }
@@ -141,8 +144,8 @@ export function validateManifest(raw: unknown): SourceManifestEntry[] {
 
     const hasParentSegment = textPath.split(/[\\/]+/).includes("..");
     const looksLikeWindowsAbsolute = /^[A-Za-z]:[\\/]/.test(textPath) || /^\\\\/.test(textPath);
-    const resolvedTextPath = resolve(OER_DIR, textPath);
-    const pathWithinOer = relative(OER_DIR, resolvedTextPath);
+    const resolvedTextPath = resolve(corpusDir, textPath);
+    const pathWithinOer = relative(corpusDir, resolvedTextPath);
     if (
       hasParentSegment ||
       isAbsolute(textPath) ||
@@ -153,7 +156,7 @@ export function validateManifest(raw: unknown): SourceManifestEntry[] {
       isAbsolute(pathWithinOer)
     ) {
       throw new Error(
-        `invalid source manifest: sources[${index}].textPath escapes data/oer/: ${JSON.stringify(textPath)}`
+        `invalid source manifest: sources[${index}].textPath escapes its corpus directory: ${JSON.stringify(textPath)}`
       );
     }
 

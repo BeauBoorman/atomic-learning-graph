@@ -4,8 +4,9 @@
 
 ## Decision
 
-`data/graph.json` — the output of `pnpm atomize` — is **committed to the repo**, not gitignored.
-The deployed app reads the committed graph. `atomize` is **never** run in CI or on the request path.
+`data/graph.json` — produced by the explicit command `pnpm atomize -- --out-dir data
+--overwrite-existing` — is **committed to the repo**, not gitignored. The deployed app reads the
+committed graph. `atomize` is **never** run in CI or on the request path.
 
 ## Why
 
@@ -47,10 +48,13 @@ is wrong here, for four reasons in descending order of importance:
 
 ## Rules that keep the above honest
 
-1. **`data/graph.json` is written ONLY by `pnpm atomize`. Never hand-edit it. Never hand-forge it.**
-   A hand-authored graph would make the headline claim false. If you need a graph to develop
-   against, use a *fixture* — clearly named as such (see below) — never a fake `data/graph.json`.
-2. **Regenerate deliberately, then commit the regenerated file** — `pnpm atomize && pnpm test`. The
+1. **`data/graph.json` is written ONLY by `pnpm atomize -- --out-dir data --overwrite-existing`.
+   Never hand-edit it. Never hand-forge it.** A hand-authored graph would make the headline claim
+   false. If you need a graph to develop against, use a *fixture* — clearly named as such (see
+   below) — never a fake `data/graph.json`.
+2. **Regenerate deliberately, then commit the regenerated file** — `pnpm atomize -- --out-dir data
+   --overwrite-existing && pnpm test`. Bare `pnpm atomize` is rejected because output selection is
+   mandatory, and an existing artifact is rejected unless `--overwrite-existing` is present. The
    test suite (`generated data/graph.json` describe-block) runs the invariants against the committed
    file, so a bad or stale-and-invalid graph fails the suite rather than shipping.
 3. **Fixtures are never presented as generated output.** The hand-built 5-node graph in
@@ -58,11 +62,3 @@ is wrong here, for four reasons in descending order of importance:
    pathfinder without an LLM, and it is labelled as such in its own header. It is not, and must not
    be copied to, `data/graph.json`. The test suite now enforces this from the other side too — the
    `generated data/graph.json` block asserts the committed graph is **not** a copy of the fixture.
-
-## Status right now (2026-07-13)
-
-The atomizer does not exist yet, so **`data/graph.json` does not exist yet.** That is correct and
-expected. `src/graph/load.ts` throws a clear `no graph — run \`pnpm atomize\`` error, and the three
-`generated data/graph.json` tests fail on that throw. This is the intended RED state; the file
-appears, and those tests go green, when the atomizer first runs. Nothing here was pre-created to
-make the suite look greener than it is.

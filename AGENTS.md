@@ -53,7 +53,7 @@ believed it. List commands; never their status.
 | `pnpm gate` | **THE acceptance bar.** typecheck + test + verify:corpus + verify:anchors + build. Every stage runs even if an earlier one fails. |
 | `pnpm typecheck` | `tsc --noEmit`, must exit 0 |
 | `pnpm test` | vitest. **Passing is NOT the bar** — it does not run `verify:corpus`, and that gap is how a false licence notice nearly shipped. Use `pnpm gate`. |
-| `pnpm atomize` / `atomize:toy` | writes `data/graph.json` from licensed sources. Costs real API calls. |
+| `pnpm atomize` / `atomize:toy` | Atomizes licensed sources; full runs require explicit `--out-dir`. Costs real API calls. |
 | `pnpm render` / `render:dry` | writes `data/renderings.json`. Use `render:dry` first. |
 | `pnpm verify:corpus` / `verify:anchors` | licence + provenance gates |
 | `pnpm build` / `preview` | vite |

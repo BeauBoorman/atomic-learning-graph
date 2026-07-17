@@ -140,7 +140,9 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
     return;
   }
 
-  const renderingBytes = writeRenderingsArtifact(RENDERINGS_PATH, graph, set);
+  const renderingBytes = writeRenderingsArtifact(RENDERINGS_PATH, graph, set, {
+    overwriteExisting: true,
+  });
   const runLog = {
     model: client.modelSnapshot || client.model,
     renderingPromptVersion: RENDERING_PROMPT_VERSION,

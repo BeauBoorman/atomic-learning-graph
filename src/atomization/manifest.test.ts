@@ -87,6 +87,11 @@ describe("validateManifest — the licence gate", () => {
     expectRejected(manifestWith({ license: "CC-BY-NC-ND-4.0" }));
   });
 
+  it("REJECTS a NonCommercial licence (the allowlist must not widen implicitly)", () => {
+    expectRejected(manifestWith({ license: "CC-BY-NC-4.0" }));
+    expectRejected(manifestWith({ license: "CC-BY-NC-SA-4.0" }));
+  });
+
   it("REJECTS an all-rights-reserved source", () => {
     expectRejected(manifestWith({ license: "All rights reserved" }));
     expectRejected(manifestWith({ license: "proprietary" }));

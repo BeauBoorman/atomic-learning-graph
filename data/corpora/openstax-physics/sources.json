@@ -1,0 +1,27 @@
+{
+  "sources": [
+    {
+      "id": "openstax-physics-newtons-first-law",
+      "title": "OpenStax Physics — Newton's First Law of Motion: Inertia",
+      "url": "https://github.com/openstax/osbooks-physics/blob/8044b7aa50bddadf631dee0a9c62e54ca238a8c8/modules/m54138/index.cnxml",
+      "license": "CC-BY-4.0",
+      "textPath": "openstax-physics-newtons-first-law.txt",
+      "sha256": "b8f9c7a21e67d749d83435ddf3a635400059479b04b9566f838ad2bf2e1b393a",
+      "sourceSha256": "207346bbeb970e309ab8c0af8aaef0eca88043165e1b7e4b7d7d9baf26e3f612",
+      "author": "OpenStax, Rice University",
+      "revision": {
+        "repo": "https://github.com/openstax/osbooks-physics",
+        "tag": "commit-8044b7a",
+        "commit": "8044b7aa50bddadf631dee0a9c62e54ca238a8c8",
+        "sourceFile": "modules/m54138/index.cnxml"
+      },
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/openstax/osbooks-physics/8044b7aa50bddadf631dee0a9c62e54ca238a8c8/LICENSE",
+        "statement": "Creative Commons Attribution 4.0 International Public License",
+        "licenseName": "Creative Commons Attribution 4.0 International Public License"
+      },
+      "modifications": "Extracted from the pinned CNXML: comments, MathML, media payloads, and XML markup were removed; captions and prose were retained; XML entities were decoded and whitespace was collapsed.",
+      "licenseDeed": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  ]
+}

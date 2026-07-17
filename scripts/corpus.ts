@@ -203,14 +203,88 @@ export async function fetchPinnedText(url: string): Promise<string> {
   return (await checkedFetch(url)).text();
 }
 
-export async function verifyLicenseEvidence(entry: AuditedSourceEntry): Promise<void> {
-  const page = await fetchPinnedText(entry.licenseEvidence.url);
-  if (!page.includes(entry.licenseEvidence.licenseName)) {
+export async function verifyLicenseEvidence(
+  entry: AuditedSourceEntry,
+  fetchText: (url: string) => Promise<string> = fetchPinnedText,
+): Promise<void> {
+  const evidence = entry.licenseEvidence;
+  if (
+    !evidence ||
+    typeof evidence.url !== "string" ||
+    typeof evidence.statement !== "string" ||
+    evidence.statement.trim().length === 0 ||
+    typeof evidence.licenseName !== "string" ||
+    evidence.licenseName.trim().length === 0
+  ) {
+    throw new Error(`source ${entry.id} has missing licence evidence`);
+  }
+  const page = await fetchText(evidence.url);
+  if (!page.includes(evidence.statement) || !page.includes(evidence.licenseName)) {
     throw new Error(
-      `licence evidence no longer contains ${JSON.stringify(entry.licenseEvidence.licenseName)}: ` +
-        entry.licenseEvidence.url
+      `licence evidence no longer contains the recorded verbatim statement ` +
+        `${JSON.stringify(evidence.statement)}: ${evidence.url}`
     );
   }
+}
+
+export function pinnedSourceUrl(entry: AuditedSourceEntry): string {
+  const repo = entry.revision?.repo;
+  const commit = entry.revision?.commit;
+  const sourceFile = entry.revision?.sourceFile;
+  if (
+    typeof repo !== "string" ||
+    !repo.startsWith("https://github.com/") ||
+    typeof commit !== "string" ||
+    !/^[0-9a-f]{40}$/iu.test(commit) ||
+    typeof sourceFile !== "string" ||
+    sourceFile.length === 0
+  ) {
+    throw new Error(`source ${entry.id} does not carry a pinned GitHub revision`);
+  }
+  return `${repo.replace("https://github.com/", "https://raw.githubusercontent.com/")}/${commit}/${sourceFile}`;
+}
+
+function decodeXmlEntities(text: string): string {
+  const namedEntities: Readonly<Record<string, string>> = {
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"',
+    "&apos;": "'",
+  };
+  return text.replace(
+    /&(?:#(\d+)|#x([0-9a-f]+)|amp|lt|gt|quot|apos);/giu,
+    (entity, decimal: string | undefined, hex: string | undefined) => {
+      if (decimal) return String.fromCodePoint(Number.parseInt(decimal, 10));
+      if (hex) return String.fromCodePoint(Number.parseInt(hex, 16));
+      return namedEntities[entity.toLowerCase()] ?? entity;
+    },
+  );
+}
+
+/** The exact OpenStax CNXML-to-ground-truth transform used by the second corpus. */
+export function extractOpenStaxText(cnxml: string): string {
+  const withoutComments = cnxml.replace(/<!--[\s\S]*?-->/gu, " ");
+  const withoutMath = withoutComments.replace(/<m:math\b[\s\S]*?<\/m:math>/gu, " ");
+  const withoutMedia = withoutMath.replace(/<media\b[\s\S]*?<\/media>/gu, " ");
+  const withBoundaries = withoutMedia.replace(
+    /<\/(?:title|para|item|entry|caption|meaning|definition|section|note|problem|exercise)>/gu,
+    " ",
+  );
+  return `${decodeXmlEntities(withBoundaries.replace(/<[^>]+>/gu, " "))
+    .replace(/\s+/gu, " ")
+    .trim()}\n`;
+}
+
+export function extractAuditedSource(entry: AuditedSourceEntry, sourceText: string): string {
+  if (entry.revision.sourceFile.endsWith(".md")) return extractD2LText(sourceText);
+  if (entry.revision.sourceFile.endsWith(".cnxml")) return extractOpenStaxText(sourceText);
+  throw new Error(`unsupported source format for ${entry.id}: ${entry.revision.sourceFile}`);
+}
+
+export function localSourcePath(entry: AuditedSourceEntry): string {
+  const extension = entry.revision.sourceFile.endsWith(".cnxml") ? ".cnxml" : ".md";
+  return entry.textPath.replace(/\.txt$/u, extension);
 }
 
 export function renderAttributions(entries: readonly AuditedSourceEntry[]): string {

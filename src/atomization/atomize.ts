@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { AtomizedConcept, Concept, Edge, LearningGraph, Source } from "../types";
 import { reportAtomicityWarnings } from "../graph/atomicity-report";
 import { invalidLessonCitations, invalidProvenance } from "../graph/invariants";
@@ -12,7 +13,7 @@ import {
   convergeGraph,
   type ExpectedSource,
 } from "./repair";
-import { writeGraphArtifact } from "./artifacts";
+import { writeGraphArtifact, writeJsonArtifact } from "./artifacts";
 import { ANALOGY_PROMPT_VERSION, generateAnalogies } from "./analogy";
 import { ResponsesClient, isObject } from "./client";
 import { groundedQuote } from "./grounding";
@@ -21,9 +22,7 @@ import {
   translateAndConvergeLessons,
 } from "./translate";
 
-const GRAPH_PATH = resolve(OER_DIR, "..", "graph.json");
-const RUN_LOG_PATH = resolve(OER_DIR, "..", "graph.run.json");
-const ATOMICITY_REPORT_PATH = resolve(OER_DIR, "..", "atomicity-report.json");
+const repoRoot = resolve(OER_DIR, "..", "..");
 
 type JsonObject = Record<string, unknown>;
 
@@ -191,17 +190,19 @@ function sourcePrompt(sources: Source[]): string {
     .join("\n\n");
 }
 
-function loadSources(): { sources: Source[]; manifestBytes: Buffer } {
-  const manifestPath = process.env.OER_MANIFEST_PATH ?? MANIFEST_PATH;
+export function loadSources(
+  manifestPath: string = MANIFEST_PATH,
+): { sources: Source[]; manifestBytes: Buffer } {
+  const corpusDir = dirname(manifestPath);
   const raw = loadManifest(manifestPath);
-  const entries = validateManifest(raw);
+  const entries = validateManifest(raw, corpusDir);
   const sources = entries.map((entry): Source => ({
     id: entry.id,
     title: entry.title,
     url: entry.url,
     license: entry.license,
     author: entry.author,
-    text: readFileSync(resolve(OER_DIR, entry.textPath), "utf8"),
+    text: readFileSync(resolve(corpusDir, entry.textPath), "utf8"),
   }));
   return { sources, manifestBytes: readFileSync(manifestPath) };
 }
@@ -286,9 +287,15 @@ async function inventoryPhase(
     "Every quotedText must be copied verbatim from exactly one provided SOURCE block. Never invent, paraphrase, or normalize a quote. " +
     "Emit AtomizedConcept objects. This is inventory phase: prerequisites and related MUST be empty arrays. " +
     "Use only listed sourceId values. Summaries should describe exactly one self-contained concept.";
-  const input = `${toy ? "Produce exactly 3" : "Produce 8 to 10"} distinct concepts. Required stable IDs: ${requiredIds.join(", ")}.
+  const requiredIdInstruction = requiredIds.length > 0
+    ? `Required stable IDs: ${requiredIds.join(", ")}.`
+    : "Choose exactly three stable kebab-case IDs grounded in the supplied source.";
+  const demoGroundingMap = toy
+    ? ""
+    : "For the full demo run, use this grounding map: vectors -> d2l-linear-algebra; dot-product -> d2l-linear-algebra; softmax -> d2l-softmax-regression; qkv -> d2l-queries-keys-values; self-attention -> d2l-self-attention.\n";
+  const input = `${toy ? "Produce exactly 3" : "Produce 8 to 10"} distinct concepts. ${requiredIdInstruction}
 Required source IDs are restricted to: ${sourceIds.join(", ")}.
-For the full run, use this grounding map: vectors -> d2l-linear-algebra; dot-product -> d2l-linear-algebra; softmax -> d2l-softmax-regression; qkv -> d2l-queries-keys-values; self-attention -> d2l-self-attention.
+${demoGroundingMap}
 Copy a substantial prose sentence for each quotedText. Do not rely on formula-only passages.
 
 ${sourcePrompt(sources)}`;
@@ -353,13 +360,22 @@ ${JSON.stringify({ concepts: inventory }, null, 2)}`;
   throw new GoldenGraphHalt(`required golden edges remain unrepairable: ${String(lastError)}`);
 }
 
+export function selectToySource(sources: Source[]): Source {
+  const source = sources[0];
+  if (!source) throw new Error("toy corpus requires one licensed source");
+  return source;
+}
+
 async function runToy(client: ResponsesClient, sources: Source[]): Promise<void> {
-  const dotProduct = sources.filter((source) => source.id === "d2l-linear-algebra");
-  if (dotProduct.length !== 1) throw new Error("toy corpus requires d2l-linear-algebra");
-  const required = ["vectors", "dot-product", "scalar"] as const;
-  const inventory = await inventoryPhase(client, dotProduct, required, true);
+  const toySource = selectToySource(sources);
+  const toySources = [toySource];
+  const inventory = await inventoryPhase(client, toySources, [], true);
+  if (inventory.length !== 3) {
+    throw new Error(`toy dry-run requires exactly 3 grounded concepts; received ${inventory.length}`);
+  }
+  const required = inventory.map(({ id }) => id);
   const related = await relationshipPhase(client, inventory, required);
-  const graph = buildGraph(related, dotProduct, "scalar");
+  const graph = buildGraph(related, toySources, required.at(-1)!);
   if (graph.concepts.length < 3 || invalidProvenance(graph).length > 0) {
     throw new Error("toy dry-run failed grounding or concept-count checks");
   }
@@ -384,16 +400,67 @@ async function runToy(client: ResponsesClient, sources: Source[]): Promise<void>
   );
 }
 
-async function main(): Promise<void> {
+export interface AtomizeOptions {
+  manifestPath: string;
+  outDir?: string;
+  overwriteExisting: boolean;
+  toyOnly: boolean;
+}
+
+export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
+  let manifestPath = process.env.OER_MANIFEST_PATH
+    ? resolve(process.env.OER_MANIFEST_PATH)
+    : MANIFEST_PATH;
+  let outDir: string | undefined;
+  let overwriteExisting = false;
+  let toyOnly = false;
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--toy") toyOnly = true;
+    else if (arg === "--overwrite-existing") overwriteExisting = true;
+    else if (arg === "--manifest" || arg === "--out-dir") {
+      const value = args[index + 1];
+      if (!value || value.startsWith("--")) throw new Error(`${arg} requires a path`);
+      if (arg === "--manifest") manifestPath = resolve(repoRoot, value);
+      else outDir = resolve(repoRoot, value);
+      index += 1;
+    } else {
+      throw new Error(`unknown option: ${arg}`);
+    }
+  }
+  if (!toyOnly && !outDir) {
+    throw new Error("--out-dir is required; atomization never writes into data/ implicitly");
+  }
+  return { manifestPath, outDir, overwriteExisting, toyOnly };
+}
+
+export async function main(args: readonly string[] = process.argv.slice(2)): Promise<void> {
+  const options = parseAtomizeArgs(args);
+  const outDir = options.outDir;
+  const graphPath = outDir ? resolve(outDir, "graph.json") : undefined;
+  const runLogPath = outDir ? resolve(outDir, "graph.run.json") : undefined;
+  const atomicityReportPath = outDir ? resolve(outDir, "atomicity-report.json") : undefined;
+  const outputPaths = [graphPath, runLogPath, atomicityReportPath].filter(
+    (path): path is string => path !== undefined,
+  );
+  if (!options.overwriteExisting) {
+    const existing = outputPaths.filter((path) => existsSync(path));
+    if (existing.length > 0) {
+      throw new Error(
+        `refusing to overwrite existing atomization artifact(s): ${existing.join(", ")}; ` +
+          "pass --overwrite-existing only for an intentional replacement",
+      );
+    }
+  }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is required for build-time atomization");
-  const { sources, manifestBytes } = loadSources();
+  const { sources, manifestBytes } = loadSources(options.manifestPath);
   const client = new ResponsesClient(apiKey);
   await client.initialize();
   console.log(`Using ${client.model}; strict Structured Outputs=${client.strictSchema}`);
 
-  const toyOnly = process.argv.includes("--toy");
-  if (toyOnly) {
+  if (options.toyOnly) {
     await runToy(client, sources);
     return;
   }
@@ -452,7 +519,9 @@ async function main(): Promise<void> {
 
   // The sole graph write is guarded again at the artifact boundary, after lesson-only convergence
   // and the hard readability floor have both passed.
-  const graphBytes = writeGraphArtifact(GRAPH_PATH, enriched);
+  mkdirSync(outDir as string, { recursive: true });
+  const writeOptions = { overwriteExisting: options.overwriteExisting };
+  const graphBytes = writeGraphArtifact(graphPath as string, enriched, writeOptions);
   const runLog = {
     model: client.modelSnapshot || client.model,
     requestedModel: client.model,
@@ -465,15 +534,21 @@ async function main(): Promise<void> {
     convergence: attemptLog,
   };
 
-  writeFileSync(RUN_LOG_PATH, `${JSON.stringify(runLog, null, 2)}\n`);
-  writeFileSync(ATOMICITY_REPORT_PATH, `${JSON.stringify({ advisoryOnly: true, warnings }, null, 2)}\n`);
+  writeJsonArtifact(runLogPath as string, runLog, writeOptions);
+  writeJsonArtifact(
+    atomicityReportPath as string,
+    { advisoryOnly: true, warnings },
+    writeOptions,
+  );
   console.log(
     `ATOMIZATION PASS: wrote ${enriched.concepts.length} concepts, ${enriched.edges.length} edges, ` +
       `${enriched.sources.length} complete sources; ${warnings.length} advisory atomicity warnings.`,
   );
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.stack ?? error.message : error);
-  process.exitCode = 1;
-});
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    process.exitCode = 1;
+  });
+}

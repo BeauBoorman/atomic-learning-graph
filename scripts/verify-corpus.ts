@@ -97,7 +97,7 @@ for (const [index, entry] of entries.entries()) {
   }
 }
 
-await verifyLicenseEvidence(entries[0]!);
+await Promise.all(entries.map((entry) => verifyLicenseEvidence(entry)));
 const repoRoot = resolve(OER_DIR, "..", "..");
 const licenceText = await fetchPinnedText(rawD2LUrl("LICENSE"));
 const generatedFiles = [

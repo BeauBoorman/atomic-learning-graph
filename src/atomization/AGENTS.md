@@ -61,7 +61,8 @@ camera as proof of atomicity. Do not promote it to a gate. It is the seed for a 
 
 ## Output contract
 
-- Write `data/graph.json` **only after** the full Gate-6 convergence check passes. Convergence is
+- Write `<explicit --out-dir>/graph.json` **only after** the full Gate-6 convergence check passes.
+  Replacing the committed demo requires `--out-dir data --overwrite-existing`. Convergence is
   the **5 hard invariants PLUS the checks the generated-graph test block asserts** — reuse
   `../graph/invariants.ts`; do not reimplement, do not ship a graph that fails them. The convergence
   set is:
