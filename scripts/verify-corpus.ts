@@ -87,24 +87,17 @@ for (const [index, entry] of entries.entries()) {
     throw new Error(`source ${entry.id} stored bytes do not match their recorded SHA-256 values`);
   }
 
-  const upstreamMarkdown = await fetchPinnedText(rawD2LUrl(entry.revision.sourceFile));
-  if (!storedMarkdown.equals(Buffer.from(upstreamMarkdown, "utf8"))) {
-    throw new Error(`source ${entry.id} Markdown differs from its pinned upstream bytes`);
-  }
-  const expectedText = extractD2LText(upstreamMarkdown);
+  const expectedText = extractD2LText(storedMarkdown.toString("utf8"));
   if (!storedText.equals(Buffer.from(expectedText, "utf8"))) {
-    throw new Error(`source ${entry.id} text differs from the pinned extraction transform`);
+    throw new Error(`source ${entry.id} text differs from the committed Markdown extraction`);
   }
 }
 
-await Promise.all(entries.map((entry) => verifyLicenseEvidence(entry)));
 const repoRoot = resolve(OER_DIR, "..", "..");
-const licenceText = await fetchPinnedText(rawD2LUrl("LICENSE"));
 const generatedFiles = [
   ["ATTRIBUTIONS.md", renderAttributions(entries)],
   ["DATA-LICENSE", renderDataLicense(entries)],
   ["NOTICE", renderNotice(entries)],
-  ["LICENSE", normalizeRepoLicense(licenceText)],
 ] as const;
 for (const [path, expected] of generatedFiles) {
   if (readFileSync(resolve(repoRoot, path), "utf8") !== expected) {
@@ -112,6 +105,25 @@ for (const [path, expected] of generatedFiles) {
   }
 }
 
+if (process.env.VERIFY_UPSTREAM === "1") {
+  for (const entry of entries) {
+    const storedMarkdown = readFileSync(resolve(OER_DIR, localMarkdownPath(entry.textPath)));
+    const upstreamMarkdown = await fetchPinnedText(rawD2LUrl(entry.revision.sourceFile));
+    if (!storedMarkdown.equals(Buffer.from(upstreamMarkdown, "utf8"))) {
+      throw new Error(`source ${entry.id} Markdown differs from its pinned upstream bytes`);
+    }
+  }
+
+  await Promise.all(entries.map((entry) => verifyLicenseEvidence(entry)));
+  const licenceText = await fetchPinnedText(rawD2LUrl("LICENSE"));
+  if (readFileSync(resolve(repoRoot, "LICENSE"), "utf8") !== normalizeRepoLicense(licenceText)) {
+    throw new Error("LICENSE is not the exact pinned upstream licence artefact");
+  }
+  console.log("Verified pinned corpus and licence bytes against upstream.");
+} else {
+  console.log("Skipped upstream re-fetch (set VERIFY_UPSTREAM=1 to enable it).");
+}
+
 console.log(
-  `Verified ${entries.length} d2l sources at ${D2L_TAG} (${D2L_COMMIT}) against ${MANIFEST_PATH}.`
+  `Verified ${entries.length} committed d2l sources at ${D2L_TAG} (${D2L_COMMIT}) against ${MANIFEST_PATH}.`
 );

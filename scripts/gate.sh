@@ -9,8 +9,9 @@
 #   * Every stage runs even if an earlier one fails, then we report a summary.
 #     A gate that bails on the first failure hides the other evidence and turns
 #     debugging into whack-a-mole.
-#   * Hermetic: every stage runs offline from a clean clone. The OER corpus and
-#     data/graph.json are committed, so there is nothing to fetch.
+#   * Hermetic by default: every stage runs offline from a clean clone. Corpus
+#     hashes and data/graph.json are committed. Set VERIFY_UPSTREAM=1 to make
+#     the corpus stage additionally re-fetch and compare the pinned sources.
 #
 # What this gate does NOT prove (be honest about the boundary):
 #
@@ -48,7 +49,7 @@ run "typecheck" pnpm typecheck
 # Bar: `pnpm test` passes — including every adversarial/negative test —
 # against the committed data/graph.json. This also covers:
 #   - getPath golden path on the generated graph (src/graph/path.test.ts)
-#   - no request-time LLM call in the browser (src/ui/gate9.test.ts)
+#   - fast source-level rejection of request-time network/model clients (src/ui/gate9.test.ts)
 #   - atomizer fail-closed on licence/provenance (src/atomization/*.test.ts)
 run "tests (incl. adversarial, vs committed data/graph.json)" pnpm test
 
@@ -58,6 +59,10 @@ run "golden anchors (quoted text still resolves)" pnpm verify:anchors
 
 # It has to actually build.
 run "build" pnpm build
+
+# The browser claim rests on the emitted bytes, including runtime modules outside src/ui and any
+# chunks Vite creates. This is deliberately a hard, post-build stage; gate9 remains the fast twin.
+run "shipped bundle has no network/model client" pnpm verify:bundle
 
 printf '\n'
 if [ "$fail_count" -eq 0 ]; then
