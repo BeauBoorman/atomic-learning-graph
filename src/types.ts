@@ -110,6 +110,26 @@ export interface Lesson {
   steps: LessonStep[];
 }
 
+export type RenderingFormat = "what-it-is" | "why-it-exists" | "how-it-works";
+export type AlternateFormat = Exclude<RenderingFormat, "what-it-is">;
+
+/**
+ * One concept, many renderings. The concept's own `lesson` is the "what-it-is" rendering; it lives
+ * in graph.json and is gated by `invalidLessonCitations`. renderings.json carries only alternates.
+ * Analogies are intentionally unset on renderings in v1: `parseLesson` strips them through its
+ * exact-keys contract, and that is expected, not a bug.
+ */
+export interface Rendering {
+  conceptId: ConceptId;
+  format: AlternateFormat;
+  plainTitle: string;
+  steps: LessonStep[];
+}
+
+export interface RenderingSet {
+  renderings: Rendering[];
+}
+
 /**
  * A canonical node in the graph: exactly ONE self-contained concept or skill.
  *

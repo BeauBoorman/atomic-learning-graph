@@ -17,7 +17,7 @@
 // make the real-graph suite pass by producing `data/graph.json` via `pnpm atomize`.
 
 import { describe, it, expect } from "vitest";
-import type { LearningGraph, Concept } from "../types";
+import type { LearningGraph, Concept, RenderingSet } from "../types";
 import {
   hasCycle,
   findOrphans,
@@ -25,10 +25,11 @@ import {
   pathExists,
   invalidProvenance,
   invalidLessonCitations,
+  invalidRenderingCitations,
   quoteGrounded,
   isSingleConcept,
 } from "./invariants";
-import { loadGraph } from "./load"; // Codex: reads data/graph.json
+import { loadGraph, loadRenderings } from "./load"; // Codex: reads committed build artifacts
 import { fixtureGraph, SOURCE_TEXT } from "./fixture-graph";
 
 // The hand-built fixture lives in `./fixture-graph` — it is a FIXTURE, never `data/graph.json`
@@ -464,6 +465,143 @@ describe("invalidLessonCitations — every on-screen unit is grounded", () => {
   });
 });
 
+describe("invalidRenderingCitations", () => {
+  const renderingFixture = (): RenderingSet => ({
+    renderings: [
+      {
+        conceptId: "vectors",
+        format: "why-it-exists",
+        plainTitle: "Why vectors exist",
+        steps: [
+          {
+            text: "Vectors keep related numbers together.",
+            stepTier: "core",
+            citation: { sourceId: "s1", quotedText: "A vector is an ordered list of numbers." },
+          },
+          {
+            text: "That ordered list can move through the learning path.",
+            stepTier: "deep",
+            citation: { sourceId: "s1", quotedText: "A vector is an ordered list of numbers." },
+          },
+        ],
+      },
+    ],
+  });
+
+  it("identifies the exact rendering step whose quote is not grounded", () => {
+    const set = renderingFixture();
+    set.renderings[0].steps[1].citation.quotedText = "This rendering citation was fabricated.";
+    expect(invalidRenderingCitations(fixture, set)).toEqual([
+      {
+        conceptId: "vectors",
+        format: "why-it-exists",
+        stepIndex: 1,
+        reason: "quote-not-found",
+      },
+    ]);
+  });
+
+  it("rejects two renderings for the same concept and format", () => {
+    const set = renderingFixture();
+    set.renderings.push(structuredClone(set.renderings[0]));
+    expect(invalidRenderingCitations(fixture, set)).toEqual([
+      {
+        conceptId: "vectors",
+        format: "why-it-exists",
+        stepIndex: -1,
+        reason: "duplicate-format",
+      },
+    ]);
+  });
+
+  it("rejects a rendering whose concept is absent from the graph", () => {
+    const set = renderingFixture();
+    set.renderings[0].conceptId = "missing-concept";
+    expect(invalidRenderingCitations(fixture, set)).toEqual([
+      {
+        conceptId: "missing-concept",
+        format: "why-it-exists",
+        stepIndex: -1,
+        reason: "unknown-concept",
+      },
+    ]);
+  });
+
+  it("rejects a rendering with fewer than two steps", () => {
+    const set = renderingFixture();
+    set.renderings[0].steps.splice(1);
+    expect(invalidRenderingCitations(fixture, set)).toEqual([
+      {
+        conceptId: "vectors",
+        format: "why-it-exists",
+        stepIndex: -1,
+        reason: "empty-rendering",
+      },
+    ]);
+  });
+
+  it("classifies an unknown source ID on the exact rendering step", () => {
+    const set = renderingFixture();
+    set.renderings[0].steps[0].citation.sourceId = "missing-source";
+    expect(invalidRenderingCitations(fixture, set)).toEqual([
+      {
+        conceptId: "vectors",
+        format: "why-it-exists",
+        stepIndex: 0,
+        reason: "unresolved-source",
+      },
+    ]);
+  });
+
+  it("classifies an ambiguous source ID on the exact rendering step", () => {
+    const graph = structuredClone(fixture);
+    graph.sources.push(
+      {
+        id: "s1",
+        title: "A duplicate source",
+        license: "CC-BY-4.0",
+        author: "Another fixture author",
+        text: SOURCE_TEXT,
+      },
+      {
+        id: "s2",
+        title: "A unique source",
+        license: "CC-BY-4.0",
+        author: "Another fixture author",
+        text: "A separate grounded sentence.",
+      },
+    );
+    const set = renderingFixture();
+    set.renderings[0].steps[1].citation = {
+      sourceId: "s2",
+      quotedText: "A separate grounded sentence.",
+    };
+    expect(invalidRenderingCitations(graph, set)).toEqual([
+      {
+        conceptId: "vectors",
+        format: "why-it-exists",
+        stepIndex: 0,
+        reason: "ambiguous-source",
+      },
+    ]);
+  });
+
+  it("does not false-fail a rendering quote whose only difference is whitespace", () => {
+    expect(SOURCE_TEXT).toContain("into\na probability");
+    const set = renderingFixture();
+    set.renderings[0].conceptId = "softmax";
+    for (const step of set.renderings[0].steps) {
+      step.citation.quotedText =
+        "Softmax turns a vector of scores into a probability distribution that sums to one.";
+    }
+    expect(invalidRenderingCitations(fixture, set)).toEqual([]);
+  });
+
+  it("accepts a clean valid rendering", () => {
+    expect(invalidRenderingCitations(fixture, renderingFixture())).toEqual([]);
+  });
+});
+
 // --- The real generated graph must satisfy every invariant (fails until `pnpm atomize` runs) ---
 describe("generated data/graph.json", () => {
   // loadGraph() is called INSIDE each test, never in the describe body: a throw
@@ -484,6 +622,10 @@ describe("generated data/graph.json", () => {
 
   it("grounds every generated lesson step in its declared source", () => {
     expect(invalidLessonCitations(loadGraph())).toEqual([]);
+  });
+
+  it("grounds every generated rendering in its declared source", () => {
+    expect(invalidRenderingCitations(loadGraph(), loadRenderings())).toEqual([]);
   });
 
   it("reaches the demo goal 'self-attention'", () => {

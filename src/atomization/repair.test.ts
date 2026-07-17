@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Concept, LearningGraph } from "../types";
+import type { Concept, LearningGraph, RenderingSet } from "../types";
 import { fixtureGraph } from "../graph/fixture-graph";
 import { invalidLessonCitations } from "../graph/invariants";
-import { InvalidGraphArtifactError, writeGraphArtifact } from "./artifacts";
+import {
+  InvalidGraphArtifactError,
+  InvalidRenderingArtifactError,
+  writeGraphArtifact,
+  writeRenderingsArtifact,
+} from "./artifacts";
 import {
   GOLDEN_PATH,
   GraphConvergenceError,
@@ -163,6 +168,44 @@ describe("lesson-only convergence", () => {
       const written = JSON.parse(readFileSync(graphPath, "utf8")) as LearningGraph;
       expect(invalidLessonCitations(written)).toEqual([]);
       expect(readFileSync(graphPath, "utf8")).not.toContain("fabricated lesson citation");
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("never writes an ungrounded alternate rendering", () => {
+    const directory = mkdtempSync(join(tmpdir(), "atomic-learning-renderings-"));
+    const renderingsPath = join(directory, "renderings.json");
+    try {
+      const set: RenderingSet = {
+        renderings: [
+          {
+            conceptId: "vectors",
+            format: "why-it-exists",
+            plainTitle: "Why vectors exist",
+            steps: [
+              {
+                text: "Vectors keep related numbers together.",
+                stepTier: "core",
+                citation: { sourceId: "s1", quotedText: "fabricated rendering citation" },
+              },
+              {
+                text: "They are ordered lists.",
+                stepTier: "deep",
+                citation: {
+                  sourceId: "s1",
+                  quotedText: "A vector is an ordered list of numbers.",
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      expect(() => writeRenderingsArtifact(renderingsPath, fixtureGraph, set)).toThrow(
+        InvalidRenderingArtifactError,
+      );
+      expect(existsSync(renderingsPath)).toBe(false);
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }

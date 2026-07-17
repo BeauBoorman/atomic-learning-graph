@@ -3,7 +3,8 @@
 //
 // HARD proof-invariants (fail-closed gates) + 1 ADVISORY reporter:
 //   HARD: no orphans (roots exempt) · prereq graph is a DAG · goal reachable from a root ·
-//         concept provenance valid · lesson-step citations valid · no dangling edges
+//         concept provenance valid · lesson-step citations valid · alternate-rendering citations
+//         valid · no dangling edges
 //   ADVISORY (never gates the build): isSingleConcept — an enumeration detector, demoted 2026-07-15.
 //     See ROADMAP.md and the isSingleConcept docstring below.
 //
@@ -38,7 +39,15 @@
 // wrongly "fixed" by weakening it. Collapse whitespace runs to a single space and trim BOTH
 // sides before comparing. The fixture deliberately contains this trap — see invariants.test.ts.
 
-import type { Concept, ConceptId, Edge, LearningGraph, Source } from "../types";
+import type {
+  AlternateFormat,
+  Concept,
+  ConceptId,
+  Edge,
+  LearningGraph,
+  RenderingSet,
+  Source,
+} from "../types";
 
 export interface LessonCitationIssue {
   conceptId: ConceptId;
@@ -63,7 +72,7 @@ export function quoteGrounded(sources: Source[], sourceId: string, quotedText: s
   return normalizeWhitespace(matches[0].text).includes(normalizedQuote);
 }
 
-function lessonCitationReason(
+export function lessonCitationReason(
   sources: Source[],
   sourceId: unknown,
   quotedText: unknown,
@@ -102,6 +111,80 @@ export function invalidLessonCitations(graph: LearningGraph): LessonCitationIssu
       });
     }
   }
+  return issues;
+}
+
+export interface RenderingCitationIssue {
+  conceptId: ConceptId;
+  format: AlternateFormat;
+  stepIndex: number;
+  reason:
+    | "empty-rendering"
+    | "duplicate-format"
+    | "unknown-concept"
+    | "unresolved-source"
+    | "ambiguous-source"
+    | "quote-not-found";
+}
+
+/**
+ * Typed failures for every alternate rendering that may be shown for a graph concept. Renderings
+ * are optional per `(conceptId, format)`; this gate validates only the alternates that exist.
+ * Rendering-level failures use `stepIndex: -1`, while citation failures retain their array index.
+ */
+export function invalidRenderingCitations(
+  graph: LearningGraph,
+  set: RenderingSet,
+): RenderingCitationIssue[] {
+  const issues: RenderingCitationIssue[] = [];
+  const conceptIds = new Set(graph.concepts.map((concept) => concept.id));
+  const seenFormats = new Set<string>();
+
+  for (const rendering of set.renderings) {
+    const key = JSON.stringify([rendering.conceptId, rendering.format]);
+    if (seenFormats.has(key)) {
+      issues.push({
+        conceptId: rendering.conceptId,
+        format: rendering.format,
+        stepIndex: -1,
+        reason: "duplicate-format",
+      });
+    } else {
+      seenFormats.add(key);
+    }
+
+    if (!conceptIds.has(rendering.conceptId)) {
+      issues.push({
+        conceptId: rendering.conceptId,
+        format: rendering.format,
+        stepIndex: -1,
+        reason: "unknown-concept",
+      });
+    }
+
+    const steps = Array.isArray(rendering.steps) ? rendering.steps : [];
+    if (steps.length < 2) {
+      issues.push({
+        conceptId: rendering.conceptId,
+        format: rendering.format,
+        stepIndex: -1,
+        reason: "empty-rendering",
+      });
+    }
+
+    for (const [stepIndex, step] of steps.entries()) {
+      const sourceId = step?.citation?.sourceId;
+      const quotedText = step?.citation?.quotedText;
+      if (quoteGrounded(graph.sources, sourceId, quotedText)) continue;
+      issues.push({
+        conceptId: rendering.conceptId,
+        format: rendering.format,
+        stepIndex,
+        reason: lessonCitationReason(graph.sources, sourceId, quotedText),
+      });
+    }
+  }
+
   return issues;
 }
 
