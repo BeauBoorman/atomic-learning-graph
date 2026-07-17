@@ -116,42 +116,83 @@ function sha256(bytes: Uint8Array | string): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function printDryTable(graph: LearningGraph, set: RenderingSet): void {
+function printResultTable(
+  graph: LearningGraph,
+  set: RenderingSet,
+  log: (message: string) => void,
+): void {
   const kept = new Set(set.renderings.map(({ conceptId, format }) => `${conceptId}\0${format}`));
-  console.log("CONCEPT\tFORMAT\tRESULT");
+  log("CONCEPT\tFORMAT\tRESULT");
   for (const concept of graph.concepts) {
     for (const format of ALTERNATE_FORMATS) {
-      console.log(`${concept.id}\t${format}\t${kept.has(`${concept.id}\0${format}`) ? "PASS" : "DROP"}`);
+      log(`${concept.id}\t${format}\t${kept.has(`${concept.id}\0${format}`) ? "PASS" : "DROP"}`);
     }
   }
 }
 
+export interface RenderingRunMetadata {
+  model: string;
+  strictStructuredOutputs: boolean;
+  responseIds: readonly string[];
+}
+
+export interface RenderingArtifactPaths {
+  renderings: string;
+  runLog: string;
+}
+
+/**
+ * The one paid rendering path. It generates exactly one candidate set, validates and writes that
+ * exact set, then prints its verdict table. Printing after both writes means a visible table is
+ * evidence about the artifact that landed, never about a discarded or later-regenerated run.
+ */
+export async function generateAndWriteRenderings(
+  graph: LearningGraph,
+  client: RenderingClient,
+  metadata: RenderingRunMetadata,
+  paths: RenderingArtifactPaths = {
+    renderings: RENDERINGS_PATH,
+    runLog: RENDERINGS_RUN_PATH,
+  },
+  onWarning: (message: string) => void = (message) => console.warn(message),
+  log: (message: string) => void = (message) => console.log(message),
+): Promise<RenderingSet> {
+  const set = await generateRenderings(graph, client, onWarning);
+  const renderingBytes = writeRenderingsArtifact(paths.renderings, graph, set, {
+    overwriteExisting: true,
+  });
+  const runLog = {
+    model: metadata.model,
+    renderingPromptVersion: RENDERING_PROMPT_VERSION,
+    strictStructuredOutputs: metadata.strictStructuredOutputs,
+    renderingsSha256: sha256(renderingBytes),
+    responseIds: metadata.responseIds,
+  };
+  writeFileSync(paths.runLog, `${JSON.stringify(runLog, null, 2)}\n`);
+
+  printResultTable(graph, set, log);
+  log(`RENDERING PASS: wrote ${set.renderings.length} alternate renderings.`);
+  return set;
+}
+
 export async function main(args: readonly string[] = process.argv.slice(2)): Promise<void> {
+  if (args.length > 0) {
+    throw new Error(
+      `render accepts no flags; it generates, validates, reports, and writes one artifact in one paid run`,
+    );
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is required for build-time rendering generation");
 
   const client = new ResponsesClient(apiKey);
   await client.initialize();
   const graph = loadGraph();
-  const set = await generateRenderings(graph, client);
-
-  if (args.includes("--dry")) {
-    printDryTable(graph, set);
-    return;
-  }
-
-  const renderingBytes = writeRenderingsArtifact(RENDERINGS_PATH, graph, set, {
-    overwriteExisting: true,
-  });
-  const runLog = {
+  await generateAndWriteRenderings(graph, client, {
     model: client.modelSnapshot || client.model,
-    renderingPromptVersion: RENDERING_PROMPT_VERSION,
     strictStructuredOutputs: client.strictSchema,
-    renderingsSha256: sha256(renderingBytes),
     responseIds: client.responseIds,
-  };
-  writeFileSync(RENDERINGS_RUN_PATH, `${JSON.stringify(runLog, null, 2)}\n`);
-  console.log(`RENDERING PASS: wrote ${set.renderings.length} alternate renderings.`);
+  });
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

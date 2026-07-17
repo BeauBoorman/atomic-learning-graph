@@ -19,8 +19,7 @@
     "gate": "bash scripts/gate.sh",
     "atomize": "tsx src/atomization/atomize.ts",
     "atomize:toy": "tsx src/atomization/atomize.ts --toy",
-    "render": "tsx src/atomization/render.ts",
-    "render:dry": "tsx src/atomization/render.ts --dry"
+    "render": "tsx src/atomization/render.ts"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

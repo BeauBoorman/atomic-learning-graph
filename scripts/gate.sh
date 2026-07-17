@@ -62,7 +62,7 @@ run "build" pnpm build
 
 # The browser claim rests on the emitted bytes, including runtime modules outside src/ui and any
 # chunks Vite creates. This is deliberately a hard, post-build stage; gate9 remains the fast twin.
-run "shipped bundle has no network/model client" pnpm verify:bundle
+run "shipped bundle has no network/model client or remote asset" pnpm verify:bundle
 
 printf '\n'
 if [ "$fail_count" -eq 0 ]; then

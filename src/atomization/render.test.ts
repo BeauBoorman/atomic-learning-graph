@@ -1,9 +1,15 @@
+import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixtureGraph, QUOTES } from "../graph/fixture-graph";
 import { invalidRenderingCitations } from "../graph/invariants";
 import type { LearningGraph } from "../types";
 import {
+  generateAndWriteRenderings,
   generateRenderings,
+  main,
   type RenderingClient,
 } from "./render";
 import {
@@ -64,6 +70,10 @@ function oneConceptGraph(): LearningGraph {
 }
 
 describe("build-time alternate renderings", () => {
+  it("rejects the removed --dry flag before any paid client can be initialized", async () => {
+    await expect(main(["--dry"])).rejects.toThrow("render accepts no flags");
+  });
+
   it("keeps the grounding contract byte-identical across question formats", () => {
     const groundingContract = `2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. If you cannot ground a step in a verbatim span, DROP that step.
 3. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.`;
@@ -96,6 +106,48 @@ describe("build-time alternate renderings", () => {
       expect(call.schemaName).toMatch(/^rendering_(?:why-it-exists|how-it-works)$/u);
       expect(call.options).toEqual({ forceStrict: true, maxOutputTokens: 3000 });
       expect(call.input).toContain(fixtureGraph.sources[0]!.text);
+    }
+  });
+
+  it("spends exactly one 2xN request set for the artifact whose verdict it prints", async () => {
+    const graph = oneConceptGraph();
+    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors));
+    const directory = mkdtempSync(join(tmpdir(), "atomic-renderings-"));
+    const renderingsPath = join(directory, "renderings.json");
+    const runLogPath = join(directory, "renderings.run.json");
+    const output: string[] = [];
+
+    try {
+      const set = await generateAndWriteRenderings(
+        graph,
+        client,
+        {
+          model: "fake-model",
+          strictStructuredOutputs: true,
+          responseIds: ["fake-response-1", "fake-response-2"],
+        },
+        { renderings: renderingsPath, runLog: runLogPath },
+        () => undefined,
+        (message) => output.push(message),
+      );
+
+      expect(client.calls).toHaveLength(2 * graph.concepts.length);
+      const landedBytes = readFileSync(renderingsPath);
+      const landed = JSON.parse(landedBytes.toString("utf8"));
+      expect(landed).toEqual(set);
+      expect(output).toEqual([
+        "CONCEPT\tFORMAT\tRESULT",
+        "vectors\twhy-it-exists\tPASS",
+        "vectors\thow-it-works\tPASS",
+        "RENDERING PASS: wrote 2 alternate renderings.",
+      ]);
+      expect(JSON.parse(readFileSync(runLogPath, "utf8"))).toMatchObject({
+        model: "fake-model",
+        renderingsSha256: createHash("sha256").update(landedBytes).digest("hex"),
+        responseIds: ["fake-response-1", "fake-response-2"],
+      });
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
     }
   });
 

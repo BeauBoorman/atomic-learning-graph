@@ -54,9 +54,9 @@ believed it. List commands; never their status.
 | `pnpm typecheck` | `tsc --noEmit`, must exit 0 |
 | `pnpm test` | vitest. **Passing is NOT the bar** — it does not run `verify:corpus`, and that gap is how a false licence notice nearly shipped. Use `pnpm gate`. |
 | `pnpm atomize` / `atomize:toy` | Atomizes licensed sources; full runs require explicit `--out-dir`. Costs real API calls. |
-| `pnpm render` / `render:dry` | writes `data/renderings.json`. Use `render:dry` first. |
+| `pnpm render` | **Costs 2 API calls per concept.** Generates once, validates and writes `data/renderings.json`, then prints the verdict for those exact landed bytes; there is no dry run. |
 | `pnpm verify:corpus` / `verify:anchors` | licence + provenance gates. Corpus verification is local by default; `VERIFY_UPSTREAM=1 pnpm verify:corpus` also checks pinned upstream bytes. |
-| `pnpm verify:bundle` | post-build scan of every emitted JavaScript chunk for browser network/model clients |
+| `pnpm verify:bundle` | post-build scan of shipped JavaScript, HTML and CSS for network/model clients and remote assets |
 | `pnpm build` / `preview` | vite |
 | `pnpm dev` | ⛔ **NEVER run `dev` or `preview` in an agent.** They never exit and will hang the session until it is killed. Codex has already lost a run to this. Read the code or run `pnpm build`. |
 
