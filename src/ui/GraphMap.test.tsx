@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureGraph } from "../graph/fixture-graph";
 import type { LearningGraph } from "../types";
-import { GraphMap, stylesFor } from "./GraphMap";
+import { GraphMap, graphMapKeyboardCommand, stylesFor } from "./GraphMap";
 import { titleFor } from "./titles";
 
 /**
@@ -64,6 +64,35 @@ function parsedNodeStyle(): Record<string, ParsedProperty> {
   cy.destroy();
   return parsed;
 }
+
+describe("the map shell's keyboard commands", () => {
+  const keyboardOrder = fixtureGraph.concepts.map((concept) => concept.id);
+  const shell = {};
+
+  it.each([
+    ["Zoom in", "Enter"],
+    ["Zoom in", " "],
+    ["Zoom out", "Enter"],
+    ["Zoom out", " "],
+    ["Fit visible concepts in view", "Enter"],
+    ["Fit visible concepts in view", " "],
+  ])("leaves %s's %j key press to the button", (_control, key) => {
+    const button = {};
+    expect(
+      graphMapKeyboardCommand({ key, target: button, currentTarget: shell }, keyboardOrder, "vectors"),
+    ).toBeNull();
+  });
+
+  it("still activates the selected node when Enter originates on the map shell", () => {
+    expect(
+      graphMapKeyboardCommand(
+        { key: "Enter", target: shell, currentTarget: shell },
+        keyboardOrder,
+        "vectors",
+      ),
+    ).toEqual({ type: "activate", id: "vectors" });
+  });
+});
 
 describe("the map's stylesheet survives Cytoscape's parser", () => {
   // THE REGRESSION THAT SHIPPED. `font-weight: 650` is not a member of Cytoscape's fontWeight

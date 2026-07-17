@@ -19,6 +19,48 @@ interface GraphMapProps {
   onActivate: (id: ConceptId) => void;
 }
 
+interface GraphMapKeyEvent {
+  key: string;
+  target: unknown;
+  currentTarget: unknown;
+}
+
+type GraphMapKeyboardCommand =
+  | { type: "select"; id: ConceptId }
+  | { type: "zoom"; factor: number }
+  | { type: "fit" }
+  | { type: "activate"; id: ConceptId };
+
+/**
+ * Translate a key event owned by the map shell into a command. Key events from descendant
+ * controls are deliberately ignored so their native Enter/Space activation is left intact.
+ */
+export function graphMapKeyboardCommand(
+  event: GraphMapKeyEvent,
+  keyboardOrder: ConceptId[],
+  selectedId: ConceptId,
+): GraphMapKeyboardCommand | null {
+  if (event.target !== event.currentTarget) return null;
+
+  const currentIndex = Math.max(0, keyboardOrder.indexOf(selectedId));
+  if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+    return { type: "select", id: keyboardOrder[(currentIndex + 1) % keyboardOrder.length] };
+  }
+  if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+    return {
+      type: "select",
+      id: keyboardOrder[(currentIndex - 1 + keyboardOrder.length) % keyboardOrder.length],
+    };
+  }
+  if (event.key === "Home") return { type: "select", id: keyboardOrder[0] };
+  if (event.key === "End") return { type: "select", id: keyboardOrder[keyboardOrder.length - 1] };
+  if (event.key === "+" || event.key === "=") return { type: "zoom", factor: 1.18 };
+  if (event.key === "-") return { type: "zoom", factor: 0.85 };
+  if (event.key === "0") return { type: "fit" };
+  if (event.key === "Enter" || event.key === " ") return { type: "activate", id: selectedId };
+  return null;
+}
+
 /* Canvas cannot read a CSS custom property, so these are literals — and that is exactly why
    they drifted: styles.css was repainted to the paper+claret palette and this object was left
    on the old green/olive/orange, so the legend beside the map described colours the map did
@@ -536,27 +578,13 @@ export function GraphMap({
   };
 
   const handleKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const currentIndex = Math.max(0, keyboardOrder.indexOf(selectedId));
-    let nextIndex: number | undefined;
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-      nextIndex = (currentIndex + 1) % keyboardOrder.length;
-    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-      nextIndex = (currentIndex - 1 + keyboardOrder.length) % keyboardOrder.length;
-    } else if (event.key === "Home") {
-      nextIndex = 0;
-    } else if (event.key === "End") {
-      nextIndex = keyboardOrder.length - 1;
-    } else if (event.key === "+" || event.key === "=") {
-      zoomBy(1.18);
-    } else if (event.key === "-") {
-      zoomBy(0.85);
-    } else if (event.key === "0") {
-      fit();
-    } else if (event.key === "Enter" || event.key === " ") {
-      onActivate(selectedId);
-    }
-    if (nextIndex !== undefined) onSelect(keyboardOrder[nextIndex]);
-    else if (!["+", "=", "-", "0", "Enter", " "].includes(event.key)) return;
+    const command = graphMapKeyboardCommand(event, keyboardOrder, selectedId);
+    if (!command) return;
+
+    if (command.type === "select") onSelect(command.id);
+    else if (command.type === "zoom") zoomBy(command.factor);
+    else if (command.type === "fit") fit();
+    else onActivate(command.id);
     event.preventDefault();
   };
 
