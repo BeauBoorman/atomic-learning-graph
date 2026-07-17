@@ -203,11 +203,13 @@ Honest limits, stated up front:
   Tightening it is a re-translation, not a config change.
 - **The graph is small and the domain is narrow.** 10 concepts across four chapters. The pitch is the
   substrate and the provenance, not coverage.
-- **Only prerequisite edges exist today.** All 9 committed edges are `prereq`; there are zero
-  `related` edges, so no "related ideas" browsing is offered.
-- **The golden spine is pinned; the rest is model-supplied.** Pinned by the build: 5 concept IDs, 5
-  source assignments, 4 spine edges, and the goal. The exact specified-versus-supplied split is
-  disclosed above.
+- **This artifact is a prerequisite tree, not evidence of a relationship mesh.** The graph type
+  supports `prereq`, `method`, and `related`, and the relationship phase requires `related` on every
+  model-returned concept; this one-book, ten-concept run nevertheless landed 9 `prereq` edges, zero
+  `related` edges, and no concept with more than one incoming prerequisite. Its five-node demo spine
+  is explicitly pinned as a direct chain, but the prompt does not forbid other links. A broader
+  corpus and an unpinned run are the next experiment, not a promised outcome or new graph
+  architecture.
 - **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
   alternate renderings — `why-it-exists` and `how-it-works` for each of 10 concepts — with 68 cited
   steps. Their citations and run-log hash are gated. On-demand renderings and a learned atomicity

@@ -57,7 +57,25 @@ built against an `AtomicityScorer` interface so richer scorers drop in behind th
 The MVP ships `syntacticAtomicityScorer`. The interface is the promise that the richer scorers slot in
 with zero change to callers. This slot is the reason the invariant was demoted instead of cut.
 
-## 4. Corpus manifest extension slots
+## 4. Relationship topology — present in the contract, narrow in the demo
+
+**What:** `LearningGraph.edges[]` carries three edge kinds: `prereq`, `method`, and `related`.
+The raw `AtomizedConcept` contract requires a `related` array on every model-returned concept, and
+the build step converts those IDs into canonical `related` edges. The committed ten-concept artifact
+is narrower: its nine edges are all `prereq`, no concept has more than one incoming prerequisite,
+and its five-node demo spine is explicitly required as a direct chain.
+
+**Why cut from the MVP:** the relationship phase requested `related`, but this one-book corpus and
+one-goal run landed no `related` edges, so the committed artifact demonstrates a prerequisite tree,
+not a relationship mesh. That is an observed property of this run, not an unimplemented edge type.
+The required spine constrains five nodes, but the prompt does not forbid additional related links or
+prerequisite joins; the absence of both outside the spine must not be attributed to the pin alone.
+
+**What it needs before it can return:** a broader corpus and an unpinned build-time relationship run,
+using the existing graph type and conversion step. That is an experiment, not a prediction: a later
+run may still return no mesh, and only its committed, validated output can establish otherwise.
+
+## 5. Corpus manifest extension slots
 
 Additive, non-breaking (`validateManifest` only *requires* `id`/`title`/`license`/`textPath`, so an
 extra optional field never fails the gate). Do not build now; keep the seams:
@@ -72,13 +90,13 @@ extra optional field never fails the gate). Do not build now; keep the seams:
   deliberate future call, never a default. Widening the allowlist is a human act, never an autonomous
   workaround.
 
-## 5. Deployment
+## 6. Deployment
 
 A live URL (e.g. Vercel) is a backlog nice-to-have, **not** a submission gate. `done_means` requires a
 public repo + README + demo video + Codex Session ID, not a deploy. Ship the deploy after submission if
 time allows.
 
-## 6. Provenance Unicode-hardening (NFKC + punctuation fold) — deferred, not dismissed
+## 7. Provenance Unicode-hardening (NFKC + punctuation fold) — deferred, not dismissed
 
 **What:** broaden `invalidProvenance`'s normalization beyond whitespace to also NFKC-normalize and fold
 presentational punctuation (curly ↔ straight quotes, dash variants `‑`/`–`/`—`/`−`, NBSP, `·`/`×`/`→`
