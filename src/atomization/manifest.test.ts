@@ -1,6 +1,3 @@
-// THE LICENCE GATE, as a test. RED until Codex implements `validateManifest`, and RED on the real
-// corpus until `data/oer/sources.json` exists.
-//
 // The project's claim is "built from openly (5R) licensed OER" and it embeds the full source text
 // in a PUBLIC repo. That claim is worth exactly as much as the check behind it. These tests are the
 // check: a source without a licence must be REJECTED, not warned about, and the atomizer must be

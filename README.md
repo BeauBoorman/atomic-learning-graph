@@ -44,8 +44,10 @@ Every claim on this page is a property of the committed artifact, not a descript
 | Nothing is generated at read time | `src/ui/gate9.test.ts` greps the entire browser runtime for network clients and model vendors. No `fetch(`, no socket, no SDK. The app runs offline. |
 | Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
-| The graph was not hand-tuned | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it — a single hand-edited character turns the suite red. |
+| The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it — a single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 chapters, licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
+
+The build pins a golden spine (`src/atomization/repair.ts:15-27`): the model must independently produce `vectors → dot-product → softmax → qkv → self-attention` or the build **HALTS**. It is a regression gate, never an injection: no node, edge, quote or lesson step is ever written by hand.
 
 The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (17 core,
 14 deep) and **186 optional analogies** across 6 interests — plus the complete text of the four
@@ -150,6 +152,9 @@ Honest limits, stated up front:
   substrate and the provenance, not coverage.
 - **Only prerequisite edges exist today.** All 9 committed edges are `prereq`; there are zero
   `related` edges, so no "related ideas" browsing is offered.
+- **The golden spine is pinned; the rest is model-chosen.** Pinned by the build: 5 concept IDs, 5
+  source assignments, 4 spine edges, and the goal. Chosen by the model: the other 5 concepts, all
+  10 concept-level quote selections, all 31 lesson steps, and all 186 analogies.
 - **Extension points are not features.** Validated multi-format renderings, on-demand renderings, and
   a learned atomicity scorer are marked in [ROADMAP.md](ROADMAP.md) and are not represented as
   working today.

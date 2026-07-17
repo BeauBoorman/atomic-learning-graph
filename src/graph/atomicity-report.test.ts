@@ -5,15 +5,6 @@ import { isSingleConcept } from "./invariants";
 import { fixtureGraph } from "./fixture-graph";
 import type { LearningGraph } from "../types";
 
-// PRE-COMMITTED EXTERNAL ORACLE (decision C, 2026-07-15).
-//
-// This file is committed BEFORE Codex runs so the "advisory reporter never gates the build"
-// guarantee is a test the agent MUST satisfy and CANNOT author or soften — the same regime as the
-// rest of the adversarial suite. It is RED-with-a-reason until Gate 2: `reportAtomicityWarnings`
-// currently throws "not implemented" (a failing test list, not a module-resolution error, because
-// the sibling stub ./atomicity-report.ts exists). Codex turns it green by BUILDING the reporter to
-// the reframe spec — never by weakening an assertion here.
-
 const clone = (g: LearningGraph): LearningGraph => JSON.parse(JSON.stringify(g));
 
 // A copy of the golden fixture with ONE concept's summary replaced — for planting an enumeration

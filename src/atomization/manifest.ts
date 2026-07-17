@@ -22,8 +22,6 @@
 // entry is not a `Source`: it points at text on disk (`textPath`), while a `Source` embeds the text.
 // The atomizer's job is precisely to turn the former into the latter.
 //
-// `validateManifest` is a STUB — Codex implements it. The tests in `manifest.test.ts` are the spec.
-
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, isAbsolute, relative, resolve } from "node:path";

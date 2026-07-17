@@ -1,4 +1,4 @@
-// STUB — Codex implements this. The signature is fixed by `path.test.ts`.
+// The signature is fixed by `path.test.ts`.
 //
 // WHY THIS IS A SEPARATE MODULE FROM `invariants.ts`:
 // `invariants.ts` answers "is this graph VALID?" — every function there returns VIOLATIONS, and it

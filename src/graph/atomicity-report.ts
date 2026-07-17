@@ -6,13 +6,6 @@
 // atomicity — no offline syntactic rule can PROVE "one concept". `[]` means "nothing to eyeball",
 // NOT "proven atomic". See src/graph/invariants.ts (isSingleConcept docstring), root AGENTS.md,
 // src/atomization/AGENTS.md, ROADMAP.md §3, and the reframe spec.
-//
-// PRE-COMMITTED EXTERNAL ORACLE (decision C, 2026-07-15): this stub + its test
-// (./atomicity-report.test.ts) are committed BEFORE Codex runs, so the "advisory never gates the
-// build" guarantee is a test the agent must satisfy and cannot author or soften. This is a
-// RED-with-a-reason stub — `reportAtomicityWarnings` throws "not implemented" (not a module
-// error), exactly like the other Gate-0 stubs. Codex fills in the body at Gate 2 against the
-// pinned tests; do NOT change the exported signatures.
 
 import type { Concept, ConceptId, LearningGraph } from "../types";
 import { isSingleConcept } from "./invariants";
@@ -48,8 +41,6 @@ export const syntacticAtomicityScorer: AtomicityScorer = {
  * ADVISORY ONLY. Returns warnings for the human ~20-node eyeball pass. Once implemented it must
  * NEVER throw and NEVER influence an exit code — its only channel is the returned array. `[]` is
  * NOT proof of atomicity (§7 of the reframe spec).
- *
- * RED STUB: throws until Codex builds it at Gate 2 against ./atomicity-report.test.ts.
  */
 export function reportAtomicityWarnings(graph: LearningGraph): AtomicityWarning[] {
   const warnings: AtomicityWarning[] = [];
