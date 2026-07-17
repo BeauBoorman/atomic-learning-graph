@@ -37,3 +37,8 @@ coverage/
 .DS_Store
 
 # Internal working notes — MUST NOT ship to the public repo
+
+# camera artifacts — deliberately-unpinned experimental runs.
+# NOT the product. Never committed: an unpinned graph has no golden spine protecting
+# it and may not contain the goal at all. See ROADMAP.
+.artifacts/
