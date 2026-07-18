@@ -3,8 +3,10 @@
 This project ships a deliberately small, fully-honest MVP for OpenAI Build Week. It is built to be
 **expanded** afterward. The guiding rule (Beau): **preserve every capability as a clearly-marked
 slot; delete nothing to simplify.** Each item below was cut from the MVP *on purpose* for a
-structural reason. Nothing was forgotten or stubbed to look done. The seams are real; the features
-are future work.
+structural reason. Nothing was forgotten or stubbed to look done. The seams are real. Most features
+are still future work — but a few (marked **SHIPPED**, e.g. §1 and §3) were subsequently built once
+their structural blocker was resolved, and are kept here with their history rather than moved, so the
+"why it was cut, and what made it safe to return" reasoning stays on the record.
 
 Nothing here is a request-time LLM feature. The core invariant is permanent: **the AI builds the map
 at build time; the map is not allowed to trust the AI at request time.** Every roadmap item must keep
@@ -12,29 +14,38 @@ that property.
 
 ---
 
-## 1. `Rendering` / `RenderingFormat`: multi-format lesson bodies
+## 1. `Rendering` / `RenderingFormat`: multi-format lesson bodies — SHIPPED (revived from the cut)
 
-**What:** per-concept lesson bodies in several formats ("90-second", "deep", "ELI5") instead of
-rendering the lesson from the concept's own validated provenance.
+**Status (2026-07-18): built and gated.**
 
-**Why cut (structural, not scope):** `invalidProvenance` returns `ConceptId[]`. It **structurally
-cannot** express "*this rendering's* quote is ungrounded." A generated lesson body could be shown in
-the UI, unsupported by any source, while every provenance test stayed green. That would leave a hole
-in the exact claim the project rests on. See the CUT block in `src/types.ts` (2026-07-13).
+**What:** per-concept alternate lesson bodies in additional formats (`why-it-exists`, `how-it-works`)
+alongside the concept's own `what-it-is` lesson, each page independently grounded in a source quote.
 
-**What it needs before it can return:** provenance validation that covers renderings with **typed
-issue IDs**. For example, `invalidProvenance` (or a sibling) must be able to return "rendering R of
-concept C is ungrounded," not just "concept C is ungrounded." Until that per-rendering provenance gate
-exists, renderings stay out. The UI marks the slot where a `Rendering[]` would attach.
+**Why it was cut (2026-07-13), and why that was right:** `invalidProvenance` returns `ConceptId[]`. It
+**structurally could not** express "*this rendering's* quote is ungrounded," so a generated lesson body
+could have been shown in the UI, unsupported by any source, while every provenance test stayed green —
+a hole in the exact claim the project rests on. Three reviewers converged on cutting it rather than
+shipping an unguardable surface. The cut held the honesty line; it was never a scope excuse.
+
+**What made it safe to return:** the missing gate was built — a **sibling** to `invalidProvenance`,
+not a loosening of it. `invalidRenderingCitations` (`src/graph/invariants.ts`) returns typed
+`RenderingCitationIssue[]` — "rendering of concept C, format F, step N is ungrounded," with a reason
+(`quote-not-found`, `quote-too-weak`, `ambiguous-source`, …) — validating every alternate through the
+same `quoteGrounded` predicate the concept gate trusts. Alternates ship in `data/renderings.json`
+(sha256-pinned via `data/renderings.run.json`), the build pipeline lives in `src/atomization/render.ts`
+(ungrounded steps are dropped, renderings with <2 grounded steps are dropped whole), and the reader
+summons them behind the "Try another way in" panel. Nothing shipped unguarded: the feature returned
+only once a fabricated rendering could be made to fail a test.
 
 ## 2. Infinite / on-demand renderings
 
 **What:** generate a lesson body on demand for a concept/format that has none yet.
 
-**Why cut:** depends on (1), and on-demand generation is a request-time LLM call, which the core
+**Why cut:** the per-rendering gate that (1) needed now exists, so that half of the blocker is gone.
+The remaining blocker is the hard one: on-demand generation is a request-time LLM call, which the core
 thesis forbids on the request path. A future version would generate at build time and cache, or
-generate into a re-validated provenance gate. Left as a marked extension point, never a stub that
-pretends to work.
+generate into the existing `invalidRenderingCitations` gate before ever showing bytes. Left as a marked
+extension point, never a stub that pretends to work.
 
 ## 3. Atomicity scorer: seeded by `isSingleConcept`
 
@@ -135,10 +146,11 @@ item byte-anchored to a specific source span and shipped inside the practice-exa
 learner's free-recall answer becomes self-checkable deterministically — the answer earns a receipt the
 same way every lesson sentence does.
 
-**Why not now:** it needs the same per-item provenance gate as (1) — `invalidProvenance` must be able
-to say "rubric item R of concept C is ungrounded," not just "concept C is ungrounded." Shipping a
-rubric before that gate could let an ungrounded checklist item through. Depends on the typed-issue-ID
-work in (1). Self-checking stays deterministic (string inclusion); no request-time model.
+**Now unblocked:** it needs the same per-item provenance gate as (1) — the ability to say "rubric item
+R of concept C is ungrounded," not just "concept C is ungrounded." That gate now exists as
+`invalidRenderingCitations`'s typed-issue pattern, so a rubric gate is a sibling of it, not new
+infrastructure. The remaining work is building the rubric artifact and its own typed gate on top of the
+proven pattern. Self-checking stays deterministic (string inclusion); no request-time model.
 
 ## 9. Deterministic review schedule + spaced-repetition handoff
 
@@ -160,7 +172,9 @@ predict-before-reveal step, never decorative.
 
 **Why not now:** the flag is a fail-open advisory like (3) — no offline rule can *prove* which concept
 is a threshold, so it never gates a build; and an interactive explorable still must not assert an
-ungrounded claim, so it needs the per-rendering provenance gate from (1).
+ungrounded claim, so it needs the per-rendering provenance gate from (1) — which now exists
+(`invalidRenderingCitations`), so this dependency is cleared and only the advisory + explorable surface
+remain to build.
 
 ## 11. First-principles prerequisite-edge audit
 

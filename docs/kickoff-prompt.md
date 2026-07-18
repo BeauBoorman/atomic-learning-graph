@@ -4,6 +4,8 @@ You are building `atomic-learning-graph` to a FIXED, machine-checkable acceptanc
 
 **This prompt is the full brief. An orchestration script fires you PHASE BY PHASE** (`codex exec` then `codex exec resume`) and gates each phase on `pnpm typecheck && pnpm test` or an adjudicated ledger. The script enforces the sequence; you do not self-gate. If `resume` ever drops your prior-phase context, the repo's `AGENTS.md` scope fences (reloaded every run) are the backstop. Work the gates in order; the script will not advance you past a red one.
 
+> **Historical note (2026-07-18):** this is the point-in-time kickoff brief and is kept as written. One item it lists as an out-of-MVP marked slot — `Rendering` / `RenderingFormat` (§1 below) — was **subsequently built and gated** once its structural blocker was resolved by the sibling gate `invalidRenderingCitations`. See `ROADMAP.md` §1 (SHIPPED) for the current state; the "cut … yet" language below reflects the state at kickoff, not today.
+
 ## Mission & thesis
 Turn open educational resources into a navigable PREREQUISITE GRAPH of one-concept-at-a-time lessons, with a DETERMINISTIC pathfinder routing a learner from what they know to a goal. It is NOT a chatbot. The thesis is load-bearing and governs every decision:
 
