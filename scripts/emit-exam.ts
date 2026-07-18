@@ -13,10 +13,12 @@ import {
   findOrphans,
   hasCycle,
   invalidProvenance,
+  invalidRubricCitations,
 } from "../src/graph/invariants";
 import { loadGraph } from "../src/graph/load";
 import { topologicalConceptOrder } from "../src/graph/path";
-import type { Concept, LearningGraph, Source } from "../src/types";
+import { buildRecallRubric } from "../src/graph/recall-rubric";
+import type { Concept, LearningGraph, RecallRubric, Source } from "../src/types";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 
@@ -44,6 +46,15 @@ function assertStructurallyEmittable(graph: LearningGraph): void {
     throw new Error(`refusing exam emit with orphan concept(s): ${orphans.join(", ")}`);
   }
   if (hasCycle(graph)) throw new Error("refusing exam emit with a prerequisite cycle");
+
+  const rubricIssues = invalidRubricCitations(graph);
+  if (rubricIssues.length > 0) {
+    throw new Error(
+      `refusing exam emit with invalid recall rubric citations: ${rubricIssues
+        .map((issue) => `${issue.conceptId}[${issue.itemIndex}]:${issue.reason}`)
+        .join(", ")}`,
+    );
+  }
 }
 
 function modificationNotice(source: Source): string {
@@ -83,6 +94,22 @@ function renderReceipt(concept: Concept, source: Source): string {
       ...(source.url ? [`URL: ${source.url}`] : []),
     ].join("  \n"),
   ].join("\n");
+}
+
+function renderRecallRubric(rubric: RecallRubric): string {
+  const items = rubric.items.map((item, itemIndex) =>
+    [
+      `- Item ${itemIndex + 1} must mention: ${item.mustMention.map((term) => `\`${term}\``).join(", ")}`,
+      `  Verbatim source span (\`${item.sourceId}\`):`,
+      "",
+      mdQuote(item.quotedText),
+    ].join("\n"),
+  );
+  return [
+    "#### Recall rubric",
+    "A self-check passes an item only when every listed source-derived term appears in the answer.",
+    ...items,
+  ].join("\n\n");
 }
 
 /** Generate the artifact entirely in memory so a validation failure cannot partially write. */
@@ -126,8 +153,9 @@ export function emitExamArtifact(graph: LearningGraph): string {
     ].join("\n"),
   );
 
-  const answerKeyA = conceptsWithSources.map(({ concept, source }, index) =>
-    [
+  const answerKeyA = conceptsWithSources.map(({ concept, source }, index) => {
+    const rubric = buildRecallRubric(concept);
+    return [
       `### A${index + 1}. ${concept.title}`,
       "",
       concept.summary,
@@ -135,8 +163,10 @@ export function emitExamArtifact(graph: LearningGraph): string {
       "Source receipt:",
       "",
       renderReceipt(concept, source),
-    ].join("\n"),
-  );
+      "",
+      renderRecallRubric(rubric),
+    ].join("\n");
+  });
 
   const answerKeyB = passages.map(
     ({ concept }, index) => `- P${index + 1} → ${concept.title} (\`${concept.id}\`)`,

@@ -4,7 +4,7 @@
 // HARD proof-invariants (fail-closed gates) + 1 ADVISORY reporter:
 //   HARD: unique concept/source IDs · no orphans (roots exempt) · prereq graph is a DAG · goal
 //         reachable from a root · concept provenance valid · lesson-step citations valid ·
-//         alternate-rendering citations valid · no dangling edges
+//         alternate-rendering citations valid · recall-rubric citations valid · no dangling edges
 //   ADVISORY (never gates the build): isSingleConcept — an enumeration detector, demoted 2026-07-15.
 //     See ROADMAP.md and the isSingleConcept docstring below.
 //
@@ -80,11 +80,16 @@ const QUOTE_STOPWORDS = new Set([
   "your", "yours",
 ]);
 
+/** Content-bearing words shared by quote validation and deterministic recall-rubric projection. */
+export function quoteContentWords(value: string): string[] {
+  const words = value.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) ?? [];
+  return words.filter((word) => !QUOTE_STOPWORDS.has(word.toLowerCase()));
+}
+
 const quoteStrongEnough = (normalizedQuote: string): boolean => {
   const words = normalizedQuote.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) ?? [];
   if (words.length < MIN_QUOTE_WORDS) return false;
-  const contentWords = words.filter((word) => !QUOTE_STOPWORDS.has(word.toLowerCase()));
-  return contentWords.length >= MIN_QUOTE_CONTENT_WORDS;
+  return quoteContentWords(normalizedQuote).length >= MIN_QUOTE_CONTENT_WORDS;
 };
 
 /**
@@ -221,6 +226,35 @@ export function invalidRenderingCitations(
     }
   }
 
+  return issues;
+}
+
+export interface RubricCitationIssue {
+  conceptId: ConceptId;
+  itemIndex: number;
+  reason: Exclude<LessonCitationIssue["reason"], "empty-lesson">;
+}
+
+/**
+ * Typed failures for the recall-rubric items mechanically projected from lesson steps. Item
+ * indices retain their source lesson-step indices, so a caller can identify the exact excluded
+ * checkpoint. This validates grounding only; `buildRecallRubric` owns keyword projection.
+ */
+export function invalidRubricCitations(graph: LearningGraph): RubricCitationIssue[] {
+  const issues: RubricCitationIssue[] = [];
+  for (const concept of graph.concepts) {
+    const steps = Array.isArray(concept.lesson?.steps) ? concept.lesson.steps : [];
+    for (const [itemIndex, step] of steps.entries()) {
+      const sourceId = step?.citation?.sourceId;
+      const quotedText = step?.citation?.quotedText;
+      if (quoteGrounded(graph.sources, sourceId, quotedText)) continue;
+      issues.push({
+        conceptId: concept.id,
+        itemIndex,
+        reason: lessonCitationReason(graph.sources, sourceId, quotedText),
+      });
+    }
+  }
   return issues;
 }
 

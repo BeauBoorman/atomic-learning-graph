@@ -111,6 +111,25 @@ export interface Lesson {
   steps: LessonStep[];
 }
 
+/**
+ * One deterministic free-recall checkpoint projected from a lesson step. `quotedText` and
+ * `sourceId` retain that step's citation unchanged and must pass the same quote-grounding gate as
+ * lesson and rendering citations. `mustMention` contains only source-derived content words; it is
+ * never model-authored at request time.
+ */
+export interface RecallRubricItem {
+  conceptId: ConceptId;
+  quotedText: string;
+  sourceId: SourceId;
+  mustMention: string[];
+}
+
+/** A derived, unstored recall checklist whose items are byte-anchored to source passages. */
+export interface RecallRubric {
+  conceptId: ConceptId;
+  items: RecallRubricItem[];
+}
+
 export type RenderingFormat = "what-it-is" | "why-it-exists" | "how-it-works";
 export type AlternateFormat = Exclude<RenderingFormat, "what-it-is">;
 

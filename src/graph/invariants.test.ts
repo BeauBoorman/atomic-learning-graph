@@ -28,6 +28,7 @@ import {
   invalidProvenance,
   invalidLessonCitations,
   invalidRenderingCitations,
+  invalidRubricCitations,
   quoteGrounded,
   isSingleConcept,
 } from "./invariants";
@@ -705,6 +706,41 @@ describe("invalidRenderingCitations", () => {
   });
 });
 
+describe("invalidRubricCitations", () => {
+  it("rejects the exact rubric item whose quote was fabricated", () => {
+    const graph = structuredClone(fixture);
+    graph.concepts[0].lesson!.steps[1].citation.quotedText =
+      "This rubric citation was fabricated and never appeared in the declared source.";
+
+    expect(invalidRubricCitations(graph)).toEqual([
+      {
+        conceptId: "vectors",
+        itemIndex: 1,
+        reason: "quote-not-found",
+      },
+    ]);
+  });
+
+  it("rejects a grounded rubric quote made only of stopwords", () => {
+    const graph = structuredClone(fixture);
+    const weakQuote = "the and of to in a for on with by";
+    graph.sources[0].text += `\n${weakQuote}`;
+    graph.concepts[0].lesson!.steps[0].citation.quotedText = weakQuote;
+
+    expect(invalidRubricCitations(graph)).toEqual([
+      {
+        conceptId: "vectors",
+        itemIndex: 0,
+        reason: "quote-too-weak",
+      },
+    ]);
+  });
+
+  it("accepts a faithful projection of the fixture lesson steps", () => {
+    expect(invalidRubricCitations(fixture)).toEqual([]);
+  });
+});
+
 // --- The real generated graph must satisfy every invariant (fails until `pnpm atomize` runs) ---
 describe("generated data/graph.json", () => {
   // loadGraph() is called INSIDE each test, never in the describe body: a throw
@@ -742,6 +778,10 @@ describe("generated data/graph.json", () => {
 
   it("grounds every generated lesson step in its declared source", () => {
     expect(invalidLessonCitations(loadGraph())).toEqual([]);
+  });
+
+  it("grounds every generated recall-rubric item in its declared source", () => {
+    expect(invalidRubricCitations(loadGraph())).toEqual([]);
   });
 
   it("grounds every generated rendering in its declared source", () => {
