@@ -18,6 +18,7 @@ import {
 import { loadGraph } from "../src/graph/load";
 import { topologicalConceptOrder } from "../src/graph/path";
 import { buildRecallRubric } from "../src/graph/recall-rubric";
+import { licenseWithDeed } from "./export-attribution";
 import type { Concept, LearningGraph, RecallRubric, Source } from "../src/types";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -60,7 +61,8 @@ function assertStructurallyEmittable(graph: LearningGraph): void {
 function modificationNotice(source: Source): string {
   return (
     `Adapted (translated to plain English; atomized into concept lessons; recast as ` +
-    `practice-exam questions) from ${source.title} by ${source.author}, ${source.license}.`
+    `practice-exam questions) from ${source.title} by ${source.author}, ` +
+    `${licenseWithDeed(source.license)}.`
   );
 }
 
@@ -76,7 +78,7 @@ function renderSourceAttribution(source: Source): string {
     `### ${source.id}`,
     `- Title: ${source.title}`,
     `- Author: ${source.author}`,
-    `- License: ${source.license}`,
+    `- License: ${licenseWithDeed(source.license)}`,
     `- URL: ${source.url ?? ""}`,
     `- Modification notice: ${modificationNotice(source)}`,
   ].join("\n");
@@ -90,7 +92,7 @@ function renderReceipt(concept: Concept, source: Source): string {
       `Source ID: ${source.id}`,
       `Title: ${source.title}`,
       `Author: ${source.author}`,
-      `License: ${source.license}`,
+      `License: ${licenseWithDeed(source.license)}`,
       ...(source.url ? [`URL: ${source.url}`] : []),
     ].join("  \n"),
   ].join("\n");
@@ -135,7 +137,11 @@ export function emitExamArtifact(graph: LearningGraph): string {
   // Passage order is the quote's own sort order, not prerequisite order, so Part B is not
   // answerable by position alone. Sorting bytes keeps the emit deterministic without randomness.
   const passages = [...conceptsWithSources].sort((a, b) =>
-    a.concept.provenance.quotedText < b.concept.provenance.quotedText ? -1 : 1,
+    a.concept.provenance.quotedText < b.concept.provenance.quotedText
+      ? -1
+      : a.concept.provenance.quotedText > b.concept.provenance.quotedText
+        ? 1
+        : 0,
   );
   const passageLabelByConceptId = new Map(
     passages.map(({ concept }, index) => [concept.id, `P${index + 1}`]),

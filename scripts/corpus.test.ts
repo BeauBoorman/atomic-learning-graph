@@ -195,3 +195,22 @@ describe("the pinned OpenStax proof corpus", () => {
     expect(extractOpenStaxText(source.toString("utf8"))).toBe(text.toString("utf8"));
   });
 });
+
+describe("the pinned Mill proof corpus", () => {
+  const corpusDir = resolve(repoRoot, "data", "corpora", "mill-utilitarianism");
+  const manifest = JSON.parse(readFileSync(resolve(corpusDir, "sources.json"), "utf8")) as {
+    sources: AuditedSourceEntry[];
+  };
+
+  it("contains exactly one revision-pinned public-domain source", () => {
+    expect(manifest.sources).toEqual([
+      expect.objectContaining({
+        id: "mill-utilitarianism-what-utilitarianism-is",
+        license: "public-domain",
+        revision: expect.objectContaining({
+          commit: "7417ae902febaa7fb3c1c1c83e5ea0d33bef0529",
+        }),
+      }),
+    ]);
+  });
+});

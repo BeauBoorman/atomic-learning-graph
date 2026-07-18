@@ -55,7 +55,8 @@ source_title: "How LLMs work (primer)"
 url: "https://example.test/primer"
 author: "Fixture author"
 license: "CC-BY-SA-4.0"
-modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from How LLMs work (primer) by Fixture author, CC-BY-SA-4.0."
+license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
+modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from How LLMs work (primer) by Fixture author, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 tags:
   - "llm"
   - "transformers"
@@ -96,6 +97,7 @@ URL: https://example.test/primer
   it("attributes the source and identifies the adaptation in every note", () => {
     const graph = loadGraph();
     const notes = emitObsidianVault(graph);
+    const deedUrl = "https://creativecommons.org/licenses/by-sa/4.0/";
     const noteById = new Map(
       notes.map(({ filename, bytes }) => [filename.slice(0, -3), bytes]),
     );
@@ -108,10 +110,11 @@ URL: https://example.test/primer
       expect(note).toContain(`source_title: ${JSON.stringify(source.title)}`);
       expect(note).toContain(`author: ${JSON.stringify(source.author)}`);
       expect(note).toContain(`license: ${JSON.stringify(source.license)}`);
+      expect(note).toContain(`license_deed: ${JSON.stringify(deedUrl)}`);
       expect(note).toContain(
         `modification_notice: ${JSON.stringify(
           `Adapted (translated to plain English; atomized into concept lessons) from ` +
-            `${source.title} by ${source.author}, ${source.license}.`,
+            `${source.title} by ${source.author}, ${source.license} (${deedUrl}).`,
         )}`,
       );
     }

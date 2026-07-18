@@ -86,7 +86,7 @@ Source receipt:
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
 
 #### Recall rubric
@@ -124,7 +124,7 @@ Source receipt:
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
 
 #### Recall rubric
@@ -171,7 +171,7 @@ Source receipt:
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
 
 #### Recall rubric
@@ -204,7 +204,7 @@ Source receipt:
 Source ID: d2l-softmax-regression  
 Title: Dive into Deep Learning — 4.1 Softmax Regression  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
 
 #### Recall rubric
@@ -237,7 +237,7 @@ Source receipt:
 Source ID: d2l-queries-keys-values  
 Title: Dive into Deep Learning — 11.1 Queries, Keys, and Values  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
 
 #### Recall rubric
@@ -275,7 +275,7 @@ Source receipt:
 Source ID: d2l-queries-keys-values  
 Title: Dive into Deep Learning — 11.1 Queries, Keys, and Values  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
 
 #### Recall rubric
@@ -303,7 +303,7 @@ Source receipt:
 Source ID: d2l-self-attention  
 Title: Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
 
 #### Recall rubric
@@ -336,7 +336,7 @@ Source receipt:
 Source ID: d2l-self-attention  
 Title: Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
 
 #### Recall rubric
@@ -369,7 +369,7 @@ Source receipt:
 Source ID: d2l-softmax-regression  
 Title: Dive into Deep Learning — 4.1 Softmax Regression  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
 
 #### Recall rubric
@@ -397,7 +397,7 @@ Source receipt:
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
 Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola  
-License: CC-BY-SA-4.0  
+License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)  
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
 
 #### Recall rubric
@@ -442,27 +442,27 @@ A self-check passes an item only when every listed source-derived term appears i
 ### d2l-linear-algebra
 - Title: Dive into Deep Learning — 2.3 Linear Algebra
 - Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
-- License: CC-BY-SA-4.0
+- License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 - URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
-- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 2.3 Linear Algebra by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0.
+- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 2.3 Linear Algebra by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
 
 ### d2l-queries-keys-values
 - Title: Dive into Deep Learning — 11.1 Queries, Keys, and Values
 - Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
-- License: CC-BY-SA-4.0
+- License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 - URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
-- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 11.1 Queries, Keys, and Values by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0.
+- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 11.1 Queries, Keys, and Values by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
 
 ### d2l-self-attention
 - Title: Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding
 - Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
-- License: CC-BY-SA-4.0
+- License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 - URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
-- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0.
+- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
 
 ### d2l-softmax-regression
 - Title: Dive into Deep Learning — 4.1 Softmax Regression
 - Author: Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
-- License: CC-BY-SA-4.0
+- License: CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 - URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
-- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 4.1 Softmax Regression by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0.
+- Modification notice: Adapted (translated to plain English; atomized into concept lessons; recast as practice-exam questions) from Dive into Deep Learning — 4.1 Softmax Regression by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/).

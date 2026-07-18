@@ -15,6 +15,7 @@ import {
 } from "../src/graph/invariants";
 import { loadGraph } from "../src/graph/load";
 import { topologicalConceptOrder } from "../src/graph/path";
+import { licenseWithDeed } from "./export-attribution";
 import type { Concept, LearningGraph, Source } from "../src/types";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -65,7 +66,7 @@ export function escapeAnkiField(value: string): string {
 function modificationNotice(source: Source): string {
   return (
     `Adapted (translated to plain English; atomized into concept lessons) from ${source.title} ` +
-    `by ${source.author}, ${source.license}.`
+    `by ${source.author}, ${licenseWithDeed(source.license)}.`
   );
 }
 
@@ -78,7 +79,7 @@ function renderSourceAttribution(source: Source): string[] {
     `# Attribution source: ${commentValue(source.id)}`,
     `# Title: ${commentValue(source.title)}`,
     `# Author: ${commentValue(source.author)}`,
-    `# License: ${commentValue(source.license)}`,
+    `# License: ${commentValue(licenseWithDeed(source.license))}`,
     `# URL: ${commentValue(source.url ?? "")}`,
     `# ${commentValue(modificationNotice(source))}`,
   ];
@@ -95,7 +96,7 @@ function renderCard(concept: Concept, source: Source): string {
       `Source ID: ${source.id}`,
       `Title: ${source.title}`,
       `Author: ${source.author}`,
-      `License: ${source.license}`,
+      `License: ${licenseWithDeed(source.license)}`,
       ...(source.url ? [`URL: ${source.url}`] : []),
       `Modification notice: ${modificationNotice(source)}`,
     ].join("\n"),

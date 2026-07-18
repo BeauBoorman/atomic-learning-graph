@@ -81,15 +81,18 @@ describe("practice exam build artifact", () => {
   it("emits every used source attribution with a modification notice", () => {
     const graph = loadGraph();
     const emitted = emitExamArtifact(graph);
+    const deedUrl = "https://creativecommons.org/licenses/by-sa/4.0/";
     const usedSourceIds = new Set(
       graph.concepts.map(({ provenance }) => provenance.sourceId),
     );
 
     for (const source of graph.sources.filter(({ id }) => usedSourceIds.has(id))) {
       expect(emitted).toContain(`### ${source.id}`);
+      expect(emitted).toContain(`- License: ${source.license} (${deedUrl})`);
       expect(emitted).toContain(
         `Adapted (translated to plain English; atomized into concept lessons; recast as ` +
-          `practice-exam questions) from ${source.title} by ${source.author}, ${source.license}.`,
+          `practice-exam questions) from ${source.title} by ${source.author}, ` +
+          `${source.license} (${deedUrl}).`,
       );
     }
   });

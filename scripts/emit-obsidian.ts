@@ -23,6 +23,7 @@ import {
 } from "../src/graph/invariants";
 import { loadGraph } from "../src/graph/load";
 import { topologicalConceptOrder } from "../src/graph/path";
+import { licenseDeedUrl, licenseWithDeed } from "./export-attribution";
 import type { Concept, LearningGraph, Source } from "../src/types";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -72,7 +73,7 @@ function markdownQuote(value: string): string {
 function modificationNotice(source: Source): string {
   return (
     `Adapted (translated to plain English; atomized into concept lessons) from ${source.title} ` +
-    `by ${source.author}, ${source.license}.`
+    `by ${source.author}, ${licenseWithDeed(source.license)}.`
   );
 }
 
@@ -87,6 +88,7 @@ function renderFrontmatter(concept: Concept, source: Source): string {
     `url: ${yamlString(source.url ?? "")}`,
     `author: ${yamlString(source.author)}`,
     `license: ${yamlString(source.license)}`,
+    `license_deed: ${yamlString(licenseDeedUrl(source.license) ?? "")}`,
     `modification_notice: ${yamlString(modificationNotice(source))}`,
     ...(tags.length > 0
       ? ["tags:", ...tags.map((tag) => `  - ${yamlString(tag)}`)]

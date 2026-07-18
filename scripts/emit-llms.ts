@@ -17,6 +17,7 @@ import {
 } from "../src/graph/invariants";
 import { loadGraph, loadRenderingsForVerification } from "../src/graph/load";
 import { topologicalConceptOrder } from "../src/graph/path";
+import { licenseWithDeed } from "./export-attribution";
 import type {
   AlternateFormat,
   Concept,
@@ -24,6 +25,7 @@ import type {
   LessonStep,
   Rendering,
   RenderingSet,
+  Source,
 } from "../src/types";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -98,6 +100,24 @@ function renderCitation(step: LessonStep): string {
   return `${step.text}\n\nSource: \`${step.citation.sourceId}\`\n\n${markdownQuote(step.citation.quotedText)}`;
 }
 
+function modificationNotice(source: Source): string {
+  return (
+    `Adapted (translated to plain English; atomized into concept lessons) from ${source.title} ` +
+    `by ${source.author}, ${licenseWithDeed(source.license)}.`
+  );
+}
+
+function renderSourceAttribution(source: Source): string {
+  return [
+    `### ${source.id}`,
+    `- Title: ${source.title}`,
+    `- Author: ${source.author}`,
+    `- License: ${licenseWithDeed(source.license)}`,
+    `- URL: ${source.url ?? ""}`,
+    `- Modification notice: ${modificationNotice(source)}`,
+  ].join("\n");
+}
+
 const FORMAT_LABELS: Record<AlternateFormat, string> = {
   "why-it-exists": "Why it exists",
   "how-it-works": "How it works",
@@ -147,6 +167,7 @@ export function emitLlmsArtifacts(
   for (const issue of invalidLessonCitations(graph)) invalidConcepts.add(issue.conceptId);
 
   const conceptById = new Map(graph.concepts.map((concept) => [concept.id, concept]));
+  const sourceById = new Map(graph.sources.map((source) => [source.id, source]));
   const orderedConcepts = topologicalConceptOrder(graph)
     .map((id) => conceptById.get(id))
     .filter((concept): concept is Concept => concept !== undefined && !invalidConcepts.has(concept.id));
@@ -163,6 +184,17 @@ export function emitLlmsArtifacts(
     renderings.sort((left, right) => FORMAT_ORDER[left.format] - FORMAT_ORDER[right.format]);
   }
 
+  const sourceAttributions = [
+    "## Source attributions",
+    ...[...new Set(orderedConcepts.map(({ provenance }) => provenance.sourceId))]
+      .sort()
+      .map((sourceId) => {
+        const source = sourceById.get(sourceId);
+        if (!source) throw new Error(`validated source attribution ${sourceId} has no source`);
+        return renderSourceAttribution(source);
+      }),
+  ].join("\n\n");
+
   const { title, thesis } = projectCopy(readme);
   const indexLines = [
     `# ${title}`,
@@ -178,6 +210,8 @@ export function emitLlmsArtifacts(
         : link;
     }),
     "",
+    sourceAttributions,
+    "",
   ];
 
   const fullSections = [
@@ -187,6 +221,7 @@ export function emitLlmsArtifacts(
     ...orderedConcepts.map((concept) =>
       renderConcept(concept, renderingsByConcept.get(concept.id) ?? [])
     ),
+    sourceAttributions,
   ];
 
   return {

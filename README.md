@@ -20,12 +20,6 @@ The whole project, in five steps:
    prove — each boundary is labelled, not hidden.
 5. **Build your own.** Paste your own open text and key into the builder; it compiles a course with the same guarantees, offline.
 
-<!-- GIF still to cut from the finished app: one 6-second loop — pick a goal → lesson page →
-     tap the footnote mark → the source sheet opens → the highlight draws under the real sentence.
-     Then uncomment the line below (docs/demo.gif exists).
-![Pick a goal, read one idea, check the receipt](docs/demo.gif)
--->
-
 Pick something you want to understand. We work backwards through a prerequisite graph to the ideas
 it rests on, and teach them one page at a time, in order. Every page is a plain-English translation
 of a passage from *Dive into Deep Learning* (Zhang, Lipton, Li & Smola), pinned to commit
@@ -147,9 +141,11 @@ guarantees travel — not the headline.
   [org-roam graph](atomic-learning-graph.org), an [Obsidian vault](exports/obsidian/), an
   [Anki deck](atomic-learning-graph-anki.tsv), and a
   [grounded practice exam](atomic-learning-graph-exam.md) — the most education-shaped artifact:
-  every answer in its key carries the verbatim source passage that grounds it. Each export carries
-  CC-BY-SA attribution and a modification notice. `pnpm verify:llms|orgroam|obsidian|anki|exam`
-  gate them against the committed graph.
+  every answer in its key carries the verbatim source passage that grounds it — plus a
+  machine-checkable [course receipt](data/course.receipt.json). The five learning-content exports
+  carry CC-BY-SA attribution, a deed link, and a modification notice; the receipt records the work,
+  authors, license, revision, and graph hash. `pnpm verify:llms|orgroam|obsidian|anki|exam|receipt`
+  gates them against the committed graph.
 
 **Retention is a handoff, not a rebuild.** This project compiles the inspectable artifact; long-term
 spaced review rides on Anki’s proven scheduler via the gated Anki export. We do not reimplement a
@@ -195,6 +191,18 @@ pnpm preview
 
 Use `pnpm preview` rather than opening `dist/index.html` directly because a `file://` origin cannot
 load the built module.
+
+### Rebuild the artifacts
+
+- `pnpm estimate:cost -- path/to/source.txt` estimates atomization cost locally without a model call.
+- `pnpm render` regenerates paid alternate renderings; it requires an API key and makes two model calls per concept.
+- `pnpm demo:tamper` runs the five in-memory tamper scenarios against the production gates.
+- `pnpm emit:llms` rebuilds `llms.txt` and `llms-full.txt` from the committed graph and renderings.
+- `pnpm emit:orgroam` rebuilds the org-roam graph from the committed graph.
+- `pnpm emit:obsidian` rebuilds the Obsidian vault from the committed graph.
+- `pnpm emit:anki` rebuilds the Anki TSV deck from the committed graph.
+- `pnpm emit:exam` rebuilds the grounded practice exam from the committed graph.
+- `pnpm emit:receipt` rebuilds the machine-checkable course receipt from committed build facts.
 
 Atomization is a separate build-time operation and requires `OPENAI_API_KEY`. Output is always
 explicit; a run cannot silently replace the committed demo graph:

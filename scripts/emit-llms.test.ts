@@ -92,6 +92,29 @@ describe("llms.txt build artifacts", () => {
     expect(emitted.full.match(/^#### How it works:/gmu)).toHaveLength(10);
   });
 
+  it("attributes every used source with its author, license deed, and modification notice", () => {
+    const graph = loadGraph();
+    const emitted = emitLlmsArtifacts(
+      graph,
+      loadRenderingsForVerification(),
+      readFileSync("README.md", "utf8"),
+    );
+    const deedUrl = "https://creativecommons.org/licenses/by-sa/4.0/";
+
+    for (const artifact of [emitted.index, emitted.full]) {
+      expect(artifact).toContain("## Source attributions");
+      for (const source of graph.sources) {
+        expect(artifact).toContain(`- Author: ${source.author}`);
+        expect(artifact).toContain(`- License: ${source.license} (${deedUrl})`);
+        expect(artifact).toContain(
+          `- Modification notice: Adapted (translated to plain English; atomized into ` +
+            `concept lessons) from ${source.title} by ${source.author}, ` +
+            `${source.license} (${deedUrl}).`,
+        );
+      }
+    }
+  });
+
   it("makes verification fail on a one-character committed-file edit", () => {
     const directory = mkdtempSync(join(tmpdir(), "atomic-llms-"));
     const paths = {

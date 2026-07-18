@@ -29,6 +29,7 @@ function markupWith(resumePageCount: number): string {
 describe("Entry resume affordance", () => {
   it("offers a fresh start by default", () => {
     const markup = markupWith(0);
+    expect(markup).toContain("Compiled once from cited sources — no AI at read time.");
     expect(markup).toContain("Start learning");
     expect(markup).not.toContain("Continue where I left off");
   });

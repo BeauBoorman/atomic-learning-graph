@@ -64,15 +64,16 @@ describe("org-roam build artifact", () => {
   it("attributes every source and identifies the adaptation", () => {
     const graph = loadGraph();
     const emitted = emitOrgRoamArtifact(graph);
+    const deedUrl = "https://creativecommons.org/licenses/by-sa/4.0/";
 
     for (const source of graph.sources) {
       const notice =
         `Adapted (translated to plain English; atomized into concept lessons) from ` +
-        `${source.title} by ${source.author}, ${source.license}.`;
+        `${source.title} by ${source.author}, ${source.license} (${deedUrl}).`;
       expect(emitted).toContain("* Source Attributions");
       expect(emitted).toContain(`Title: ${source.title}`);
       expect(emitted).toContain(`Author: ${source.author}`);
-      expect(emitted).toContain(`License: ${source.license}`);
+      expect(emitted).toContain(`License: ${source.license} (${deedUrl})`);
       expect(emitted).toContain(`URL: ${source.url ?? ""}`);
       expect(emitted).toContain(notice);
     }

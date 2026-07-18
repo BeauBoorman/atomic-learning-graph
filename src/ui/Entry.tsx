@@ -50,6 +50,7 @@ export function Entry({
     <main className="entry" id="main-content">
       <p className="eyebrow">Build a short learning path</p>
       <h1>What do you want to understand?</h1>
+      <p className="entry-thesis">Compiled once from cited sources — no AI at read time.</p>
       <p className="lede">Choose a goal. We will start with the ideas you need first.</p>
 
       <form

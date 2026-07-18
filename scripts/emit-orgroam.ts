@@ -16,6 +16,7 @@ import {
 } from "../src/graph/invariants";
 import { loadGraph } from "../src/graph/load";
 import { topologicalConceptOrder } from "../src/graph/path";
+import { licenseWithDeed } from "./export-attribution";
 import type { Concept, LearningGraph, LessonStep, Source } from "../src/types";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -57,7 +58,7 @@ function sourceReference(source: Source): string {
 function modificationNotice(source: Source): string {
   return (
     `Adapted (translated to plain English; atomized into concept lessons) from ${source.title} ` +
-    `by ${source.author}, ${source.license}.`
+    `by ${source.author}, ${licenseWithDeed(source.license)}.`
   );
 }
 
@@ -66,7 +67,7 @@ function renderSourceAttribution(source: Source): string {
     `** ${source.id}`,
     `Title: ${source.title}`,
     `Author: ${source.author}`,
-    `License: ${source.license}`,
+    `License: ${licenseWithDeed(source.license)}`,
     `URL: ${source.url ?? ""}`,
     `Modification notice: ${modificationNotice(source)}`,
   ].join("\n");

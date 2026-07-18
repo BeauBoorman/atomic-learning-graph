@@ -52,6 +52,7 @@ describe("Anki build artifact", () => {
   it("emits one Basic card per atom with its source receipt", () => {
     const graph = loadGraph();
     const rows = cardRows(emitAnkiArtifact(graph));
+    const deedUrl = "https://creativecommons.org/licenses/by-sa/4.0/";
 
     expect(rows).toHaveLength(graph.concepts.length);
     for (const concept of graph.concepts) {
@@ -64,11 +65,11 @@ describe("Anki build artifact", () => {
       expect(row).toContain(`Source ID: ${source.id}`);
       expect(row).toContain(`Title: ${source.title}`);
       expect(row).toContain(`Author: ${source.author}`);
-      expect(row).toContain(`License: ${source.license}`);
+      expect(row).toContain(`License: ${source.license} (${deedUrl})`);
       if (source.url) expect(row).toContain(`URL: ${source.url}`);
       expect(row).toContain(
         `Adapted (translated to plain English; atomized into concept lessons) from ` +
-          `${source.title} by ${source.author}, ${source.license}.`,
+          `${source.title} by ${source.author}, ${source.license} (${deedUrl}).`,
       );
     }
   });
@@ -76,6 +77,7 @@ describe("Anki build artifact", () => {
   it("emits every used source attribution in leading comment lines", () => {
     const graph = loadGraph();
     const emitted = emitAnkiArtifact(graph);
+    const deedUrl = "https://creativecommons.org/licenses/by-sa/4.0/";
     const firstCardOffset = emitted.indexOf(cardRows(emitted)[0]);
     const usedSourceIds = new Set(
       graph.concepts.map(({ provenance }) => provenance.sourceId),
@@ -84,12 +86,12 @@ describe("Anki build artifact", () => {
     for (const source of graph.sources.filter(({ id }) => usedSourceIds.has(id))) {
       const notice =
         `Adapted (translated to plain English; atomized into concept lessons) from ` +
-        `${source.title} by ${source.author}, ${source.license}.`;
+        `${source.title} by ${source.author}, ${source.license} (${deedUrl}).`;
       for (const expected of [
         `# Attribution source: ${source.id}`,
         `# Title: ${source.title}`,
         `# Author: ${source.author}`,
-        `# License: ${source.license}`,
+        `# License: ${source.license} (${deedUrl})`,
         `# URL: ${source.url ?? ""}`,
         `# ${notice}`,
       ]) {
