@@ -2,34 +2,29 @@
   "advisoryOnly": true,
   "warnings": [
     {
-      "conceptId": "attention-pooling",
-      "grade": 12.45,
-      "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 12.45"
+      "conceptId": "matrix-vector-product",
+      "summary": "A matrix–vector product contains one dot product between the input vector and each row of the matrix.",
+      "signal": "coordinating-and-or",
+      "reason": "summary reads as an enumeration: A matrix–vector product contains one dot product between the input vector and each row of the matrix.",
+      "confidence": "high"
     },
     {
-      "conceptId": "qkv",
-      "grade": 10.3,
+      "conceptId": "dot-product",
+      "grade": 10,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.3"
+      "reason": "lesson readability is estimated at US grade 10"
+    },
+    {
+      "conceptId": "positional-encoding",
+      "grade": 11.08,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 11.08"
     },
     {
       "conceptId": "self-attention",
-      "grade": 11.55,
+      "grade": 10.38,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 11.55"
-    },
-    {
-      "conceptId": "softmax",
-      "grade": 14.25,
-      "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 14.25"
-    },
-    {
-      "conceptId": "vectors",
-      "grade": 10.01,
-      "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.01"
+      "reason": "lesson readability is estimated at US grade 10.38"
     }
   ]
 }

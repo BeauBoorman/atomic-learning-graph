@@ -54,7 +54,7 @@ Every claim on this page is a property of the committed artifact, not a descript
 | Claim | Where it is enforced |
 |---|---|
 | Nothing is generated at read time | After `pnpm build`, `pnpm verify:bundle` scans emitted JavaScript, HTML and CSS for network clients, the model vendor and remote assets. `src/ui/gate9.test.ts` keeps a faster source-level tripwire, but the hard claim rests on the bytes shipped to the learner. The app runs offline. |
-| Every lesson step is anchored to a real sentence | All **27** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
+| Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it. A single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 source sections (spanning three chapters), licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
@@ -75,8 +75,8 @@ The model still proposes the grounded content inside those ten slots: titles, su
 ten concept-level quote selections, all lesson steps, and all analogies. The graph and citations then
 face deterministic gates; analogies remain optional illustrations.
 
-The shipped artifact: **10 concepts, 9 prerequisite relationships, 27 cited lesson steps** (18 core,
-9 deep) and **162 optional analogies** across 6 interests, plus the complete text of the four
+The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (21 core,
+10 deep) and **186 optional analogies** across 6 interests, plus the complete text of the four
 pinned sources, embedded so the receipt can be verified in the browser with no request.
 
 ## How it is made
@@ -140,7 +140,7 @@ guarantees travel — not the headline.
 
 - **A build receipt.** The compile records a machine-checkable receipt in
   [`data/graph.run.json`](data/graph.run.json): the source corpus and pin, the model, token usage,
-  cost, and the graph's sha256 (`016dd241…`) that `src/atomization/graph-run.test.ts` recomputes. It
+  cost, and the graph's sha256 (`1672b7d6…`) that `src/atomization/graph-run.test.ts` recomputes. It
   distinguishes the human-specified structure from the model-generated prose, and records that the
   browser makes zero model calls.
 - **Six exports, attribution-clean.** The one graph emits an `llms.txt` manifest, an
@@ -160,8 +160,8 @@ forgetting-curve engine — we hand clean, cited cards to one that is already tr
 - **Bring your own text and key.** `builder/` compiles a course from any pasted open text with your
   own OpenAI, Anthropic, or compatible key. The key lives in memory only, never written to disk. Same
   offline guarantees, your corpus.
-- **Cost is stated, not hidden.** The demo graph cost **$0.43** to compile (~**$0.043** per concept,
-  31,492 tokens). `src/cost/estimator.ts` is a pure, no-network estimator surfaced in both the reader
+- **Cost is stated, not hidden.** The demo graph cost **$0.44** to compile (~**$0.044** per concept,
+  36,871 tokens). `src/cost/estimator.ts` is a pure, no-network estimator surfaced in both the reader
   and the builder.
 
 ## Run it
@@ -291,7 +291,7 @@ Honest limits, stated up front:
   broader corpus and an explicit `--no-spine` run are the next relationship-mesh experiment, not a
   promised outcome or new graph architecture.
 - **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
-  alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 60 cited
+  alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 63 cited
   steps. Their citations and run-log hash are gated. On-demand renderings remain in
   [ROADMAP.md](ROADMAP.md); the learned atomicity judge is opt-in advisory evidence, not a gate.
 

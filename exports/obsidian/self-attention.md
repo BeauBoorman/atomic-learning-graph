@@ -8,12 +8,13 @@ author: "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola"
 license: "CC-BY-SA-4.0"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0."
 tags:
+  - "attention"
   - "self-attention"
-  - "sequence modeling"
+  - "sequence encoding"
   - "tokens"
 ---
 
-Self-attention lets every token attend to every other token when constructing token representations.
+Self-attention lets every token attend to every other token in the same sequence.
 
 ## Prerequisites
 

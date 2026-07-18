@@ -18,23 +18,27 @@ const steps = graph.concepts.flatMap((concept) =>
  *  passes its own test while "pytorch" renders mid-sentence inside the source panel. */
 const LEAK = /#{1,6}\s|:(?:begin|end)_tab:|\b(?:pytorch|mxnet|tensorflow|jax)\b/i;
 
-describe("sourceProse — the d2l corpus is markdown flattened to one line", () => {
-  it("proves the premise: sentenceAround's newline boundary is dead code", () => {
-    // If this ever fails the sanitizer is solving a problem that no longer exists — the
-    // extractor started keeping newlines, sentenceAround's "\n" boundary went live, and the
-    // headings stopped welding onto passages at the source.
-    expect(steps.length).toBe(27);
-    for (const source of graph.sources) {
-      expect(source.text.length).toBeGreaterThan(7000);
-      expect([...source.text.matchAll(/\n/g)]).toHaveLength(1);
+describe("sourceProse — the d2l corpus preserves source LaTeX", () => {
+  it("keeps every landed lesson quote byte-exact while preserving display-math newlines", () => {
+    expect(steps.length).toBe(31);
+    expect(graph.sources.some((source) => [...source.text.matchAll(/\n/g)].length > 1)).toBe(true);
+    for (const concept of graph.concepts) {
+      for (const step of concept.lesson?.steps ?? []) {
+        const source = graph.sources.find(({ id }) => id === step.citation.sourceId);
+        expect(source, `${concept.id} source`).toBeDefined();
+        expect(
+          Buffer.from(source?.text ?? "").includes(Buffer.from(step.citation.quotedText)),
+          `${concept.id} quote is not a byte-exact source substring`,
+        ).toBe(true);
+      }
     }
   });
 
-  it("leaks markdown into 4 of 27 rendered passages before sanitizing", () => {
+  it("leaks markdown into 5 of 31 rendered passages before sanitizing", () => {
     const leaking = steps.filter(({ id, stepIndex }) =>
       LEAK.test(resolveCitation(graph, id, stepIndex).passage),
     );
-    expect(leaking).toHaveLength(4);
+    expect(leaking).toHaveLength(5);
   });
 
   it("leaks nothing into any of the 31 after sanitizing", () => {

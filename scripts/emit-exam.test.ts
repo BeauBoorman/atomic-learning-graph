@@ -56,7 +56,11 @@ describe("practice exam build artifact", () => {
       if (!source) throw new Error(`committed concept ${concept.id} lost its source`);
       expect(emitted).toContain(`In your own words, explain **${concept.title}**.`);
       expect(emitted).toContain(concept.summary);
-      expect(emitted).toContain(`> ${concept.provenance.quotedText}`);
+      const quotedText = concept.provenance.quotedText
+        .split(/\r\n|\r|\n/u)
+        .map((line) => `> ${line}`)
+        .join("\n");
+      expect(emitted).toContain(quotedText);
       expect(emitted).toContain(`Source ID: ${source.id}`);
       expect(emitted).toContain(`→ ${concept.title} (\`${concept.id}\`)`);
     }

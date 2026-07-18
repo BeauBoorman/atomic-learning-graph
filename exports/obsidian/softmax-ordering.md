@@ -8,12 +8,13 @@ author: "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola"
 license: "CC-BY-SA-4.0"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 4.1 Softmax Regression by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0."
 tags:
+  - "argmax"
   - "classification"
   - "ordering"
   - "softmax"
 ---
 
-Softmax preserves the ordering of its inputs, so the largest input also identifies the highest-probability class.
+Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
 
 ## Prerequisites
 

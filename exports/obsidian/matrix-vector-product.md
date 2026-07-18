@@ -10,10 +10,11 @@ modification_notice: "Adapted (translated to plain English; atomized into concep
 tags:
   - "linear algebra"
   - "matrices"
+  - "matrix-vector product"
   - "vectors"
 ---
 
-A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
+A matrix–vector product contains one dot product between the input vector and each row of the matrix.
 
 ## Prerequisites
 
@@ -25,4 +26,18 @@ Source: d2l-linear-algebra
 
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
 
-> The matrix--vector product is simply a column vector of length m, whose element is the dot product : We can think of multiplication with a matrix as a transformation that projects vectors from to .
+> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$: $$
+> \mathbf{A}\mathbf{x}
+> = \begin{bmatrix}
+> \mathbf{a}^\top_{1} \\
+> \mathbf{a}^\top_{2} \\
+> \vdots \\
+> \mathbf{a}^\top_m \\
+> \end{bmatrix}\mathbf{x}
+> = \begin{bmatrix}
+>  \mathbf{a}^\top_{1} \mathbf{x}  \\
+>  \mathbf{a}^\top_{2} \mathbf{x} \\
+> \vdots\\
+>  \mathbf{a}^\top_{m} \mathbf{x}\\
+> \end{bmatrix}.
+> $$

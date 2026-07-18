@@ -9,7 +9,6 @@ import {
   D2L_TAG,
   extractAuditedSource,
   extractD2LText,
-  extractD2LTextLegacy,
   extractOpenStaxText,
   verifyLicenseEvidence,
   localSourcePath,
@@ -112,14 +111,14 @@ The norm is expressed as ($\\sum_i x_i^2$).`;
     ).not.toThrow();
   });
 
-  it("keeps the stored d2l extraction bytes unchanged", () => {
+  it("keeps the stored d2l extraction bytes equal to the LaTeX-preserving transform", () => {
     const manifest = JSON.parse(readFileSync(resolve(oerDir, "sources.json"), "utf8")) as {
       sources: AuditedSourceEntry[];
     };
     for (const entry of manifest.sources) {
       const upstream = readFileSync(resolve(oerDir, localSourcePath(entry)), "utf8");
       const stored = readFileSync(resolve(oerDir, entry.textPath), "utf8");
-      expect(extractD2LTextLegacy(upstream)).toBe(stored);
+      expect(extractD2LText(upstream)).toBe(stored);
     }
   });
 });
