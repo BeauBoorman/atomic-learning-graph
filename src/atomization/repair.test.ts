@@ -90,6 +90,27 @@ describe("full product graph specification", () => {
     );
   });
 
+  it("rejects an empty-graph stub as typed full-spine convergence failures", () => {
+    const emptyGraph: LearningGraph = {
+      ...clone(committedGraph),
+      concepts: [],
+      edges: [],
+      sources: [],
+    };
+
+    expect(
+      convergenceIssues(emptyGraph, { minConcepts: 10, structure: FULL_GRAPH_SPINE }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "golden-node" }),
+        expect.objectContaining({ kind: "golden-edge" }),
+        expect.objectContaining({ kind: "path" }),
+        expect.objectContaining({ kind: "concept-floor" }),
+        expect.objectContaining({ kind: "source" }),
+      ]),
+    );
+  });
+
   it("treats a duplicate pinned edge as drift instead of accepting ten edge entries", () => {
     const drifted = clone(committedGraph);
     drifted.edges.push({ ...drifted.edges[0]! });
