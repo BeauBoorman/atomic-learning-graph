@@ -69,6 +69,16 @@ describe("unpinned source chunking", () => {
       ]);
   });
 
+  it("hardens sentence boundaries in plain prose without structural markers", () => {
+    const text = "See Fig. 2 and Dr. A. Smith et al. 2020. New sentence uses p < 0.05 and code F32.1.";
+    const chunks = chunkSourceText(text, 60);
+
+    expect(chunks.some((c) => c.includes("See Fig. 2 and Dr. A. Smith et al. 2020."))).toBe(true);
+    expect(chunks.some((c) => c.includes("New sentence uses p < 0.05 and code F32.1."))).toBe(true);
+    expect(chunks.some((c) => /(?:Fig|Dr|A|al)\.$/.test(c))).toBe(false);
+    expect(chunks.every((c) => text.includes(c))).toBe(true);
+  });
+
   it("returns only byte-exact source substrings for mixed structured input", () => {
     const text = [
       "Introductory prose about vectors.",

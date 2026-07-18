@@ -218,10 +218,6 @@ interface SourceLineRange {
 const CHUNK_OVERSIZE_MULTIPLE = 4;
 const CHUNK_BOUNDARY_EPSILON = 1;
 
-function hasStructuredChunkingSignal(text: string): boolean {
-  return /```|~~~|\$|\\(?:begin\{|\[|\()|^\s*\|.*\|\s*$|^#{1,6}\s+|^\s*(?:[-+*]|\d+[.)])\s+|^\s*\d+:\d+(?:[-–]\d+)?\s+/mu.test(text);
-}
-
 function sourceLineRanges(text: string): SourceLineRange[] {
   const lines: SourceLineRange[] = [];
   let start = 0;
@@ -663,6 +659,11 @@ function recursivelySplitChunkRange(
     });
   }
 
+  // Preserve the original contract for one indivisible top-level prose passage: semantic units
+  // may exceed the target size. Descendants created by the hierarchy still reach the strict,
+  // progressing hard-slice fallback below, as do inputs containing multiple legacy passages.
+  if (level === 0 && sourcePassages(text.slice(range.start, range.end)).length === 1) return [range];
+
   // SAFE: terminal fallback advances strictly and only locates slice boundaries.
   return forceSliceRange(text, range, size, ceiling, masks);
 }
@@ -750,7 +751,6 @@ export function chunkSourceText(text: string, size = 12000): string[] {
   if (!Number.isSafeInteger(size) || size <= 0) {
     throw new Error("chunk size must be a positive safe integer");
   }
-  if (!hasStructuredChunkingSignal(text)) return legacyChunkSourceText(text, size);
   // A string[] has no diagnostics/tag channel. Context hints, polarity flags, and delimiter or
   // oversize labels therefore remain extractor-layer work; boundaries are the only signal here.
   return structuredChunkSourceText(text, size);
