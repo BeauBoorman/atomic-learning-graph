@@ -5,6 +5,12 @@ import { join, resolve } from "node:path";
 
 const MINIMUM_TEXT_LENGTH = 300;
 const MAXIMUM_TEXT_LENGTH = 250_000;
+const SUPPORTED_PROVIDERS = new Set(["openai", "anthropic", "openai-compatible"]);
+const DEFAULT_MODELS = {
+  openai: "gpt-5.6-sol",
+  anthropic: "claude-opus-4-8",
+  "openai-compatible": "",
+};
 
 function cleanField(value, fallback, maximumLength = 120) {
   if (typeof value !== "string") return fallback;
@@ -24,26 +30,53 @@ function redactValue(value, secret) {
 export function validateBuildInput(input) {
   const text = typeof input?.text === "string" ? input.text.trim() : "";
   const apiKey = typeof input?.apiKey === "string" ? input.apiKey.trim() : "";
+  const provider = typeof input?.provider === "string" ? input.provider : "openai";
+  if (!SUPPORTED_PROVIDERS.has(provider)) throw new Error("Choose a supported model provider.");
+  const model = cleanField(input?.model, DEFAULT_MODELS[provider], 200);
+  const baseUrl = typeof input?.baseUrl === "string" ? input.baseUrl.trim() : "";
   if (text.length < MINIMUM_TEXT_LENGTH) {
     throw new Error(`Paste at least ${MINIMUM_TEXT_LENGTH.toLocaleString("en-US")} characters so there is enough material for a course.`);
   }
   if (text.length > MAXIMUM_TEXT_LENGTH) {
     throw new Error(`Keep this MVP build under ${MAXIMUM_TEXT_LENGTH.toLocaleString("en-US")} characters.`);
   }
-  if (apiKey.length < 12) throw new Error("Enter a valid OpenAI API key.");
+  if (apiKey.length < 12) throw new Error("Enter a valid API key for the selected provider.");
+  if (!model) throw new Error("Enter the high-quality model you want to trust with this course.");
+  if (provider === "openai-compatible") {
+    let endpoint;
+    try {
+      endpoint = new URL(baseUrl);
+    } catch {
+      throw new Error("Enter an absolute HTTP(S) base URL for the compatible endpoint.");
+    }
+    if (
+      !["http:", "https:"].includes(endpoint.protocol) ||
+      endpoint.username ||
+      endpoint.password ||
+      endpoint.search ||
+      endpoint.hash
+    ) {
+      throw new Error("Enter an absolute HTTP(S) base URL without credentials, a query, or a fragment.");
+    }
+  }
   if (input?.ownedContentAccepted !== true) {
     throw new Error("Confirm that you own the text and may embed it in this CC0 course artifact.");
   }
   return {
     text,
     apiKey,
+    provider,
+    model,
+    baseUrl,
     title: cleanField(input.title, "My course"),
     author: cleanField(input.author, "Course creator"),
   };
 }
 
-export function createCourseBuilder({ atomizer, packager, makeTempDirectory = () => mkdtemp(join(tmpdir(), "atomic-course-builder-")) }) {
-  if (!atomizer || !packager) throw new Error("course builder requires atomizer and packager seams");
+export function createCourseBuilder({ atomizer, atomizerFactory, packager, makeTempDirectory = () => mkdtemp(join(tmpdir(), "atomic-course-builder-")) }) {
+  if ((!atomizer && !atomizerFactory) || !packager) {
+    throw new Error("course builder requires atomizer and packager seams");
+  }
 
   return async function buildCourse(input, onProgress = () => undefined) {
     const validated = validateBuildInput(input);
@@ -71,15 +104,22 @@ export function createCourseBuilder({ atomizer, packager, makeTempDirectory = ()
     await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
 
     emit({ type: "stage", stage: "atomizing", message: "Finding one-concept lessons and their prerequisite order…" });
+    const activeAtomizer = atomizer ?? atomizerFactory({
+      provider: validated.provider,
+      apiKey: validated.apiKey,
+      model: validated.model,
+      baseUrl: validated.baseUrl,
+    });
     try {
-      await atomizer.run({
-        apiKey: validated.apiKey,
+      await activeAtomizer.run({
         manifestPath,
         outDir: atomizedDir,
         onProgress: emit,
       });
     } catch (error) {
       throw new Error(redactValue(error instanceof Error ? error.message : String(error), validated.apiKey));
+    } finally {
+      activeAtomizer.dispose?.();
     }
 
     const graph = JSON.parse(await readFile(graphPath, "utf8"));
