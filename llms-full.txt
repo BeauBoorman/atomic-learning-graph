@@ -1,6 +1,6 @@
-# Atomic Learning — a plain-English edition of a real textbook
+# Atomic Learning: a plain-English edition of a real textbook
 
-> We don't ask what kind of learner you are. We give every learner several grounded routes to the same idea — and show you the receipts.
+> We don't ask what kind of learner you are. We give every learner several grounded routes to the same idea. We also show you the receipts.
 
 ## Concepts in prerequisite order
 
