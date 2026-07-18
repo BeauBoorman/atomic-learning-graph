@@ -1,0 +1,37 @@
+{
+  "receiptVersion": 1,
+  "sourceCorpus": {
+    "work": "Dive into Deep Learning",
+    "authors": "Zhang, Lipton, Li & Smola",
+    "sections": 4,
+    "license": "CC-BY-SA-4.0",
+    "revisionTag": "v1.0.3",
+    "commit": "b2e2ae30898a9d0126a9699ae7e441de3e272715"
+  },
+  "structure": {
+    "provenance": "human-specified",
+    "concepts": 10,
+    "prerequisiteEdges": 9,
+    "citedLessonSteps": 27
+  },
+  "generation": {
+    "lessonProse": "gpt-5.6-sol",
+    "promptVersion": "atomizer-v4-full-spine-one-claim-steps",
+    "runtimeModelCalls": 0
+  },
+  "verification": {
+    "sourceQuotes": "deterministically-grounded",
+    "graphHash": "016dd241dea65164c81676a8dfc68936de6b72e81972bc202e02d7c03c230e46",
+    "manifestHash": "80ef258c91a097a25c386a16552158d286a0e9149f9897dd64b84020f622c308",
+    "semanticReview": {
+      "kind": "advisory",
+      "advisoryOnly": true,
+      "warnings": 5
+    }
+  },
+  "cost": {
+    "usd": 0.430035,
+    "perConcept": 0.0430035,
+    "tokens": 31492
+  }
+}

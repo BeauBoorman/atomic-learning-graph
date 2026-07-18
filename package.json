@@ -19,6 +19,8 @@
     "verify:anchors": "node --import tsx scripts/verify-anchors.ts",
     "emit:llms": "node --import tsx scripts/emit-llms.ts",
     "verify:llms": "node --import tsx scripts/emit-llms.ts --verify",
+    "emit:receipt": "node --import tsx scripts/emit-receipt.ts",
+    "verify:receipt": "node --import tsx scripts/emit-receipt.ts --verify",
     "emit:orgroam": "node --import tsx scripts/emit-orgroam.ts",
     "verify:orgroam": "node --import tsx scripts/emit-orgroam.ts --verify",
     "emit:anki": "node --import tsx scripts/emit-anki.ts",
