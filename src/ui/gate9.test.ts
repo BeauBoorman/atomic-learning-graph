@@ -53,7 +53,7 @@ describe("Gate 9 architecture", () => {
 
   it("keeps every browser interaction free of network clients and remote CSS assets", () => {
     const runtime = uiRuntimeFiles.map(read).join("\n");
-    const css = globSync("src/ui/**/*.css", { cwd: root }).map(read).join("\n");
+    const css = globSync("src/**/*.css", { cwd: root }).map(read).join("\n");
 
     const networkClients = [
       "fetch" + "(",
@@ -64,9 +64,12 @@ describe("Gate 9 architecture", () => {
       "open" + "ai",
     ];
     for (const client of networkClients) expect(runtime.toLowerCase()).not.toContain(client.toLowerCase());
-    expect(css).not.toMatch(/@import\s+(?:url\(\s*)?["']?(?:https?:)?\/\//i);
-    expect(css).not.toMatch(/url\(\s*["']?(?:https?:)?\/\//i);
-    expect(css).not.toMatch(/@font-face\b[^}]*\bsrc\s*:[^}]*["'(](?:https?:)?\/\//is);
+    
+    // Assert no CSS imports, remote URLs, or protocol-relative paths
+    const cssWithoutComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(cssWithoutComments).not.toContain("@import");
+    expect(cssWithoutComments).not.toMatch(/url\(\s*["']?(?:https?:)?\/\//i);
+    expect(cssWithoutComments).not.toMatch(/@font-face\b[^}]*\bsrc\s*:[^}]*["'(](?:https?:)?\/\//is);
   });
 
   it("computes the dark background token for the dark theme", () => {
