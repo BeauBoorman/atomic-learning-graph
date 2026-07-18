@@ -21,6 +21,7 @@ import { writeGraphArtifact, writeJsonArtifact } from "./artifacts";
 import { ANALOGY_PROMPT_VERSION, generateAnalogies } from "./analogy";
 import { ResponsesClient, isObject } from "./client";
 import { groundedQuote } from "./grounding";
+import { buildRunCostReceipt } from "./run-receipt";
 import {
   PROMPT_VERSION,
   translateAndConvergeLessons,
@@ -574,6 +575,11 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
 
   // The sole graph write is guarded again at the artifact boundary, after lesson-only convergence
   // and the hard readability floor have both passed.
+  const costReceipt = buildRunCostReceipt(
+    client.model,
+    client.usageTokens,
+    enriched.concepts.length,
+  );
   mkdirSync(outDir as string, { recursive: true });
   const writeOptions = { overwriteExisting: options.overwriteExisting };
   const graphBytes = writeGraphArtifact(graphPath as string, enriched, writeOptions);
@@ -586,6 +592,7 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
     manifestSha256: sha256(manifestBytes),
     graphSha256: sha256(graphBytes),
     responseIds: client.responseIds,
+    ...costReceipt,
     convergence: attemptLog,
     ...(options.noSpine ? { unpinned: true, artifactNote: UNPINNED_ARTIFACT_NOTE } : {}),
   };
