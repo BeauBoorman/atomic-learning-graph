@@ -68,6 +68,167 @@ describe("unpinned source chunking", () => {
         { sourceId: "source-b", index: 0, total: 1 },
       ]);
   });
+
+  it("returns only byte-exact source substrings for mixed structured input", () => {
+    const text = [
+      "Introductory prose about vectors.",
+      "",
+      "$$",
+      "q_i = W_q x_i",
+      "$$",
+      "",
+      "| Symbol | Meaning |",
+      "|---|---|",
+      "| q | query |",
+      "",
+      "```js",
+      "arr.push(x).",
+      "```",
+    ].join("\n");
+
+    const chunks = chunkSourceText(text, 48);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((chunk) => text.includes(chunk))).toBe(true);
+  });
+
+  it("keeps display math and begin/end environments atomic at their outer edges", () => {
+    const displayMath = "$$\nq_i = W_q x_i\n$$";
+    const alignedMath = "\\begin{align}\na &= b + c \\\\\nd &= e\n\\end{align}";
+    const text = `Lead prose.\n\n${displayMath}\n\nBridge prose.\n\n${alignedMath}\n\nTail prose.`;
+
+    const chunks = chunkSourceText(text, 32);
+
+    expect(chunks).toContain(displayMath);
+    expect(chunks).toContain(alignedMath);
+    expect(chunks.some((chunk) => chunk.includes("\\begin{align}") !== chunk.includes("\\end{align}")))
+      .toBe(false);
+  });
+
+  it("disarms an unmatched dollar before the next hard boundary", () => {
+    const text = "it cost $5 today.\n\n# Chapter 2\n\nNew prose here about vectors.";
+    const chunks = chunkSourceText(text, 30);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.some((chunk) => chunk.includes("today") && chunk.includes("# Chapter 2")))
+      .toBe(false);
+  });
+
+  it("never lets a chunk cross a top-level heading or book boundary", () => {
+    const text = "Opening with $x$ notation.\n\n# Chapter 2\n\nNew material.\n\nBOOK III\n\nFinal material.";
+    const chunks = chunkSourceText(text, 200);
+
+    expect(chunks).toHaveLength(3);
+    expect(chunks.some((chunk) => chunk.includes("Opening") && chunk.includes("# Chapter 2")))
+      .toBe(false);
+    expect(chunks.some((chunk) => chunk.includes("# Chapter 2") && chunk.includes("BOOK III")))
+      .toBe(false);
+  });
+
+  it("maps a latex fence before considering math openers inside it", () => {
+    const fence = [
+      "```latex",
+      "\\begin{align}",
+      "a &= b.",
+      "\\end{align}",
+      "```",
+    ].join("\n");
+
+    expect(chunkSourceText(fence, 24)).toEqual([fence]);
+  });
+
+  it("keeps fenced code atomic despite interior sentence punctuation", () => {
+    const fence = "```js\narr.push(x).\nreturn arr;\n```";
+    const text = `Before code.\n\n${fence}\n\nAfter code.`;
+    const chunks = chunkSourceText(text, 24);
+
+    expect(chunks).toContain(fence);
+    expect(chunks.some((chunk) => chunk.includes("arr.push(x).") && !chunk.includes("```")))
+      .toBe(false);
+  });
+
+  it("suppresses abbreviation, initial, decimal, and diagnostic-code false boundaries", () => {
+    const first = "See Fig. 2 and Dr. A. Smith et al. 2020.";
+    const second = "New sentence uses p < 0.05 and code F32.1.";
+    const text = `## Notes\n\n${first} ${second}`;
+    const chunks = chunkSourceText(text, 52);
+
+    expect(chunks.some((chunk) => chunk.includes(first))).toBe(true);
+    expect(chunks).toContain(second);
+    expect(chunks.some((chunk) => /(?:Fig|Dr|A|al)\.$/.test(chunk))).toBe(false);
+  });
+
+  it("keeps pipe-table bytes, including the separator row and row newlines", () => {
+    const table = "| Name | Value |\n|---|---|\n| alpha | 1 |\n| beta | 2 |";
+    const text = `Table follows.\n\n${table}\n\nDiscussion follows.`;
+    const chunks = chunkSourceText(text, 28);
+
+    expect(chunks).toContain(table);
+    expect(chunks.join("\n")).toContain("|---|---|");
+    expect(chunks.some((chunk) => chunk.includes("| alpha | 1 || beta | 2 |"))).toBe(false);
+  });
+
+  it("keeps scripture couplets and a short verse in one marker-preserving range", () => {
+    const verses = [
+      "1:1 In the beginning was the Word,",
+      "1:2 and the Word was with God.",
+      "1:3 Light came.",
+    ].join("\n");
+    const text = `Reading\n\n${verses}\n\nCommentary after the range.`;
+    const chunks = chunkSourceText(text, 44);
+
+    expect(chunks).toContain(verses);
+    expect(chunks.find((chunk) => chunk.includes("Light came."))).toContain("1:3");
+  });
+
+  it("welds a short colon stem to its list but lets budget beat long-list cohesion", () => {
+    const shortList = "Criteria:\n- grounded quote\n- stable identifier";
+    expect(chunkSourceText(shortList, 80)).toEqual([shortList]);
+
+    const longList = [
+      "Criteria:",
+      "- grounded quotation copied exactly from the source text.",
+      "- deterministic identifier retained across repeated build runs.",
+      "- prerequisite relationship checked before artifact emission.",
+    ].join("\n");
+    const chunks = chunkSourceText(longList, 45);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((chunk) => chunk.length <= 45)).toBe(true);
+    expect(chunks.every((chunk) => longList.includes(chunk))).toBe(true);
+  });
+
+  it("degrades an over-ceiling protected span into bounded verbatim sub-slices", () => {
+    const text = `$$${"x+".repeat(100)}x$$`;
+    const chunks = chunkSourceText(text, 20);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(Math.max(...chunks.map((chunk) => chunk.length))).toBeLessThanOrEqual(80);
+    expect(chunks.every((chunk) => text.includes(chunk))).toBe(true);
+  });
+
+  it("rejects edge-only boundaries and terminates without empty chunks", () => {
+    const text = "# Edge\n\nSmall text.\n\n# End";
+    const chunks = chunkSourceText(text, 10);
+
+    expect(chunks.length).toBeGreaterThan(0);
+    expect(chunks.every((chunk) => chunk.length > 0)).toBe(true);
+    expect(chunks).not.toContain("");
+  });
+
+  it("is deterministic for identical structured input", () => {
+    const text = "## Formula\n\n$x = y$. New sentence.\n\n- first\n- second";
+    expect(chunkSourceText(text, 24)).toEqual(chunkSourceText(text, 24));
+  });
+
+  it("keeps chunk planning confined to unpinned discovery", () => {
+    const source = readFileSync(resolve(repoRoot, "src/atomization/atomize.ts"), "utf8");
+
+    expect(source).toMatch(/function sourcePassages[\s\S]*?function legacyChunkSourceText/);
+    expect(source).toMatch(/export async function discoverInventory[\s\S]*?for \(const chunk of planChunks\(sources\)\)/);
+    expect(source).not.toMatch(/function selectExcerpt[\s\S]*?chunkSourceText/);
+    expect(source).not.toMatch(/function targetedQuoteExcerpt[\s\S]*?chunkSourceText/);
+  });
 });
 
 describe("unpinned relationship discovery", () => {
