@@ -17,6 +17,8 @@
     "verify:anchors": "node --import tsx scripts/verify-anchors.ts",
     "emit:llms": "node --import tsx scripts/emit-llms.ts",
     "verify:llms": "node --import tsx scripts/emit-llms.ts --verify",
+    "emit:orgroam": "node --import tsx scripts/emit-orgroam.ts",
+    "verify:orgroam": "node --import tsx scripts/emit-orgroam.ts --verify",
     "verify:bundle": "node --import tsx scripts/verify-bundle.ts",
     "demo:tamper": "node --import tsx scripts/demo-tamper.ts",
     "gate": "bash scripts/gate.sh",

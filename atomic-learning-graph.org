@@ -1,0 +1,538 @@
+#+title: Atomic Learning Graph
+
+* Vectors
+:PROPERTIES:
+:ID: vectors
+:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:END:
+
+A vector is a fixed-length array whose elements are scalars.
+
+** Source
+
+Source: d2l-linear-algebra
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+
+#+begin_quote
+For current purposes, you can think of a vector as a fixed-length array of scalars.
+#+end_quote
+
+** Lesson: Vectors as Fixed-Length Lists
+
+*** Step 1 (core)
+
+A vector is a list with a set number of scalar values. A scalar is a single number.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+For current purposes, you can think of a vector as a fixed-length array of scalars.
+#+end_quote
+
+*** Step 2 (core)
+
+Each value in a vector is called an element; it may also be called an entry or component.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+As with their code counterparts, we call these scalars the elements of the vector (synonyms include entries and components).
+#+end_quote
+
+*** Step 3 (deep)
+
+A vector can describe one real-world example, such as a loan applicant. Its elements might record income, employment length, and past defaults.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+For example, if we were training a model to predict the risk of a loan defaulting, we might associate each applicant with a vector whose components correspond to quantities like their income, length of employment, or number of previous defaults.
+#+end_quote
+
+* Dot Product
+:PROPERTIES:
+:ID: dot-product
+:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:END:
+
+The dot product combines two vectors by summing products of elements at corresponding positions.
+
+** Prerequisites
+- [[id:vectors]]
+
+** Source
+
+Source: d2l-linear-algebra
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+
+#+begin_quote
+Given two vectors , their dot product (also known as inner product, ) is a sum over the products of the elements at the same position: .
+#+end_quote
+
+** Lesson: Multiply Matching Values, Then Add
+
+*** Step 1 (core)
+
+A dot product takes two vectors—ordered lists of numbers—multiplies values in matching positions, and adds those products together.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+their dot product (also known as inner product, ) is a sum over the products of the elements at the same position
+#+end_quote
+
+*** Step 2 (core)
+
+In practical terms, first multiply the two vectors element by element, then add all the results.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+we can calculate the dot product of two vectors by performing an elementwise multiplication followed by a sum
+#+end_quote
+
+*** Step 3 (deep)
+
+A dot product can calculate a weighted sum, where each value is multiplied by a chosen weight before the results are added.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+the weighted sum of the values in according to the weights could be expressed as the dot product
+#+end_quote
+
+*** Step 4 (deep)
+
+If the weights are zero or positive and add up to 1, the result is a weighted average.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+When the weights are nonnegative and sum to 1, i.e., , the dot product expresses a weighted average.
+#+end_quote
+
+* Matrix–Vector Products
+:PROPERTIES:
+:ID: matrix-vector-product
+:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:END:
+
+A matrix–vector product produces a vector whose elements are dot products between matrix rows and the input vector.
+
+** Prerequisites
+- [[id:dot-product]]
+
+** Source
+
+Source: d2l-linear-algebra
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+
+#+begin_quote
+The matrix--vector product is simply a column vector of length m, whose element is the dot product : We can think of multiplication with a matrix as a transformation that projects vectors from to .
+#+end_quote
+
+** Lesson: How a Matrix Changes a Vector
+
+*** Step 1 (core)
+
+Multiplying a matrix by a vector produces a new column vector. Each number in the result is a dot product—the sum found by multiplying matching values in one matrix row and the input vector, then adding them.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+The matrix--vector product is simply a column vector of length m, whose element is the dot product
+#+end_quote
+
+*** Step 2 (core)
+
+For the multiplication to work, each matrix row must have the same number of values as the input vector.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length).
+#+end_quote
+
+*** Step 3 (deep)
+
+You can view this multiplication as a transformation that changes or maps a vector. For example, certain square matrices can rotate vectors.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+For example, we can represent rotations as multiplications by certain square matrices.
+#+end_quote
+
+*** Step 4 (deep)
+
+Matrix–vector products are also used in neural networks to calculate each layer’s output from the previous layer’s output.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+Matrix--vector products also describe the key calculation involved in computing the outputs of each layer in a neural network given the outputs from the previous layer.
+#+end_quote
+
+* Softmax
+:PROPERTIES:
+:ID: softmax
+:ROAM_REFS: d2l-softmax-regression https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
+:END:
+
+Softmax transforms neural-network outputs into a valid probability distribution over discrete classes.
+
+** Prerequisites
+- [[id:dot-product]]
+
+** Source
+
+Source: d2l-softmax-regression
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
+
+#+begin_quote
+As a side effect, we encountered the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions.
+#+end_quote
+
+** Lesson: Turning network scores into probabilities
+
+*** Step 1 (core)
+
+Softmax is a function that turns a neural network’s output scores into probabilities for a set of separate classes, such as cat, dog, or bird.
+
+Source: d2l-softmax-regression
+
+#+begin_quote
+the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions.
+#+end_quote
+
+*** Step 2 (deep)
+
+When softmax is paired with cross-entropy loss, learning uses the difference between the expected result and the network’s prediction.
+
+Source: d2l-softmax-regression
+
+#+begin_quote
+We saw that the derivative of the cross-entropy loss when combined with softmax behaves very similarly to the derivative of squared error; namely by taking the difference between the expected behavior and its prediction.
+#+end_quote
+
+* Queries, Keys, and Values
+:PROPERTIES:
+:ID: qkv
+:ROAM_REFS: d2l-queries-keys-values https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
+:END:
+
+Attention derives weights from query–key compatibility and uses those weights to form a linear combination of values.
+
+** Prerequisites
+- [[id:softmax]]
+
+** Source
+
+Source: d2l-queries-keys-values
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
+
+#+begin_quote
+The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys .
+#+end_quote
+
+** Lesson: How Attention Chooses and Combines Information
+
+*** Step 1 (core)
+
+Attention compares a query—the information being searched for—with keys that label available information. It turns each match into a weight, then uses those weights to combine the corresponding values.
+
+Source: d2l-queries-keys-values
+
+#+begin_quote
+The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys .
+#+end_quote
+
+*** Step 2 (deep)
+
+When the weights are zero or greater and add up to 1, larger weights can be viewed as stronger focus on the most relevant pieces. This is a helpful interpretation, not a guaranteed explanation of the model.
+
+Source: d2l-queries-keys-values
+
+#+begin_quote
+In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
+#+end_quote
+
+*** Step 3 (deep)
+
+The same attention process can search through collections of different sizes without changing how it combines the information.
+
+Source: d2l-queries-keys-values
+
+#+begin_quote
+attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed.
+#+end_quote
+
+* Attention Pooling over Variable-Sized Data
+:PROPERTIES:
+:ID: attention-pooling
+:ROAM_REFS: d2l-queries-keys-values https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
+:END:
+
+Attention pooling can operate over databases of arbitrary size without changing the pooling procedure.
+
+** Prerequisites
+- [[id:qkv]]
+
+** Source
+
+Source: d2l-queries-keys-values
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
+
+#+begin_quote
+Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed.
+#+end_quote
+
+** Lesson: Using Attention with Any Amount of Data
+
+*** Step 1 (core)
+
+Attention pooling can handle a database of any size. The same pooling process works whether the database has few items or many.
+
+Source: d2l-queries-keys-values
+
+#+begin_quote
+attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed.
+#+end_quote
+
+*** Step 2 (deep)
+
+It combines information from many key-value pairs, where keys help identify relevant items and values contain the information to combine.
+
+Source: d2l-queries-keys-values
+
+#+begin_quote
+The attention mechanism allows us to aggregate data from many (key, value) pairs.
+#+end_quote
+
+* Self-Attention
+:PROPERTIES:
+:ID: self-attention
+:ROAM_REFS: d2l-self-attention https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
+:END:
+
+Self-attention lets every token attend to every other token in the same sequence.
+
+** Prerequisites
+- [[id:qkv]]
+
+** Source
+
+Source: d2l-self-attention
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
+
+#+begin_quote
+Because every token is attending to each other token (unlike the case where decoder steps attend to encoder steps), such architectures are typically described as self-attention models , and elsewhere described as intra-attention model .
+#+end_quote
+
+** Lesson: How each word can use the whole sequence
+
+*** Step 1 (core)
+
+In self-attention, every token—a word or word piece—can look at every other token in the same sequence to decide what information matters.
+
+Source: d2l-self-attention
+
+#+begin_quote
+Because every token is attending to each other token
+#+end_quote
+
+*** Step 2 (core)
+
+Self-attention produces an output sequence with the same number of positions as the input sequence.
+
+Source: d2l-self-attention
+
+#+begin_quote
+its self-attention outputs a sequence of the same length
+#+end_quote
+
+*** Step 3 (deep)
+
+Because information can travel directly between any two positions, self-attention can make relationships between far-apart words easier to learn.
+
+Source: d2l-self-attention
+
+#+begin_quote
+a shorter path between any combination of sequence positions makes it easier to learn long-range dependencies within the sequence
+#+end_quote
+
+* Positional Encoding
+:PROPERTIES:
+:ID: positional-encoding
+:ROAM_REFS: d2l-self-attention https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
+:END:
+
+Positional information is supplied as an additional token-associated input because self-attention alone does not preserve sequence order.
+
+** Prerequisites
+- [[id:self-attention]]
+
+** Source
+
+Source: d2l-self-attention
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
+
+#+begin_quote
+The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token.
+#+end_quote
+
+** Lesson: How a Model Keeps Track of Word Order
+
+*** Step 1 (core)
+
+A model is given extra information with each token, or piece of text, so it can keep track of where that token appears in the sequence.
+
+Source: d2l-self-attention
+
+#+begin_quote
+The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token.
+#+end_quote
+
+*** Step 2 (core)
+
+This extra information is called positional encoding. It can be learned during training or set in advance using a fixed method.
+
+Source: d2l-self-attention
+
+#+begin_quote
+These inputs are called positional encodings, and they can either be learned or fixed a priori.
+#+end_quote
+
+*** Step 3 (deep)
+
+One fixed method uses repeating sine and cosine patterns to represent positions.
+
+Source: d2l-self-attention
+
+#+begin_quote
+We now describe a simple scheme for fixed positional encodings based on sine and cosine functions .
+#+end_quote
+
+*** Step 4 (deep)
+
+Different parts of the encoding repeat at different rates, helping distinguish positions much like binary digits change at different rates.
+
+Source: d2l-self-attention
+
+#+begin_quote
+In binary representations, a higher bit has a lower frequency than a lower bit. Similarly, as demonstrated in the heat map below, the positional encoding decreases frequencies along the encoding dimension by using trigonometric functions.
+#+end_quote
+
+* Softmax Preserves Ordering
+:PROPERTIES:
+:ID: softmax-ordering
+:ROAM_REFS: d2l-softmax-regression https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
+:END:
+
+Softmax preserves the ordering of its inputs, so the largest input identifies the highest-probability class.
+
+** Prerequisites
+- [[id:softmax]]
+
+** Source
+
+Source: d2l-softmax-regression
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
+
+#+begin_quote
+Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability.
+#+end_quote
+
+** Lesson: The Biggest Input Stays on Top
+
+*** Step 1 (core)
+
+Softmax turns input scores into probabilities without changing their order: a higher score still produces a higher probability.
+
+Source: d2l-softmax-regression
+
+#+begin_quote
+the softmax operation preserves the ordering among its arguments
+#+end_quote
+
+*** Step 2 (core)
+
+To find the class with the highest probability, simply choose the class with the largest input score. You do not need to calculate all the probabilities first.
+
+Source: d2l-softmax-regression
+
+#+begin_quote
+we do not need to compute the softmax to determine which class has been assigned the highest probability
+#+end_quote
+
+* Vector Norms
+:PROPERTIES:
+:ID: vector-norm
+:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:END:
+
+A vector norm measures the magnitude or size of a vector.
+
+** Prerequisites
+- [[id:vectors]]
+
+** Source
+
+Source: d2l-linear-algebra
+
+URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+
+#+begin_quote
+Informally, the norm of a vector tells us how big it is.
+#+end_quote
+
+** Lesson: Measuring a Vector’s Size
+
+*** Step 1 (core)
+
+A vector norm is a number that tells you the vector’s size or length.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+Informally, the norm of a vector tells us how big it is.
+#+end_quote
+
+*** Step 2 (core)
+
+It measures the size of the vector’s component values, not how many components the vector has.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+Here, we are employing a notion of size that concerns the magnitude of a vector's components (not its dimensionality).
+#+end_quote
+
+*** Step 3 (deep)
+
+One common norm finds the vector’s length by squaring each component, adding the squares, and taking the square root.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+The Euclidean norm that we all learned in elementary school geometry when calculating the hypotenuse of a right triangle is the square root of the sum of squares of a vector's elements.
+#+end_quote
+
+*** Step 4 (deep)
+
+Another norm adds the absolute values of all components. Different norms can therefore represent different ideas of size.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+By definition, the norm sums the absolute values of a vector's elements:
+#+end_quote
