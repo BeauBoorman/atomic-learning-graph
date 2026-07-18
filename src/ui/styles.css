@@ -542,7 +542,7 @@ select {
 /* ── The colophon ─────────────────────────────────────────────────────────────
    Always visible, never loud. It opens with the same `ᵃ` the lesson ends with, so
    the page reads as an edition: a claim, a mark, a footnote. It replaced
-   "AI-translated from X by Y" — which led with the machine, buried the authority,
+   a machine-first credit line, which buried the authority,
    and disclaimed the product on every single page while the highlighted source sat
    hidden behind a disclosure triangle. That was the pitch, exactly inverted. */
 .citation {
@@ -745,6 +745,42 @@ select {
   font-size: var(--t-ui);
   font-weight: 400;
   line-height: 1.6;
+}
+
+.recall-practice {
+  font-family: var(--font-ui);
+}
+
+.recall-question,
+.recall-status {
+  margin: 0 0 var(--s2);
+  color: var(--muted);
+  font-size: var(--t-colophon);
+  line-height: 1.5;
+}
+
+.recall-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.7rem;
+  align-items: center;
+  margin: 0 0 var(--s3);
+  color: var(--muted);
+  font-size: var(--t-colophon);
+}
+
+.recall-action {
+  padding: 0.2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: var(--t-colophon);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
 }
 
 .source-quote {

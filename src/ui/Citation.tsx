@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useId, useReducer, useRef, type RefObject } from "react";
 import type { ResolvedPassage } from "./model";
 import { sourceProse } from "./sourceProse";
 
@@ -62,6 +62,69 @@ export function Passage({ passage, quote }: { passage: string; quote: string }) 
   );
 }
 
+export type RecallState = "available" | "recalling";
+type RecallAction = "begin" | "reveal" | "reset";
+
+/** The receipt starts visible, can be covered for a learner-chosen recall attempt, and returns to
+ *  the same visible bytes on reveal. */
+export function recallTransition(_state: RecallState, action: RecallAction): RecallState {
+  return action === "begin" ? "recalling" : "available";
+}
+
+export function RecallPractice({
+  resolved,
+  quoteId,
+  state,
+  onBegin,
+  onReveal,
+}: {
+  resolved: ResolvedPassage;
+  quoteId: string;
+  state: RecallState;
+  onBegin: () => void;
+  onReveal: () => void;
+}) {
+  const recalling = state === "recalling";
+
+  return (
+    <div className="recall-practice">
+      <p className="recall-question">
+        Before you look — in your own words, what does the source say here?
+      </p>
+      {recalling && (
+        <p className="recall-status">Hold the answer in mind or say it aloud. Nothing is recorded.</p>
+      )}
+      <p className="recall-actions">
+        <button
+          type="button"
+          className="recall-action"
+          aria-controls={quoteId}
+          aria-expanded={!recalling}
+          onClick={recalling ? onReveal : onBegin}
+        >
+          {recalling ? "Reveal the source" : "Test yourself first"}
+        </button>
+        {!recalling && (
+          <>
+            <span aria-hidden="true">·</span>
+            <a className="recall-action" href={`#${quoteId}`}>Skip to the source</a>
+          </>
+        )}
+      </p>
+
+      <blockquote
+        id={quoteId}
+        className="source-quote"
+        cite={resolved.source.url}
+        tabIndex={-1}
+        hidden={recalling}
+      >
+        <Passage passage={resolved.passage} quote={resolved.quote} />
+      </blockquote>
+    </div>
+  );
+}
+
 /** The summon. A footnote mark, not a button that says "Show the source" — the receipt belongs
  *  where the claim is, and a page that ends in a footnote mark reads like an edition. */
 export function FootnoteMark({
@@ -101,6 +164,8 @@ interface CitationProps {
 export function Citation({ resolved, stepText, open, onOpen, onClose }: CitationProps) {
   const { source } = resolved;
   const sheet = useRef<HTMLDialogElement>(null);
+  const quoteId = `source-quote-${useId()}`;
+  const [recallState, dispatchRecall] = useReducer(recallTransition, "available");
   const { work, section } = citeParts(source.title);
   const licenseUrl = licenseUrls[source.license];
 
@@ -132,6 +197,11 @@ export function Citation({ resolved, stepText, open, onOpen, onClose }: Citation
     node.addEventListener("close", sync);
     return () => node.removeEventListener("close", sync);
   }, [onClose]);
+
+  // Every opening begins with the source visible, exactly as it did before this affordance.
+  useEffect(() => {
+    if (!open) dispatchRecall("reset");
+  }, [open]);
 
   return (
     <section className="citation" aria-label="Lesson source">
@@ -182,9 +252,13 @@ export function Citation({ resolved, stepText, open, onOpen, onClose }: Citation
             </div>
             <div className="parallel-col">
               <p className="parallel-label">The source</p>
-              <blockquote className="source-quote" cite={source.url}>
-                <Passage passage={resolved.passage} quote={resolved.quote} />
-              </blockquote>
+              <RecallPractice
+                resolved={resolved}
+                quoteId={quoteId}
+                state={recallState}
+                onBegin={() => dispatchRecall("begin")}
+                onReveal={() => dispatchRecall("reveal")}
+              />
             </div>
           </div>
 

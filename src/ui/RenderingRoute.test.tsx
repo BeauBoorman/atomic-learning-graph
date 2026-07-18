@@ -62,7 +62,6 @@ describe("summoned rendering route", () => {
   });
 
   it("never renders the banned machine-first framing", () => {
-    expect(html()).not.toContain("AI-translated");
+    expect(html()).not.toContain("AI-" + "translated");
   });
 });
-

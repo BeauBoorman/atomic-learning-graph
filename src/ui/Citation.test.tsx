@@ -1,12 +1,22 @@
+import { globSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { loadGraph } from "../graph/load";
-import { Citation } from "./Citation";
+import {
+  Citation,
+  Passage,
+  RecallPractice,
+  recallTransition,
+  type RecallState,
+} from "./Citation";
 import { resolveCitation } from "./model";
 
 /** The REAL graph. The fixture's sources are clean hand-written prose, so every assertion here
  *  would pass vacuously against it while the shipped app renders "## Vectors" on page 1. */
 const graph = loadGraph();
+const root = resolve(import.meta.dirname, "..", "..");
+const bannedMachineLabel = "AI-" + "translated";
 
 const steps = graph.concepts.flatMap((concept) =>
   (concept.lesson?.steps ?? []).map((step, stepIndex) => ({
@@ -60,10 +70,9 @@ describe("Citation — the receipt, rendered", () => {
 
   it("never says AI, and never hides the source behind a disclosure", () => {
     const html = render("vectors", 0, steps[0].text);
-    // The old line — "AI-translated from {title} by {author}. Licensed {license}." — led with the
-    // machine, buried the authority, and rendered on EVERY page while the highlighted source sat
-    // one click away inside a <details>. That is the pitch, exactly inverted.
-    expect(html).not.toContain("AI-translated");
+    // The old machine-first line buried the authority and rendered on EVERY page while the
+    // highlighted source sat one click away inside a <details>. That is the pitch, inverted.
+    expect(html).not.toContain(bannedMachineLabel);
     expect(html).not.toContain("Show the source");
     expect(html).not.toContain("<details");
     expect(html).not.toContain("Nearby context");
@@ -106,5 +115,57 @@ describe("Citation — the receipt, rendered", () => {
     expect(html).toContain("The source");
     expect(html).toContain("Two lists of the same length become one number.");
     expect(html).toContain('class="parallel"');
+  });
+
+  it("offers quiet recall practice without putting the existing source behind it", () => {
+    const resolved = resolveCitation(graph, "vectors", 0);
+    const html = render("vectors", 0, steps[0].text);
+
+    expect(html).toContain("Before you look");
+    expect(html).toContain("Test yourself first");
+    expect(html).toContain("Skip to the source");
+    expect(html).toMatch(/<button type="button" class="recall-action"[^>]*aria-controls=/);
+    expect(html).toMatch(/<a class="recall-action" href="#source-quote-/);
+    // Skipping requires no state change: today's verbatim receipt remains present by default.
+    expect(html).toContain(resolved.quote);
+    expect(html).toContain("<mark>");
+  });
+
+  it("reveals the exact same verbatim source passage after recall", () => {
+    const resolved = resolveCitation(graph, "vectors", 0);
+    const practice = (state: RecallState) => renderToStaticMarkup(
+      <RecallPractice
+        resolved={resolved}
+        quoteId="recall-test-quote"
+        state={state}
+        onBegin={() => undefined}
+        onReveal={() => undefined}
+      />,
+    );
+    const quoteMarkup = (html: string) => html.match(/<blockquote[\s\S]*?<\/blockquote>/)?.[0];
+    const before = practice("available");
+
+    const recalling = recallTransition("available", "begin");
+    expect(practice(recalling)).toContain("Reveal the source");
+    expect(practice(recalling)).toMatch(/<blockquote[^>]*hidden=""/);
+    expect(practice(recalling)).toContain('aria-expanded="false"');
+
+    const revealed = practice(recallTransition(recalling, "reveal"));
+    expect(quoteMarkup(revealed)).toBe(quoteMarkup(before));
+    expect(quoteMarkup(revealed)).toContain(renderToStaticMarkup(
+      <Passage passage={resolved.passage} quote={resolved.quote} />,
+    ));
+  });
+
+  it("keeps recall isolated from progress and covered state", () => {
+    const source = readFileSync(resolve(root, "src/ui/Citation.tsx"), "utf8");
+    expect(source).not.toMatch(/\b(?:progress|coveredConcepts|completedPages|onNext)\b/);
+  });
+
+  it("contains none of the banned machine-first label anywhere in the UI", () => {
+    const ui = globSync("src/ui/**/*.{css,ts,tsx}", { cwd: root })
+      .map((path) => readFileSync(resolve(root, path), "utf8"))
+      .join("\n");
+    expect(ui).not.toContain(bannedMachineLabel);
   });
 });
