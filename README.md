@@ -39,7 +39,7 @@ Every claim on this page is a property of the committed artifact, not a descript
 | Claim | Where it is enforced |
 |---|---|
 | Nothing is generated at read time | After `pnpm build`, `pnpm verify:bundle` scans emitted JavaScript, HTML and CSS for network clients, the model vendor and remote assets. `src/ui/gate9.test.ts` keeps a faster source-level tripwire, but the hard claim rests on the bytes shipped to the learner. The app runs offline. |
-| Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
+| Every lesson step is anchored to a real sentence | All **27** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it. A single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 source sections (spanning three chapters), licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
@@ -60,8 +60,8 @@ The model still proposes the grounded content inside those ten slots: titles, su
 ten concept-level quote selections, all lesson steps, and all analogies. The graph and citations then
 face deterministic gates; analogies remain optional illustrations.
 
-The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (17 core,
-14 deep) and **186 optional analogies** across 6 interests, plus the complete text of the four
+The shipped artifact: **10 concepts, 9 prerequisite relationships, 27 cited lesson steps** (18 core,
+9 deep) and **162 optional analogies** across 6 interests, plus the complete text of the four
 pinned sources, embedded so the receipt can be verified in the browser with no request.
 
 ## How it is made
