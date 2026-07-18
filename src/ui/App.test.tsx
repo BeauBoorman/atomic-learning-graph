@@ -2,10 +2,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureGraph } from "../graph/fixture-graph";
 import type { RenderingSet } from "../types";
-import { App, courseKey, CourseScreen } from "./App";
+import { App, courseKey, CourseScreen, restartCourseState } from "./App";
 import { Entry } from "./Entry";
 import { GraphMap } from "./GraphMap";
-import { coveredConcepts, deriveProgress, selfExplanationPrompt } from "./model";
+import {
+  coursePageKey,
+  coveredConcepts,
+  deriveProgress,
+  selfExplanationPrompt,
+} from "./model";
+import { titleFor } from "./titles";
 
 describe("Phase 5 learning flow", () => {
   it("offers another route only when the current concept has one", () => {
@@ -30,7 +36,6 @@ describe("Phase 5 learning flow", () => {
         theme="light"
         progress={progress}
         onNext={() => undefined}
-        onOpenLesson={() => undefined}
         onRestart={() => undefined}
       />,
     );
@@ -60,7 +65,6 @@ describe("Phase 5 learning flow", () => {
         theme="light"
         progress={progress}
         onNext={() => undefined}
-        onOpenLesson={() => undefined}
         onRestart={() => undefined}
       />,
     );
@@ -79,7 +83,6 @@ describe("Phase 5 learning flow", () => {
       theme: "light" as const,
       progress,
       onNext: () => undefined,
-      onOpenLesson: () => undefined,
       onRestart: () => undefined,
     };
 
@@ -99,7 +102,6 @@ describe("Phase 5 learning flow", () => {
         theme="light"
         progress={progress}
         onNext={() => undefined}
-        onOpenLesson={() => undefined}
         onRestart={() => undefined}
       />,
     );
@@ -132,6 +134,95 @@ describe("Phase 5 learning flow", () => {
     expect(courseKey("softmax", "quick", [])).toContain("course.v4");
   });
 
+  it("starts the active course over without touching any other stored preference or course", () => {
+    const activeKey = courseKey(fixtureGraph.goalId, "quick", []);
+    const otherCourseKey = courseKey("softmax", "thorough", ["vectors"]);
+    const stored = new Map([
+      [activeKey, JSON.stringify(["vectors:0", "dot-product:0"])],
+      [otherCourseKey, JSON.stringify(["vectors:0"])],
+      ["atomic-learning-graph.theme.v1", "dark"],
+      ["atomic-learning-graph.passion.v1", "music"],
+    ]);
+    const storage = {
+      removeItem: (key: string) => stored.delete(key),
+    };
+
+    const restarted = restartCourseState(activeKey, storage);
+    expect(restarted).toEqual({ key: activeKey, pages: [] });
+    expect(stored.has(activeKey)).toBe(false);
+    expect(stored.get(otherCourseKey)).toBe(JSON.stringify(["vectors:0"]));
+    expect(stored.get("atomic-learning-graph.theme.v1")).toBe("dark");
+    expect(stored.get("atomic-learning-graph.passion.v1")).toBe("music");
+
+    const progress = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      restarted.pages,
+    );
+    expect(progress.remaining[0]).toEqual(progress.pages[0]);
+  });
+
+  it("offers a quiet Start over control on both the lesson and completion screens", () => {
+    const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
+    const props = {
+      graph: fixtureGraph,
+      goalId: fixtureGraph.goalId,
+      covered: [],
+      theme: "light" as const,
+      onNext: () => undefined,
+      onRestart: () => undefined,
+    };
+    const lesson = renderToStaticMarkup(<CourseScreen {...props} progress={progress} />);
+    const complete = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      progress.pages.map(coursePageKey),
+    );
+    const completion = renderToStaticMarkup(<CourseScreen {...props} progress={complete} />);
+
+    expect(lesson).toContain('class="text-button"');
+    expect(lesson).toContain(">Start over<");
+    expect(completion).toContain('class="text-button"');
+    expect(completion).toContain(">Start over<");
+  });
+
+  it("recaps the completed course in the same prerequisite order with display titles", () => {
+    const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
+    const complete = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      progress.pages.map(coursePageKey),
+    );
+    const route = [...new Set(progress.pages.map((page) => page.conceptId))]
+      .map((id) => fixtureGraph.concepts.find((concept) => concept.id === id))
+      .map((concept) => {
+        if (!concept) throw new Error("fixture course concept missing");
+        return titleFor(concept);
+      });
+    const goal = fixtureGraph.concepts.find((concept) => concept.id === fixtureGraph.goalId);
+    if (!goal) throw new Error("fixture goal missing");
+
+    const html = renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        goalId={fixtureGraph.goalId}
+        covered={[]}
+        theme="light"
+        progress={complete}
+        onNext={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(html).toContain(
+      `You can now approach ${titleFor(goal)} because you worked through ${route.join(" → ")}.`,
+    );
+    expect(html).not.toContain(`worked through ${progress.pages.map(coursePageKey).join(" → ")}`);
+  });
+
   it("quietly asks for self-explanation on the first page after a direct prerequisite", () => {
     const progress = deriveProgress(
       fixtureGraph,
@@ -151,7 +242,6 @@ describe("Phase 5 learning flow", () => {
         theme="light"
         progress={progress}
         onNext={() => undefined}
-        onOpenLesson={() => undefined}
         onRestart={() => undefined}
       />,
     );
@@ -173,7 +263,6 @@ describe("Phase 5 learning flow", () => {
         theme="light"
         progress={progress}
         onNext={() => undefined}
-        onOpenLesson={() => undefined}
         onRestart={() => undefined}
       />,
     );
@@ -203,7 +292,6 @@ describe("Phase 5 learning flow", () => {
         theme="light"
         progress={progress}
         onNext={() => undefined}
-        onOpenLesson={() => undefined}
         onRestart={() => undefined}
       />,
     );
@@ -249,7 +337,6 @@ describe("Phase 5 learning flow", () => {
         covered={[]}
         theme="light"
         onSelect={() => undefined}
-        onActivate={() => undefined}
       />,
     );
 

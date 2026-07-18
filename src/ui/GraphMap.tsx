@@ -16,7 +16,6 @@ interface GraphMapProps {
   covered: ConceptId[];
   theme: "light" | "dark";
   onSelect: (id: ConceptId) => void;
-  onActivate: (id: ConceptId) => void;
 }
 
 interface GraphMapKeyEvent {
@@ -29,7 +28,7 @@ type GraphMapKeyboardCommand =
   | { type: "select"; id: ConceptId }
   | { type: "zoom"; factor: number }
   | { type: "fit" }
-  | { type: "activate"; id: ConceptId };
+  | { type: "stay"; id: ConceptId };
 
 /**
  * Translate a key event owned by the map shell into a command. Key events from descendant
@@ -57,7 +56,7 @@ export function graphMapKeyboardCommand(
   if (event.key === "+" || event.key === "=") return { type: "zoom", factor: 1.18 };
   if (event.key === "-") return { type: "zoom", factor: 0.85 };
   if (event.key === "0") return { type: "fit" };
-  if (event.key === "Enter" || event.key === " ") return { type: "activate", id: selectedId };
+  if (event.key === "Enter" || event.key === " ") return { type: "stay", id: selectedId };
   return null;
 }
 
@@ -353,7 +352,6 @@ export function GraphMap({
   covered,
   theme,
   onSelect,
-  onActivate,
 }: GraphMapProps) {
   /* THE ONE NAME FOR EACH THING. Every place this file names a concept goes through here — the
      node label, the group's aria-label, the sr-only route list — so the map can never say
@@ -370,9 +368,7 @@ export function GraphMap({
   const viewportRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<cytoscape.Core | null>(null);
   const onSelectRef = useRef(onSelect);
-  const onActivateRef = useRef(onActivate);
   onSelectRef.current = onSelect;
-  onActivateRef.current = onActivate;
 
   const keyboardOrder = useMemo(() => {
     if (!showFullMap) return initialPath;
@@ -456,10 +452,10 @@ export function GraphMap({
 
     fitAtLegibleZoom(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
 
-    // Tap SELECTS. It does not open. In Cytoscape a tap fires on pointerup even when the
+    // Tap SELECTS and keeps the map open. In Cytoscape a tap fires on pointerup even when the
     // gesture was a pan, and this map is meant to be panned — fusing select and activate here
     // would mean a mouse user can never look at a node without committing to it. The keyboard
-    // path keeps the same split: arrows select, Enter activates.
+    // path is equally restrained: arrows select; Enter and Space keep that selection in place.
     cy.on("tap", "node", (event) => {
       onSelectRef.current(event.target.id());
     });
@@ -584,7 +580,7 @@ export function GraphMap({
     if (command.type === "select") onSelect(command.id);
     else if (command.type === "zoom") zoomBy(command.factor);
     else if (command.type === "fit") fit();
-    else onActivate(command.id);
+    // "stay" deliberately changes neither the lesson nor the dialog state.
     event.preventDefault();
   };
 
@@ -643,6 +639,7 @@ export function GraphMap({
       >
         <p className="sr-only" id="graph-instructions">
           Use arrow keys to move between concepts. Press plus or minus to zoom and zero to fit the map.
+          Enter and Space keep the selected concept highlighted without leaving the map.
           Use the route list after the map for a complete text alternative.
         </p>
         <div className="graph-viewport" ref={viewportRef} aria-hidden="true" />

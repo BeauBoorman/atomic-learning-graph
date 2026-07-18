@@ -10,7 +10,6 @@ interface MapToggleProps {
   initialPath: ConceptId[];
   covered: ConceptId[];
   theme: "light" | "dark";
-  onOpenLesson: (id: ConceptId) => void;
 }
 
 /**
@@ -35,7 +34,6 @@ export function MapToggle({
   initialPath,
   covered,
   theme,
-  onOpenLesson,
 }: MapToggleProps) {
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<ConceptId>(currentId);
@@ -116,10 +114,6 @@ export function MapToggle({
               covered={covered}
               theme={theme}
               onSelect={setSelectedId}
-              onActivate={(id) => {
-                dismiss();
-                onOpenLesson(id);
-              }}
             />
           )}
         </div>

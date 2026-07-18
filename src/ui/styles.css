@@ -940,6 +940,11 @@ select {
   text-align: center;
 }
 
+.course-reset {
+  margin-top: var(--s2);
+  text-align: center;
+}
+
 /* ── THE PLATE ────────────────────────────────────────────────────────────────
    A fold-out map bound into a book: summoned, full-bleed, gone again. It reuses
    `.sheet` wholesale — the iOS curve, the backdrop, the @starting-style, the

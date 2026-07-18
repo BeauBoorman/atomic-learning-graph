@@ -83,15 +83,18 @@ describe("the map shell's keyboard commands", () => {
     ).toBeNull();
   });
 
-  it("still activates the selected node when Enter originates on the map shell", () => {
-    expect(
-      graphMapKeyboardCommand(
-        { key: "Enter", target: shell, currentTarget: shell },
-        keyboardOrder,
-        "vectors",
-      ),
-    ).toEqual({ type: "activate", id: "vectors" });
-  });
+  it.each(["Enter", " "])(
+    "keeps the map open and the selected node in place for %j",
+    (key) => {
+      expect(
+        graphMapKeyboardCommand(
+          { key, target: shell, currentTarget: shell },
+          keyboardOrder,
+          "vectors",
+        ),
+      ).toEqual({ type: "stay", id: "vectors" });
+    },
+  );
 });
 
 describe("the map's stylesheet survives Cytoscape's parser", () => {
@@ -150,7 +153,6 @@ describe("the map speaks the app's vocabulary", () => {
         covered={covered}
         theme="light"
         onSelect={() => undefined}
-        onActivate={() => undefined}
       />,
     );
 
@@ -216,7 +218,6 @@ describe("the map's key is gated on the data, not the view", () => {
         covered={[]}
         theme="light"
         onSelect={() => undefined}
-        onActivate={() => undefined}
       />,
     );
     expect(html).toContain("Your route");
@@ -239,7 +240,6 @@ describe("the map's key is gated on the data, not the view", () => {
         covered={[]}
         theme="light"
         onSelect={() => undefined}
-        onActivate={() => undefined}
       />,
     );
     expect(html).toContain("Side quest");

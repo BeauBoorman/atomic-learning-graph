@@ -92,7 +92,10 @@ function storedPages(key: string): string[] {
 function savePages(key: string, pages: string[]) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(key, JSON.stringify(pages));
+    // No progress is represented by no course record. This keeps Start over a real deletion
+    // instead of immediately recreating the active key with an empty array on the next effect.
+    if (pages.length === 0) window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, JSON.stringify(pages));
   } catch {
     // Progress remains available for this visit.
   }
@@ -167,7 +170,6 @@ interface CourseScreenProps {
   theme: Theme;
   progress: CourseProgress;
   onNext: () => void;
-  onOpenLesson: (id: ConceptId) => void;
   onRestart: () => void;
 }
 
@@ -181,10 +183,18 @@ export function CourseScreen({
   theme,
   progress,
   onNext,
-  onOpenLesson,
   onRestart,
 }: CourseScreenProps) {
-  if (progress.complete) return <CompletionPage onRestart={onRestart} />;
+  if (progress.complete) {
+    return (
+      <CompletionPage
+        graph={graph}
+        goalId={goalId}
+        route={uniqueConcepts(progress.pages)}
+        onRestart={onRestart}
+      />
+    );
+  }
   const page = progress.remaining[0];
   if (!page) return null;
   const concept = graph.concepts.find((candidate) => candidate.id === page.conceptId);
@@ -244,10 +254,28 @@ export function CourseScreen({
         initialPath={uniqueConcepts(progress.pages)}
         covered={covered}
         theme={theme}
-        onOpenLesson={onOpenLesson}
       />
+      <div className="course-reset">
+        <button className="text-button" type="button" onClick={onRestart}>Start over</button>
+      </div>
     </main>
   );
+}
+
+/** Reset one course, never the whole browser store. Returning the empty state from the same
+ * operation keeps the persisted fact and the page on screen in agreement: this course's next
+ * derived page is page 1, while every other course and preference remains untouched. */
+export function restartCourseState(
+  key: string,
+  storage?: Pick<Storage, "removeItem">,
+): CourseState {
+  const target = storage ?? (typeof window === "undefined" ? undefined : window.localStorage);
+  try {
+    target?.removeItem(key);
+  } catch {
+    // The in-memory reset still returns the learner to page 1 for this visit.
+  }
+  return { key, pages: [] };
 }
 
 export function App({ graph, renderings = { renderings: [] } }: AppProps) {
@@ -264,10 +292,6 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [themeIsExplicit, setThemeIsExplicit] = useState(hasStoredTheme);
   const [announcement, setAnnouncement] = useState("");
-  // Parked seed for the gated side-quest feature. The map can already name a concept the
-  // learner wants to look at; nothing renders from it yet, and deliberately so — a peek must
-  // never replace the lesson on screen. Kept because reading it must never touch progress.
-  const [peekedConceptId, setPeekedConceptId] = useState<ConceptId | undefined>();
 
   // The v1/v2 keys are unscoped; v3 lacks the fixed declaration identity. Delete them on sight.
   useEffect(() => { retireLegacyProgress(); }, []);
@@ -285,8 +309,6 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
   }, [activeCourse, course]);
 
   const completedPages = course.key === activeCourse ? course.pages : NO_PAGES;
-  // A map peek is navigation only. Keep it out of this dependency list and out of every
-  // completed-page write so deriveProgress remains the sole progress authority.
   const progress = useMemo(
     () => deriveProgress(graph, goalId, depth, completedPages, declaredKnown),
     [completedPages, declaredKnown, depth, goalId, graph],
@@ -368,20 +390,23 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
   // not by remembering to reset.
   const chooseCourse = () => {
     setStarted(false);
-    setPeekedConceptId(undefined);
     setAnnouncement("Choose a learning goal.");
   };
 
   const updateGoal = (nextGoal: ConceptId) => {
     setGoalId(nextGoal);
     setDeclaredKnown((current) => knownForGoal(graph, nextGoal, current));
-    setPeekedConceptId(undefined);
   };
 
   const updateDepth = (nextDepth: Depth) => {
     setDepth(nextDepth);
-    setPeekedConceptId(undefined);
   };
+
+  const startOver = useCallback(() => {
+    setCourse(restartCourseState(activeCourse));
+    setStarted(true);
+    setAnnouncement("Course restarted. Page 1 is ready.");
+  }, [activeCourse]);
 
   const currentThemeName = theme === "light" ? "Light" : "Dark";
   const nextThemeName = theme === "light" ? "dark" : "light";
@@ -427,8 +452,7 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
           theme={theme}
           progress={progress}
           onNext={handleNext}
-          onOpenLesson={setPeekedConceptId}
-          onRestart={chooseCourse}
+          onRestart={startOver}
         />
       ) : (
         <Entry
