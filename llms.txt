@@ -1,6 +1,6 @@
-# Atomic Learning: a plain-English edition of a real textbook
+# Atomic Learning — a compiler for inspectable curricula
 
-> We don't ask what kind of learner you are. We give every learner several grounded routes to the same idea. We also show you the receipts.
+> **Give it an open textbook chapter. It produces an offline learning path where every generated sentence can be challenged against its source.**
 
 ## Concepts in prerequisite order
 

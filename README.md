@@ -1,9 +1,23 @@
-# Atomic Learning: a plain-English edition of a real textbook
+# Atomic Learning — a compiler for inspectable curricula
 
-We don't ask what kind of learner you are. We give every learner several grounded routes to the
-same idea. We also show you the receipts.
+**Give it an open textbook chapter. It produces an offline learning path where every generated
+sentence can be challenged against its source.**
+
+Humans specify the educational intent; a model does the expensive translation work; deterministic
+evidence makes every boundary visible. We don't ask what kind of learner you are — we give every
+learner several grounded routes to the same idea, and we show you the receipts.
 
 **[Open the live demo →](https://beauboorman.github.io/atomic-learning-graph/)** — runs entirely in your browser; nothing is generated while you read.
+
+The whole project, in five steps:
+
+1. **Pick something to learn.** Choose a goal concept.
+2. **Follow the prerequisite path.** A deterministic order, derived from the graph, teaches one idea per page.
+3. **Challenge any sentence against its source.** Every lesson step is anchored to a real, highlighted passage.
+4. **Inspect how the course was generated and verified.** Human-specified structure, model-generated
+   prose, deterministically-verified grounding, advisory-reviewed quality, and the limits we do not
+   prove — each boundary is labelled, not hidden.
+5. **Build your own.** Paste your own open text and key into the builder; it compiles a course with the same guarantees, offline.
 
 <!-- GIF still to cut from the finished app: one 6-second loop — pick a goal → lesson page →
      tap the footnote mark → the source sheet opens → the highlight draws under the real sentence.
@@ -110,6 +124,29 @@ learner reads; the browser receives only committed artifacts.
 So `gpt-5.6-sol` both built the machine and is the intelligence the machine calls at build time, and
 in both roles the same discipline holds: it proposes, and gates that it cannot talk past decide what
 ships.
+
+## What ships beyond the reader
+
+The thesis is the compiler and its receipts. Everything below is supporting evidence that the
+guarantees travel — not the headline.
+
+- **A build receipt.** The compile records a machine-checkable receipt in
+  [`data/graph.run.json`](data/graph.run.json): the source corpus and pin, the model, token usage,
+  cost, and the graph's sha256 (`016dd241…`) that `src/atomization/graph-run.test.ts` recomputes. It
+  distinguishes the human-specified structure from the model-generated prose, and records that the
+  browser makes zero model calls.
+- **Five exports, attribution-clean.** The one graph emits an `llms.txt` manifest, an
+  [org-roam graph](atomic-learning-graph.org), an [Obsidian vault](exports/obsidian/), and an
+  [Anki deck](atomic-learning-graph-anki.tsv) — each carrying CC-BY-SA attribution and a modification
+  notice. `pnpm verify:llms|orgroam|obsidian|anki` gate them against the committed graph.
+- **A single-file offline reader.** `pnpm build:single` emits one `dist-single/index.html` you can
+  double-click: no server, no network. `pnpm verify:single` gates it.
+- **Bring your own text and key.** `builder/` compiles a course from any pasted open text with your
+  own OpenAI, Anthropic, or compatible key. The key lives in memory only, never written to disk. Same
+  offline guarantees, your corpus.
+- **Cost is stated, not hidden.** The demo graph cost **$0.43** to compile (~**$0.043** per concept,
+  31,492 tokens). `src/cost/estimator.ts` is a pure, no-network estimator surfaced in both the reader
+  and the builder.
 
 ## Run it
 
@@ -224,7 +261,7 @@ Honest limits, stated up front:
   broader corpus and an explicit `--no-spine` run are the next relationship-mesh experiment, not a
   promised outcome or new graph architecture.
 - **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
-  alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 68 cited
+  alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 60 cited
   steps. Their citations and run-log hash are gated. On-demand renderings remain in
   [ROADMAP.md](ROADMAP.md); the learned atomicity judge is opt-in advisory evidence, not a gate.
 
