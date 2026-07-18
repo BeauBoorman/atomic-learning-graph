@@ -1,4 +1,4 @@
-# AGENTS.md — Atomic Learning Graph
+# AGENTS.md: Atomic Learning Graph
 
 ## Mission
 
@@ -10,17 +10,17 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
 
 - **Read first, then change:** `README.md`, `docs/adr/001-commit-the-generated-graph.md`,
   `src/types.ts`, `src/graph/invariants.ts`, `src/graph/path.ts`, `src/atomization/manifest.ts`.
-  The docstrings in those files are the SPEC — the tests pin behaviour, the docstrings say why.
+  The docstrings in those files are the SPEC. The tests pin behaviour; the docstrings say why.
 - **Never hand-edit, hand-forge, or copy a fixture into `data/graph.json`.** It is written ONLY by
   `pnpm atomize`. A hand-authored graph makes the project's headline claim false. If you need a
-  graph to develop against, use `src/graph/fixture-graph.ts` — it is labelled a FIXTURE and must
+  graph to develop against, use `src/graph/fixture-graph.ts`. It is labelled a FIXTURE and must
   never be presented as generated output (ADR 001, rule 3).
 - **Do not re-add relation fields to `Concept`.** `LearningGraph.edges[]` is the ONLY source of
   truth for relations (prereq / method / related). Derive a concept's prerequisites from edges.
   Two encodings of the same relation WILL diverge on a generated graph, and a green invariant suite
   would then prove nothing.
 - **Provenance is quote-primary.** Validate `sourceId` + normalized `quotedText`. Offsets are HINTS
-  and are NEVER validated — do not reintroduce an offset check; a test pins this.
+  and are NEVER validated. Do not reintroduce an offset check; a test pins this.
 - **`isSingleConcept` is ADVISORY, not a gate (SETTLED 2026-07-15).** There are **6 hard
   deterministic proof-invariants** (`hasCycle`, `findOrphans`, `danglingEdges`, `pathExists`,
   `invalidProvenance`, identifier uniqueness via `duplicateConceptIds` / `duplicateSourceIds`)
@@ -28,7 +28,7 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
   `isSingleConcept` and `reportAtomicityWarnings` must **never fail the build, never gate a phase,
   never gate the repair loop, and never appear in the hard-invariant fail set.** Never present the
   atomicity reporter on camera as proof of atomicity, and never promote it to a gate to make a demo
-  look stronger. It is the seed for a future scorer — see `ROADMAP.md`.
+  look stronger. It is the seed for a future scorer. See `ROADMAP.md`.
 - **Do not weaken a test to make an implementation pass.** Roughly half the suite is adversarial and
   each negative test names the cheating implementation it exists to kill (`() => []`, `() => true`,
   a `" and "` substring ban, `sources.find()`, "does this concept id exist"). If a negative test
@@ -45,7 +45,7 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
 ## Commands
 
 **Do not narrate command state here.** `package.json` is the source of truth for what exists and
-`pnpm gate` is the source of truth for what passes. This table rotted once already — it swore the
+`pnpm gate` is the source of truth for what passes. This table rotted once already. It swore the
 suite was red and the atomizer unbuilt for a day after both went green, and every agent that read it
 believed it. List commands; never their status.
 
@@ -53,7 +53,7 @@ believed it. List commands; never their status.
 |---|---|
 | `pnpm gate` | **THE acceptance bar.** typecheck + test + verify:corpus + verify:anchors + build + verify:bundle. Every stage runs even if an earlier one fails. |
 | `pnpm typecheck` | `tsc --noEmit`, must exit 0 |
-| `pnpm test` | vitest. **Passing is NOT the bar** — it does not run `verify:corpus`, and that gap is how a false licence notice nearly shipped. Use `pnpm gate`. |
+| `pnpm test` | vitest. **Passing is NOT the bar:** it does not run `verify:corpus`, and that gap is how a false licence notice nearly shipped. Use `pnpm gate`. |
 | `pnpm atomize` / `atomize:toy` | Atomizes licensed sources; full runs require explicit `--out-dir`. Costs real API calls. |
 | `pnpm render` | **Costs 2 API calls per concept.** Generates once, validates and writes `data/renderings.json`, then prints the verdict for those exact landed bytes; there is no dry run. |
 | `pnpm verify:corpus` / `verify:anchors` | licence + provenance gates. Corpus verification is local by default; `VERIFY_UPSTREAM=1 pnpm verify:corpus` also checks pinned upstream bytes. |
@@ -65,13 +65,13 @@ believed it. List commands; never their status.
 
 **The core is BUILT and green.** Invariants, the licence gate, the atomizer, `getPath`, the UI and
 the renderings pipeline all exist and pass. Do not re-implement them. `git log` and `pnpm gate` are
-the truth; if this section disagrees with them, they win and this section is stale — say so.
+the truth; if this section disagrees with them, they win and this section is stale. Say so.
 
 What remains is **shipping**, not building. Deadline **2026-07-21 17:00 PT**:
 
 1. **Secret + history audit** → a SAFE / NOT-SAFE verdict. Gates everything below. Publishing is
    irreversible; `data/graph.run.json` carries real API response IDs that need a ruling.
-2. **Provide repository access** — the rules allow either a public repository with relevant
+2. **Provide repository access:** the rules allow either a public repository with relevant
    licensing or a private repository shared with `testing@devpost.com` and
    `build-week-event@openai.com`. Public launch is preferred, but it is not a submission blocker.
    **Beau's hands, gated on 1.**
@@ -81,7 +81,7 @@ What remains is **shipping**, not building. Deadline **2026-07-21 17:00 PT**:
 ## Acceptance bar
 
 - `pnpm typecheck` exits 0.
-- `pnpm test` passes — including every adversarial/negative test — against the committed
+- `pnpm test` passes, including every adversarial/negative test, against the committed
   `data/graph.json`.
 - `pnpm atomize` fails closed on a source with a missing/non-open licence, and on invalid provenance.
 - `getPath(graph, "self-attention")` routes through `vectors → dot-product → softmax → qkv →

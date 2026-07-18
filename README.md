@@ -1,11 +1,11 @@
-# Atomic Learning — a plain-English edition of a real textbook
+# Atomic Learning: a plain-English edition of a real textbook
 
-<!-- PUBLISH STEP (owner call — not yet done). Once the repo is pushed to a public host and
-     GitHub Pages is enabled, uncomment the two lines below and fill in <user>. `base` is
+<!-- PUBLISH STEP (owner call). The repository is public. Once GitHub Pages is enabled,
+     uncomment the two lines below and fill in <user>. `base` is
      already set to "/atomic-learning-graph/" in vite.config.ts for a project page; if you
      publish to a user page or a custom domain instead, set `base` back to "/" or the link
      will serve a blank white screen. The GIF must be cut from the finished app: one 6-second
-     loop — pick a goal → lesson page → tap the footnote mark → the source sheet opens → the
+     loop: pick a goal → lesson page → tap the footnote mark → the source sheet opens → the
      highlight draws under the real sentence.
 **[Open the demo →](https://<user>.github.io/atomic-learning-graph/)**
 
@@ -13,7 +13,7 @@
 -->
 
 We don't ask what kind of learner you are. We give every learner several grounded routes to the
-same idea — and show you the receipts.
+same idea. We also show you the receipts.
 
 Pick something you want to understand. We work backwards through a prerequisite graph to the ideas
 it rests on, and teach them one page at a time, in order. Every page is a plain-English translation
@@ -22,18 +22,18 @@ of a passage from *Dive into Deep Learning* (Zhang, Lipton, Li & Smola), pinned 
 page shows you the exact sentence it came from, highlighted.
 
 The translation was made once, before publication, and checked against the source. **Nothing is
-generated while you read.** No key, no network, no model call — enforced against the shipped
+generated while you read.** No key, no network, no model call. That is enforced against the shipped
 browser bytes, not left as a promise.
 
 ### The routes
 
-- **Atomic steps** — one idea per page, never two.
-- **Prerequisite scaffolding** — a deterministic order, derived from the graph, not guessed.
-- **Optional analogies** — the same idea through cooking, sport, music, games, cars, gardening.
-- **Optional depth** — every step, or just the spine.
+- **Atomic steps:** one idea per page, never two.
+- **Prerequisite scaffolding:** a deterministic order, derived from the graph, not guessed.
+- **Optional analogies:** the same idea through cooking, sport, music, games, cars, gardening.
+- **Optional depth:** every step, or just the spine.
 
 Multiple representations, analogical transfer, cognitive-load management, interest-based motivation.
-Not learning styles — that idea has been tested and it does not hold up (Pashler et al. 2008;
+These are not learning styles. That idea has been tested and it does not hold up (Pashler et al. 2008;
 Coffield et al. 2004; Kirschner 2017).
 
 ## What you can check
@@ -45,7 +45,7 @@ Every claim on this page is a property of the committed artifact, not a descript
 | Nothing is generated at read time | After `pnpm build`, `pnpm verify:bundle` scans emitted JavaScript, HTML and CSS for network clients, the model vendor and remote assets. `src/ui/gate9.test.ts` keeps a faster source-level tripwire, but the hard claim rests on the bytes shipped to the learner. The app runs offline. |
 | Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
-| The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it — a single hand-edited character turns the suite red. |
+| The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it. A single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 chapters, licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
 
 The demo spine is deliberately specified, not independently discovered. The atomizer prompt gives the
@@ -63,22 +63,22 @@ model proposed the other 5 concepts, the other 5 edges, all 10 concept-level quo
 analogies remain optional illustrations.
 
 The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (17 core,
-14 deep) and **186 optional analogies** across 6 interests — plus the complete text of the four
+14 deep) and **186 optional analogies** across 6 interests, plus the complete text of the four
 pinned sources, embedded so the receipt can be verified in the browser with no request.
 
 ## How it is made
 
 The lessons are a **translation, not a summary**, and translation is the product here.
 
-We render each idea in the plainest English that keeps the meaning whole — *meaning-for-meaning, not
-word-for-word* (the principle translators call dynamic equivalence) — and anchor every sentence to
-the passage beside it. The highlighted words are the authors' own.
+We render each idea in the plainest English that keeps the meaning whole, following the principle
+translators call dynamic equivalence: *meaning-for-meaning, not word-for-word*. We anchor every
+sentence to the passage beside it. The highlighted words are the authors' own.
 
 The lineage is visible rather than hidden. The translation was made in a single build-time run by a
 language model, bounded at every step by deterministic checks it cannot talk its way past:
 
-1. The pipeline licence-checks every corpus source before ingestion — an exact-match SPDX allowlist,
-   fail-closed.
+1. The pipeline licence-checks every corpus source before ingestion. It uses an exact-match SPDX
+   allowlist and fails closed.
 2. The model extracts grounded concepts, proposes relationships between frozen concept IDs,
    translates each converged concept into cited lesson steps, and pre-builds the optional analogies
    as clearly labelled illustrations.
@@ -135,8 +135,8 @@ pnpm build
 pnpm preview
 ```
 
-Use `pnpm preview` rather than opening `dist/index.html` directly — a `file://` origin cannot load
-the built module.
+Use `pnpm preview` rather than opening `dist/index.html` directly because a `file://` origin cannot
+load the built module.
 
 Atomization is a separate build-time operation and requires `OPENAI_API_KEY`. Output is always
 explicit; a run cannot silently replace the committed demo graph:
@@ -160,24 +160,24 @@ run uses one pinned CC-BY-4.0 OpenStax Physics section and writes no artifact:
 pnpm atomize:toy -- --manifest data/corpora/openstax-physics/sources.json
 ```
 
-`data/graph.json` remains a committed build artifact and must never be hand-edited — see [ADR
+`data/graph.json` remains a committed build artifact and must never be hand-edited. See [ADR
 001](docs/adr/001-commit-the-generated-graph.md). Display-layer editorial choices (such as
 sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside the pinned artifact.
 
 ## Architecture
 
-- `data/oer/` — pinned upstream Markdown, deterministically extracted source text, and the fail-closed source manifest.
-- `data/corpora/openstax-physics/` — a separate one-source CC-BY-4.0 corpus proving manifest-relative ingestion.
-- `src/atomization/manifest.ts` — exact-match SPDX allowlist and manifest validation.
-- `src/atomization/atomize.ts` — three-phase inventory, relationship, and cited-translation build.
-- `src/atomization/translate.ts` — strict lesson schema, anchored excerpts, quote repair, and floors.
-- `src/atomization/analogy.ts` — optional build-time analogies for the fixed interest set.
-- `src/graph/invariants.ts` — the six hard deterministic proof invariants.
-- `src/graph/atomicity-report.ts` — an advisory-only concept atomicity reporter; never a gate.
-- `src/graph/path.ts` — deterministic prerequisite-ancestor walk with a stable tie-break.
-- `src/graph/load.ts` — fail-closed loader for the committed graph.
-- `src/ui/` — static React interface over the embedded graph, with local-only interactions.
-- `scripts/verify-bundle.ts` — post-build scan of emitted JavaScript, HTML and CSS; the
+- `data/oer/`: pinned upstream Markdown, deterministically extracted source text, and the fail-closed source manifest.
+- `data/corpora/openstax-physics/`: a separate one-source CC-BY-4.0 corpus proving manifest-relative ingestion.
+- `src/atomization/manifest.ts`: exact-match SPDX allowlist and manifest validation.
+- `src/atomization/atomize.ts`: three-phase inventory, relationship, and cited-translation build.
+- `src/atomization/translate.ts`: strict lesson schema, anchored excerpts, quote repair, and floors.
+- `src/atomization/analogy.ts`: optional build-time analogies for the fixed interest set.
+- `src/graph/invariants.ts`: the six hard deterministic proof invariants.
+- `src/graph/atomicity-report.ts`: an advisory-only concept atomicity reporter; never a gate.
+- `src/graph/path.ts`: deterministic prerequisite-ancestor walk with a stable tie-break.
+- `src/graph/load.ts`: fail-closed loader for the committed graph.
+- `src/ui/`: static React interface over the embedded graph, with local-only interactions.
+- `scripts/verify-bundle.ts`: post-build scan of emitted JavaScript, HTML and CSS; the
   shipped-bytes enforcement boundary for the no-network browser claim.
 
 Relations live only in `LearningGraph.edges[]`. Provenance is quote-primary: normalized `quotedText`
@@ -188,8 +188,8 @@ non-load-bearing hints.
 
 Open educational resources are abundant but rarely tell a learner what must be understood first. The
 graph is a persistent, inspectable substrate. Once built, path routing is reproducible and auditable
-from the graph's content alone — and because the routing is a pure function over committed data, the
-same goal always yields the same route, on any machine, with the network unplugged.
+from the graph's content alone. Because the routing is a pure function over committed data, the same
+goal always yields the same route, on any machine, with the network unplugged.
 
 ## What we are not claiming
 
@@ -211,7 +211,7 @@ Honest limits, stated up front:
   corpus and an unpinned run are the next experiment, not a promised outcome or new graph
   architecture.
 - **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
-  alternate renderings — `why-it-exists` and `how-it-works` for each of 10 concepts — with 68 cited
+  alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 68 cited
   steps. Their citations and run-log hash are gated. On-demand renderings and a learned atomicity
   scorer remain in [ROADMAP.md](ROADMAP.md).
 
@@ -220,7 +220,7 @@ Honest limits, stated up front:
 **Code: MIT. Demo content and D2L source text: CC-BY-SA-4.0. OpenStax proof corpus:
 CC-BY-4.0.**
 
-The source code — `src/`, `scripts/` and the build configuration — is licensed
+The source code (`src/`, `scripts/` and the build configuration) is licensed
 [MIT](LICENSE-CODE). Creative Commons recommends against CC licences for software, and ShareAlike
 is viral on adaptations, so the boundary is drawn between the engine and the text it renders.
 
