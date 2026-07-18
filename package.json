@@ -27,6 +27,8 @@
     "verify:anki": "node --import tsx scripts/emit-anki.ts --verify",
     "emit:obsidian": "node --import tsx scripts/emit-obsidian.ts",
     "verify:obsidian": "node --import tsx scripts/emit-obsidian.ts --verify",
+    "emit:exam": "node --import tsx scripts/emit-exam.ts",
+    "verify:exam": "node --import tsx scripts/emit-exam.ts --verify",
     "verify:bundle": "node --import tsx scripts/verify-bundle.ts",
     "verify:single": "node --import tsx scripts/verify-single.ts",
     "demo:tamper": "node --import tsx scripts/demo-tamper.ts",
