@@ -45,5 +45,9 @@ export default defineConfig({
   define: {
     __LEARNING_GRAPH__: JSON.stringify(graph),
     __RENDERINGS__: JSON.stringify({ renderings: [] }),
+    // App reads receipt={__COURSE_RECEIPT__} and guards `receipt && <ReceiptCard/>`; a null receipt
+    // renders no card. Without this define the identifier survives undefined into the bundle and
+    // every builder-built course crashes blank. (Found by cross-model audit, 2026-07-18.)
+    __COURSE_RECEIPT__: JSON.stringify(null),
   },
 });
