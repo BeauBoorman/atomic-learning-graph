@@ -25,6 +25,7 @@ import {
 } from "./artifacts";
 import { ANALOGY_PROMPT_VERSION, generateAnalogies } from "./analogy";
 import { ResponsesClient, isObject } from "./client";
+import { dedupeCandidates } from "./dedupe";
 import { groundedQuote } from "./grounding";
 import { buildRunCostReceipt } from "./run-receipt";
 import {
@@ -62,7 +63,7 @@ const atomizedConceptSchema: JsonObject = {
   additionalProperties: false,
 };
 
-const inventorySchema: JsonObject = {
+const pinnedInventorySchema: JsonObject = {
   type: "object",
   properties: {
     concepts: {
@@ -76,7 +77,42 @@ const inventorySchema: JsonObject = {
   additionalProperties: false,
 };
 
-const relationshipSchema: JsonObject = inventorySchema;
+const relationshipSchema: JsonObject = pinnedInventorySchema;
+
+const inventorySchema: JsonObject = {
+  type: "object",
+  properties: {
+    concepts: {
+      type: "array",
+      minItems: 0,
+      maxItems: 6,
+      items: atomizedConceptSchema,
+    },
+  },
+  required: ["concepts"],
+  additionalProperties: false,
+};
+
+const edgeListSchema: JsonObject = {
+  type: "object",
+  properties: {
+    edges: {
+      type: "array",
+      maxItems: 400,
+      items: {
+        type: "object",
+        properties: {
+          from: { type: "string" },
+          to: { type: "string" },
+        },
+        required: ["from", "to"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["edges"],
+  additionalProperties: false,
+};
 
 const quoteRepairSchema: JsonObject = {
   type: "object",
@@ -157,6 +193,60 @@ function sourcePassages(sourceText: string): string[] {
     .split(/(?<=[.!?])\s+(?=[#A-Z0-9])/u)
     .map((passage) => passage.trim())
     .filter(Boolean);
+}
+
+export function chunkSourceText(text: string, size = 12000): string[] {
+  if (!Number.isSafeInteger(size) || size <= 0) {
+    throw new Error("chunk size must be a positive safe integer");
+  }
+
+  const passages = sourcePassages(text);
+  if (passages.length === 0) return [text];
+
+  const chunks: string[] = [];
+  let current: string[] = [];
+  let currentLength = 0;
+  const flush = (): void => {
+    if (current.length === 0) return;
+    chunks.push(current.join("\n\n"));
+    current = [];
+    currentLength = 0;
+  };
+
+  for (const passage of passages) {
+    const separatorLength = current.length > 0 ? 2 : 0;
+    if (current.length > 0 && currentLength + separatorLength + passage.length > size) flush();
+    if (passage.length > size) {
+      flush();
+      chunks.push(passage);
+      continue;
+    }
+    current.push(passage);
+    currentLength += (current.length > 1 ? 2 : 0) + passage.length;
+  }
+  flush();
+  return chunks;
+}
+
+export interface PlannedSourceChunk {
+  sourceId: string;
+  title: string;
+  index: number;
+  total: number;
+  text: string;
+}
+
+export function planChunks(sources: Source[]): PlannedSourceChunk[] {
+  return sources.flatMap((source) => {
+    const chunks = chunkSourceText(source.text);
+    return chunks.map((text, index) => ({
+      sourceId: source.id,
+      title: source.title,
+      index,
+      total: chunks.length,
+      text,
+    }));
+  });
 }
 
 function selectExcerpt(source: Source): string {
@@ -249,6 +339,133 @@ function groundInventory(concepts: AtomizedConcept[], sources: Source[], require
   const missing = requiredIds.filter((id) => !grounded.some((concept) => concept.id === id));
   if (missing.length > 0) throw new Error(`inventory omitted required IDs: ${missing.join(", ")}`);
   return grounded;
+}
+
+export async function discoverInventory(
+  client: ResponsesClient,
+  sources: Source[],
+): Promise<AtomizedConcept[]> {
+  const instructions =
+    "Discover the one-concept lesson nodes genuinely present in one openly licensed source passage. " +
+    "Return up to 6 concepts; emit fewer when the passage holds fewer real ideas and never pad. " +
+    "Every quotedText must be copied verbatim from the passage. Use the supplied source ID, choose stable kebab-case IDs, " +
+    "and leave prerequisites and related as empty arrays.";
+  const candidates: AtomizedConcept[] = [];
+
+  for (const chunk of planChunks(sources)) {
+    const input = `SOURCE_ID=${chunk.sourceId}\nTITLE=${chunk.title}\nCHUNK=${chunk.index + 1}/${chunk.total}\n<<<\n${chunk.text}\n>>>`;
+    try {
+      const raw = await client.request(
+        instructions,
+        input,
+        inventorySchema,
+        "concept_inventory",
+      );
+      const discovered = parseConcepts(raw).map((concept) => ({
+        ...concept,
+        provenance: { ...concept.provenance, sourceId: chunk.sourceId },
+        prerequisites: [],
+        related: [],
+      }));
+      candidates.push(...discovered);
+    } catch (error) {
+      console.warn(
+        `Inventory chunk ${chunk.index + 1}/${chunk.total} for ${chunk.sourceId} failed; skipping: ${String(error)}`,
+      );
+    }
+  }
+
+  const grounded = groundInventory(candidates, sources, []);
+  return await dedupeCandidates(grounded, client);
+}
+
+function wouldCreatePrerequisiteCycle(
+  adjacency: Map<string, Set<string>>,
+  from: string,
+  to: string,
+): boolean {
+  const seen = new Set<string>();
+  const pending = [to];
+  while (pending.length > 0) {
+    const id = pending.pop() as string;
+    if (id === from) return true;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    pending.push(...(adjacency.get(id) ?? []));
+  }
+  return false;
+}
+
+export async function discoverRelationships(
+  client: ResponsesClient,
+  inventory: AtomizedConcept[],
+): Promise<AtomizedConcept[]> {
+  const concepts = inventory.map((concept) => ({
+    ...concept,
+    prerequisites: [...concept.prerequisites],
+    related: [...concept.related],
+  }));
+  const compactInventory = concepts.map(({ id, title, summary }) => ({ id, title, summary }));
+  const instructions =
+    "Infer a prerequisite DAG over the complete frozen concept inventory. Return only directed edges " +
+    "where from must be learned before to. Use only listed IDs, never emit self-loops, and never mint an ID.";
+
+  let raw: JsonObject;
+  try {
+    raw = await client.request(
+      instructions,
+      `Frozen concept inventory:\n${JSON.stringify(compactInventory)}`,
+      edgeListSchema,
+      "concept_relationship_edges",
+    );
+  } catch (error) {
+    console.warn(`Relationship discovery failed; continuing without discovered edges: ${String(error)}`);
+    return concepts;
+  }
+
+  if (!Array.isArray(raw.edges)) {
+    console.warn("Relationship discovery returned no edge array; continuing without discovered edges.");
+    return concepts;
+  }
+
+  const byId = new Map(concepts.map((concept) => [concept.id, concept]));
+  const adjacency = new Map<string, Set<string>>();
+  for (const concept of concepts) {
+    for (const prerequisite of concept.prerequisites) {
+      if (!byId.has(prerequisite) || prerequisite === concept.id) continue;
+      const next = adjacency.get(prerequisite) ?? new Set<string>();
+      next.add(concept.id);
+      adjacency.set(prerequisite, next);
+    }
+  }
+
+  for (const [index, edge] of raw.edges.entries()) {
+    if (!isObject(edge) || typeof edge.from !== "string" || typeof edge.to !== "string") {
+      console.warn(`Relationship edge ${index + 1} was malformed; dropping it.`);
+      continue;
+    }
+    const from = edge.from;
+    const to = edge.to;
+    if (!byId.has(from) || !byId.has(to)) {
+      console.warn(`Relationship edge ${from} -> ${to} names an unknown concept; dropping it.`);
+      continue;
+    }
+    if (from === to) {
+      console.warn(`Relationship edge ${from} -> ${to} is a self-loop; dropping it.`);
+      continue;
+    }
+    if (wouldCreatePrerequisiteCycle(adjacency, from, to)) {
+      console.warn(`Relationship edge ${from} -> ${to} would create a cycle; dropping it.`);
+      continue;
+    }
+
+    const target = byId.get(to)!;
+    if (!target.prerequisites.includes(from)) target.prerequisites.push(from);
+    const next = adjacency.get(from) ?? new Set<string>();
+    next.add(to);
+    adjacency.set(from, next);
+  }
+  return concepts;
 }
 
 /** Deterministically retain the full product inventory and force every pinned source assignment. */
@@ -402,7 +619,7 @@ ${sourcePrompt(sources)}`;
   let lastError: unknown;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      const raw = await client.request(instructions, input, inventorySchema, "concept_inventory");
+      const raw = await client.request(instructions, input, pinnedInventorySchema, "concept_inventory");
       const proposed = parseConcepts(raw);
       for (const requiredId of requiredIds) {
         const concept = proposed.find((candidate) => candidate.id.trim().toLowerCase() === requiredId);
@@ -622,8 +839,12 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
   const structure = options.noSpine ? undefined : FULL_GRAPH_SPINE;
   const spine = structure?.path ?? [];
   const requiredIds = structure?.concepts.map(({ id }) => id) ?? [];
-  const inventory = await inventoryPhase(client, sources, requiredIds, false, structure);
-  const atomized = await relationshipPhase(client, inventory, spine, structure);
+  const inventory = structure
+    ? await inventoryPhase(client, sources, requiredIds, false, structure)
+    : await discoverInventory(client, sources);
+  const atomized = structure
+    ? await relationshipPhase(client, inventory, spine, structure)
+    : await discoverRelationships(client, inventory);
   const goalId = options.noSpine ? selectUnpinnedGoal(atomized) : FULL_GRAPH_SPINE.goalId;
   const initialGraph = buildGraph(atomized, sources, goalId, options.noSpine);
   const expectedSources: ExpectedSource[] = sources.map((source) => ({ ...source }));

@@ -1,20 +1,143 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { AtomizedConcept, Source } from "../types";
+import type { ResponsesClient } from "./client";
 import {
+  chunkSourceText,
+  discoverRelationships,
   loadSources,
   main,
   parseAtomizeArgs,
   pinInventoryToSpine,
   pinRelationshipsToSpine,
+  planChunks,
   selectToySource,
   writeAtomizationRunLog,
 } from "./atomize";
 import { FULL_GRAPH_SPINE } from "./repair";
 
 const repoRoot = resolve(import.meta.dirname, "..", "..");
+
+describe("unpinned source chunking", () => {
+  it("splits long text into bounded chunks while preserving every passage", () => {
+    const passages = [
+      "Alpha introduces the first idea.",
+      "Beta develops the second idea.",
+      "Gamma finishes the third idea.",
+    ];
+    const chunks = chunkSourceText(passages.join("\n\n"), 65);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((chunk) => chunk.length <= 65)).toBe(true);
+    expect(chunks.join("\n\n")).toBe(passages.join("\n\n"));
+  });
+
+  it("ships one oversized passage whole instead of splitting it", () => {
+    const oversized = `${"Long sentence material ".repeat(8).trim()}.`;
+    expect(chunkSourceText(oversized, 40)).toEqual([oversized]);
+  });
+
+  it("returns one chunk for empty and short input", () => {
+    expect(chunkSourceText("")).toEqual([""]);
+    expect(chunkSourceText("One short passage.")).toEqual(["One short passage."]);
+  });
+
+  it("plans every chunk from every source in manifest order", () => {
+    const sources: Source[] = [
+      {
+        id: "source-a",
+        title: "Source A",
+        license: "CC0-1.0",
+        author: "Test",
+        text: "First source passage.",
+      },
+      {
+        id: "source-b",
+        title: "Source B",
+        license: "CC0-1.0",
+        author: "Test",
+        text: "Second source passage.",
+      },
+    ];
+
+    expect(planChunks(sources).map(({ sourceId, index, total }) => ({ sourceId, index, total })))
+      .toEqual([
+        { sourceId: "source-a", index: 0, total: 1 },
+        { sourceId: "source-b", index: 0, total: 1 },
+      ]);
+  });
+});
+
+describe("unpinned relationship discovery", () => {
+  const concept = (id: string): AtomizedConcept => ({
+    id,
+    title: id,
+    summary: `Summary for ${id}.`,
+    provenance: {
+      sourceId: "source",
+      quotedText: `${id} has a substantial grounded quote copied from the source passage.`,
+    },
+    tags: [],
+    prerequisites: [],
+    related: [],
+  });
+
+  it("applies valid edges and drops self-loop and unknown-ID edges", async () => {
+    const client = {
+      request: vi.fn().mockResolvedValue({
+        edges: [
+          { from: "alpha", to: "beta" },
+          { from: "beta", to: "gamma" },
+          { from: "gamma", to: "gamma" },
+          { from: "missing", to: "gamma" },
+        ],
+      }),
+    } as unknown as ResponsesClient;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    try {
+      const related = await discoverRelationships(client, [
+        concept("alpha"),
+        concept("beta"),
+        concept("gamma"),
+      ]);
+      expect(related.find(({ id }) => id === "beta")?.prerequisites).toEqual(["alpha"]);
+      expect(related.find(({ id }) => id === "gamma")?.prerequisites).toEqual(["beta"]);
+      expect(warn).toHaveBeenCalledTimes(2);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("drops an edge that would close a prerequisite cycle", async () => {
+    const client = {
+      request: vi.fn().mockResolvedValue({
+        edges: [
+          { from: "alpha", to: "beta" },
+          { from: "beta", to: "gamma" },
+          { from: "gamma", to: "alpha" },
+        ],
+      }),
+    } as unknown as ResponsesClient;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    try {
+      const related = await discoverRelationships(client, [
+        concept("alpha"),
+        concept("beta"),
+        concept("gamma"),
+      ]);
+      expect(related.find(({ id }) => id === "alpha")?.prerequisites).toEqual([]);
+      expect(related.find(({ id }) => id === "beta")?.prerequisites).toEqual(["alpha"]);
+      expect(related.find(({ id }) => id === "gamma")?.prerequisites).toEqual(["beta"]);
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/would create a cycle/i));
+    } finally {
+      warn.mockRestore();
+    }
+  });
+});
 
 describe("atomizer input and output selection", () => {
   it("requires an explicit output directory for every non-toy run", () => {

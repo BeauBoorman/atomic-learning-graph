@@ -4,7 +4,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const MINIMUM_TEXT_LENGTH = 300;
-const MAXIMUM_TEXT_LENGTH = 250_000;
+// Retain a generous public-endpoint bound: full books are valid input, unbounded bodies are a DoS risk.
+const MAXIMUM_TEXT_LENGTH = 2_000_000;
 const SUPPORTED_PROVIDERS = new Set(["openai", "anthropic", "openai-compatible"]);
 const DEFAULT_MODELS = {
   openai: "gpt-5.6-sol",
