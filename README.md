@@ -42,10 +42,10 @@ Every claim on this page is a property of the committed artifact, not a descript
 | Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it. A single hand-edited character turns the suite red. |
-| The sources are what we say they are | Four pinned CC-BY-SA-4.0 chapters, licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
+| The sources are what we say they are | Four pinned CC-BY-SA-4.0 source sections (spanning three chapters), licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
 
 The demo spine is deliberately specified, not independently discovered. The atomizer prompt gives the
-model five stable concept IDs, five source assignments across four chapters, and four direct
+model five stable concept IDs, five source assignments across three chapters, and four direct
 prerequisite edges in order; code fixes `self-attention` as the goal. `pnpm verify:anchors` separately
 checks that five named corpus passages remain verbatim in the extracted sources. Those passages are
 not inserted into the graph as constants: the model proposes each concept quote, and code only snaps
@@ -213,7 +213,7 @@ Honest limits, stated up front:
   concepts carry a low-confidence advisory**, and the default goal (`self-attention`) is estimated at
   grade **13.52**. The floor is a build gate against runaway prose, not a promise of grade-8 English.
   Tightening it is a re-translation, not a config change.
-- **The graph is small and the domain is narrow.** 10 concepts across four chapters. The pitch is the
+- **The graph is small and the domain is narrow.** 10 concepts across four source sections (three chapters). The pitch is the
   substrate and the provenance, not coverage.
 - **This artifact is a prerequisite tree, not evidence of a relationship mesh.** The graph type
   supports `prereq`, `method`, and `related`, and the relationship phase requires `related` on every
