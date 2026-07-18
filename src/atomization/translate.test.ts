@@ -54,10 +54,19 @@ const oneConceptGraph = (): LearningGraph => {
 };
 
 describe("Phase 3 lesson translation", () => {
-  it("pins the v2 prompt and strict schema without a concept-level tier", () => {
-    expect(PROMPT_VERSION).toBe("atomizer-v2-translate-three-phase");
+  it("pins the claim-anchored prompt and strict schema without a concept-level tier", () => {
+    expect(PROMPT_VERSION).toBe("atomizer-v3-claim-anchored-lessons");
     expect(TRANSLATE_INSTRUCTIONS).toContain("You are a translator, not an author.");
     expect(TRANSLATE_INSTRUCTIONS).toContain("VERBATIM, character-for-character");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("specific load-bearing claim");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("topically related");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("TRIM the step's wording");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("Prefer trimming the claim over attaching a weak quote");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("causal links");
+    expect(TRANSLATE_INSTRUCTIONS).toContain('temporal ordering (such as "earlier")');
+    expect(TRANSLATE_INSTRUCTIONS).toContain('necessity (such as "without it, X would be impossible")');
+    expect(TRANSLATE_INSTRUCTIONS).toContain("PRESERVE the source's hedges");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("Faithfulness to the cited span beats fluency");
     expect(lessonSchema).toMatchObject({
       type: "object",
       additionalProperties: false,

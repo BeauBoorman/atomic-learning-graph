@@ -17,7 +17,11 @@ import {
   convergeGraph,
   type ExpectedSource,
 } from "./repair";
-import { writeGraphArtifact, writeJsonArtifact } from "./artifacts";
+import {
+  writeGraphArtifact,
+  writeJsonArtifact,
+  type ArtifactWriteOptions,
+} from "./artifacts";
 import { ANALOGY_PROMPT_VERSION, generateAnalogies } from "./analogy";
 import { ResponsesClient, isObject } from "./client";
 import { groundedQuote } from "./grounding";
@@ -443,6 +447,7 @@ export interface AtomizeOptions {
   toyOnly: boolean;
   noSpine: boolean;
   atomicityJudge: boolean;
+  omitResponseIds: boolean;
 }
 
 export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
@@ -454,12 +459,14 @@ export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
   let toyOnly = false;
   let noSpine = false;
   let atomicityJudge = false;
+  let omitResponseIds = false;
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--toy") toyOnly = true;
     else if (arg === "--no-spine") noSpine = true;
     else if (arg === "--atomicity-judge") atomicityJudge = true;
+    else if (arg === "--no-response-ids") omitResponseIds = true;
     else if (arg === "--overwrite-existing") overwriteExisting = true;
     else if (arg === "--manifest" || arg === "--out-dir") {
       const value = args[index + 1];
@@ -475,7 +482,32 @@ export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
     throw new Error("--out-dir is required; atomization never writes into data/ implicitly");
   }
   if (toyOnly && noSpine) throw new Error("--no-spine is only valid for a full artifact run");
-  return { manifestPath, outDir, overwriteExisting, toyOnly, noSpine, atomicityJudge };
+  return {
+    manifestPath,
+    outDir,
+    overwriteExisting,
+    toyOnly,
+    noSpine,
+    atomicityJudge,
+    omitResponseIds,
+  };
+}
+
+export function writeAtomizationRunLog(
+  path: string,
+  metadata: Record<string, unknown>,
+  responseIds: readonly string[],
+  omitResponseIds: boolean,
+  options: ArtifactWriteOptions = {},
+): Buffer {
+  return writeJsonArtifact(
+    path,
+    {
+      ...metadata,
+      ...(omitResponseIds ? {} : { responseIds }),
+    },
+    options,
+  );
 }
 
 export async function main(args: readonly string[] = process.argv.slice(2)): Promise<void> {
@@ -591,13 +623,18 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
     strictStructuredOutputs: client.strictSchema,
     manifestSha256: sha256(manifestBytes),
     graphSha256: sha256(graphBytes),
-    responseIds: client.responseIds,
     ...costReceipt,
     convergence: attemptLog,
     ...(options.noSpine ? { unpinned: true, artifactNote: UNPINNED_ARTIFACT_NOTE } : {}),
   };
 
-  writeJsonArtifact(runLogPath as string, runLog, writeOptions);
+  writeAtomizationRunLog(
+    runLogPath as string,
+    runLog,
+    client.responseIds,
+    options.omitResponseIds,
+    writeOptions,
+  );
   writeJsonArtifact(
     atomicityReportPath as string,
     { advisoryOnly: true, warnings },

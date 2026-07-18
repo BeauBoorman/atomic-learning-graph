@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -7,6 +7,7 @@ import {
   main,
   parseAtomizeArgs,
   selectToySource,
+  writeAtomizationRunLog,
 } from "./atomize";
 
 const repoRoot = resolve(import.meta.dirname, "..", "..");
@@ -35,6 +36,40 @@ describe("atomizer input and output selection", () => {
     expect(
       parseAtomizeArgs(["--out-dir", ".artifacts/demo", "--atomicity-judge"]),
     ).toMatchObject({ atomicityJudge: true });
+  });
+
+  it("keeps response IDs by default and makes their omission explicit", () => {
+    expect(parseAtomizeArgs(["--out-dir", ".artifacts/demo"])).toMatchObject({
+      omitResponseIds: false,
+    });
+    expect(
+      parseAtomizeArgs(["--out-dir", ".artifacts/demo", "--no-response-ids"]),
+    ).toMatchObject({ omitResponseIds: true });
+  });
+
+  it("writes atomization run logs with response IDs by default and without them on opt-in", () => {
+    const directory = mkdtempSync(resolve(tmpdir(), "atomic-run-log-"));
+    const defaultPath = resolve(directory, "graph.default.run.json");
+    const omittedPath = resolve(directory, "graph.omitted.run.json");
+    const metadata = {
+      model: "fake-model",
+      graphSha256: "graph-sha",
+      manifestSha256: "manifest-sha",
+      promptVersion: "prompt-v3",
+      convergence: [{ attempt: 1, issues: [] }],
+    };
+
+    try {
+      writeAtomizationRunLog(defaultPath, metadata, ["resp_1", "resp_2"], false);
+      writeAtomizationRunLog(omittedPath, metadata, ["resp_1", "resp_2"], true);
+      const defaultRun = JSON.parse(readFileSync(defaultPath, "utf8")) as Record<string, unknown>;
+      const omittedRun = JSON.parse(readFileSync(omittedPath, "utf8")) as Record<string, unknown>;
+      expect(defaultRun).toEqual({ ...metadata, responseIds: ["resp_1", "resp_2"] });
+      expect(omittedRun).toEqual(metadata);
+      expect(omittedRun).not.toHaveProperty("responseIds");
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it("refuses an occupied --out-dir before initializing a model client", async () => {

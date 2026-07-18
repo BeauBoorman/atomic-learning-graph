@@ -10,6 +10,7 @@ import {
   generateAndWriteRenderings,
   generateRenderings,
   main,
+  parseRenderArgs,
   type RenderingClient,
 } from "./render";
 import {
@@ -71,7 +72,13 @@ function oneConceptGraph(): LearningGraph {
 
 describe("build-time alternate renderings", () => {
   it("rejects the removed --dry flag before any paid client can be initialized", async () => {
-    await expect(main(["--dry"])).rejects.toThrow("render accepts no flags");
+    await expect(main(["--dry"])).rejects.toThrow(/unknown option.*--dry/iu);
+  });
+
+  it("keeps response IDs by default and accepts only the explicit omission flag", () => {
+    expect(parseRenderArgs([])).toEqual({ omitResponseIds: false });
+    expect(parseRenderArgs(["--no-response-ids"])).toEqual({ omitResponseIds: true });
+    expect(() => parseRenderArgs(["--omit-ids"])).toThrow(/unknown option/iu);
   });
 
   it("keeps the grounding contract byte-identical across question formats", () => {
@@ -146,6 +153,41 @@ describe("build-time alternate renderings", () => {
         renderingsSha256: createHash("sha256").update(landedBytes).digest("hex"),
         responseIds: ["fake-response-1", "fake-response-2"],
       });
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("omits responseIds from the rendering run log without dropping other metadata", async () => {
+    const graph = oneConceptGraph();
+    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors));
+    const directory = mkdtempSync(join(tmpdir(), "atomic-renderings-private-"));
+    const renderingsPath = join(directory, "renderings.json");
+    const runLogPath = join(directory, "renderings.run.json");
+
+    try {
+      await generateAndWriteRenderings(
+        graph,
+        client,
+        {
+          model: "fake-model",
+          strictStructuredOutputs: true,
+          responseIds: ["fake-response-1", "fake-response-2"],
+          omitResponseIds: true,
+        },
+        { renderings: renderingsPath, runLog: runLogPath },
+        () => undefined,
+        () => undefined,
+      );
+
+      const run = JSON.parse(readFileSync(runLogPath, "utf8")) as Record<string, unknown>;
+      expect(run).toMatchObject({
+        model: "fake-model",
+        renderingPromptVersion: "renderings-v1-question-routes",
+        strictStructuredOutputs: true,
+      });
+      expect(run).toHaveProperty("renderingsSha256");
+      expect(run).not.toHaveProperty("responseIds");
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
