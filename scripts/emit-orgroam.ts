@@ -54,6 +54,24 @@ function sourceReference(source: Source): string {
   return [source.id, source.url].filter((value): value is string => value !== undefined).join(" ");
 }
 
+function modificationNotice(source: Source): string {
+  return (
+    `Adapted (translated to plain English; atomized into concept lessons) from ${source.title} ` +
+    `by ${source.author}, ${source.license}.`
+  );
+}
+
+function renderSourceAttribution(source: Source): string {
+  return [
+    `** ${source.id}`,
+    `Title: ${source.title}`,
+    `Author: ${source.author}`,
+    `License: ${source.license}`,
+    `URL: ${source.url ?? ""}`,
+    `Modification notice: ${modificationNotice(source)}`,
+  ].join("\n");
+}
+
 function renderCitation(step: LessonStep, index: number): string {
   return [
     `*** Step ${index + 1} (${step.stepTier})`,
@@ -123,7 +141,18 @@ export function emitOrgRoamArtifact(graph: LearningGraph): string {
     return renderConcept(concept, source, prerequisitesByConcept.get(concept.id) ?? []);
   });
 
-  return `${["#+title: Atomic Learning Graph", ...conceptSections].join("\n\n")}\n`;
+  const sourceAttributions = [
+    "* Source Attributions",
+    ...[...new Set(orderedConcepts.map(({ provenance }) => provenance.sourceId))]
+      .sort()
+      .map((sourceId) => {
+        const source = sourceById.get(sourceId);
+        if (!source) throw new Error(`validated source attribution ${sourceId} has no source`);
+        return renderSourceAttribution(source);
+      }),
+  ].join("\n\n");
+
+  return `${["#+title: Atomic Learning Graph", sourceAttributions, ...conceptSections].join("\n\n")}\n`;
 }
 
 export function writeOrgRoamArtifact(

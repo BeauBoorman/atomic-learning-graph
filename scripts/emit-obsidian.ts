@@ -69,6 +69,13 @@ function markdownQuote(value: string): string {
     .join("\n");
 }
 
+function modificationNotice(source: Source): string {
+  return (
+    `Adapted (translated to plain English; atomized into concept lessons) from ${source.title} ` +
+    `by ${source.author}, ${source.license}.`
+  );
+}
+
 function renderFrontmatter(concept: Concept, source: Source): string {
   const tags = [...concept.tags].sort();
   return [
@@ -76,8 +83,11 @@ function renderFrontmatter(concept: Concept, source: Source): string {
     `id: ${yamlString(concept.id)}`,
     `title: ${yamlString(concept.title)}`,
     `source: ${yamlString(source.id)}`,
+    `source_title: ${yamlString(source.title)}`,
     `url: ${yamlString(source.url ?? "")}`,
+    `author: ${yamlString(source.author)}`,
     `license: ${yamlString(source.license)}`,
+    `modification_notice: ${yamlString(modificationNotice(source))}`,
     ...(tags.length > 0
       ? ["tags:", ...tags.map((tag) => `  - ${yamlString(tag)}`)]
       : ["tags: []"]),

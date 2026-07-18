@@ -62,6 +62,28 @@ export function escapeAnkiField(value: string): string {
     .replace(/\r\n|\r|\n/gu, "<br>");
 }
 
+function modificationNotice(source: Source): string {
+  return (
+    `Adapted (translated to plain English; atomized into concept lessons) from ${source.title} ` +
+    `by ${source.author}, ${source.license}.`
+  );
+}
+
+function commentValue(value: string): string {
+  return value.replace(/\t/gu, " ").replace(/\r\n|\r|\n/gu, " ");
+}
+
+function renderSourceAttribution(source: Source): string[] {
+  return [
+    `# Attribution source: ${commentValue(source.id)}`,
+    `# Title: ${commentValue(source.title)}`,
+    `# Author: ${commentValue(source.author)}`,
+    `# License: ${commentValue(source.license)}`,
+    `# URL: ${commentValue(source.url ?? "")}`,
+    `# ${commentValue(modificationNotice(source))}`,
+  ];
+}
+
 function renderCard(concept: Concept, source: Source): string {
   const front = escapeAnkiField(`What is ${concept.title}?`);
   const back = escapeAnkiField(
@@ -71,7 +93,11 @@ function renderCard(concept: Concept, source: Source): string {
       "Source receipt",
       concept.provenance.quotedText,
       `Source ID: ${source.id}`,
+      `Title: ${source.title}`,
+      `Author: ${source.author}`,
+      `License: ${source.license}`,
       ...(source.url ? [`URL: ${source.url}`] : []),
+      `Modification notice: ${modificationNotice(source)}`,
     ].join("\n"),
   );
   return `${front}\t${back}`;
@@ -97,7 +123,17 @@ export function emitAnkiArtifact(graph: LearningGraph): string {
     return renderCard(concept, source);
   });
 
-  return `${[...ANKI_HEADERS, ...cards].join("\n")}\n`;
+  const sourceAttributions = [
+    ...new Set(orderedConcepts.map(({ provenance }) => provenance.sourceId)),
+  ]
+    .sort()
+    .flatMap((sourceId) => {
+      const source = sourceById.get(sourceId);
+      if (!source) throw new Error(`validated source attribution ${sourceId} has no source`);
+      return renderSourceAttribution(source);
+    });
+
+  return `${[...ANKI_HEADERS, ...sourceAttributions, ...cards].join("\n")}\n`;
 }
 
 export function writeAnkiArtifact(

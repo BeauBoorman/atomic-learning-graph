@@ -61,6 +61,23 @@ describe("org-roam build artifact", () => {
     }
   });
 
+  it("attributes every source and identifies the adaptation", () => {
+    const graph = loadGraph();
+    const emitted = emitOrgRoamArtifact(graph);
+
+    for (const source of graph.sources) {
+      const notice =
+        `Adapted (translated to plain English; atomized into concept lessons) from ` +
+        `${source.title} by ${source.author}, ${source.license}.`;
+      expect(emitted).toContain("* Source Attributions");
+      expect(emitted).toContain(`Title: ${source.title}`);
+      expect(emitted).toContain(`Author: ${source.author}`);
+      expect(emitted).toContain(`License: ${source.license}`);
+      expect(emitted).toContain(`URL: ${source.url ?? ""}`);
+      expect(emitted).toContain(notice);
+    }
+  });
+
   it("includes every committed concept and every prerequisite edge", () => {
     const graph = loadGraph();
     const emitted = emitOrgRoamArtifact(graph);
