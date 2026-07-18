@@ -466,6 +466,22 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
     return () => media.removeEventListener("change", followSystem);
   }, [themeIsExplicit]);
 
+  // The browser's Back button used to exit the site from page one of a course — the single
+  // most reflexive gesture a judge makes, answered with losing the app. Starting a course
+  // pushes ONE history entry; Back pops it and lands on the entry screen, exactly where
+  // "Change course" goes. One entry, not one per page: paging through a course should not
+  // charge the learner eight Back presses to leave.
+  useEffect(() => {
+    if (!started) return;
+    window.history.pushState({ atomicCourseOpen: true }, "");
+    const returnToEntry = () => {
+      setStarted(false);
+      setAnnouncement("Choose a learning goal.");
+    };
+    window.addEventListener("popstate", returnToEntry);
+    return () => window.removeEventListener("popstate", returnToEntry);
+  }, [started]);
+
   // Every page is a NEW page — put the learner at the top of it.
   // Without this the SPA kept the previous scroll offset: "Start learning" and "Next page"
   // both sit below the fold, so each lesson opened mid-sentence and the analogy floated
@@ -521,11 +537,25 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
   };
 
   const startOver = useCallback(() => {
+    // Erasing progress AND typed notes on one unguarded click is the only destructive act in
+    // the app. Ask first — but only when there is actually something to lose; confirming the
+    // reset of an untouched course would be noise.
+    const hasWork = (course.key === activeCourse && course.pages.length > 0)
+      || Object.keys(activeSelfExplanations).length > 0;
+    if (
+      hasWork
+      && typeof window !== "undefined"
+      && !window.confirm(
+        "Start this course over? Your page progress and any notes you typed for it will be erased.",
+      )
+    ) {
+      return;
+    }
     setCourse(restartCourseState(activeCourse, activeSelfExplanationCourse));
     setSelfExplanations({ key: activeSelfExplanationCourse, answers: {} });
     setStarted(true);
     setAnnouncement("Course restarted. Page 1 is ready.");
-  }, [activeCourse, activeSelfExplanationCourse]);
+  }, [activeCourse, activeSelfExplanationCourse, activeSelfExplanations, course]);
 
   const currentThemeName = theme === "light" ? "Light" : "Dark";
   const nextThemeName = theme === "light" ? "dark" : "light";

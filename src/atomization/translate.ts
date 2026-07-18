@@ -242,10 +242,14 @@ export async function translateAndConvergeLessons(
   graph: LearningGraph,
   client: TranslationClient,
   onWarning: (message: string) => void = (message) => console.warn(message),
+  onProgress: (message: string) => void = (message) => console.log(message),
 ): Promise<LearningGraph> {
   const candidate: LearningGraph = JSON.parse(JSON.stringify(graph));
 
-  for (const concept of candidate.concepts) {
+  for (const [index, concept] of candidate.concepts.entries()) {
+    // One line per model call: this loop is the longest silent stretch of a build, and a
+    // builder that prints nothing for minutes reads as frozen rather than working.
+    onProgress(`Translating ${index + 1}/${candidate.concepts.length}: ${concept.title}`);
     const source = sourceForConcept(candidate, concept);
     const excerpt = excerptAroundAnchor(source.text, concept.provenance.quotedText);
     try {

@@ -55,6 +55,13 @@ function mockChild({ stdout = "", stderr = "", code = 0 } = {}) {
   return child;
 }
 
+function decodeWindowsPnpmArgs(commandArgs) {
+  const script = commandArgs.at(-1);
+  const payload = script.match(/FromBase64String\('([^']+)'\)/u)?.[1];
+  assert.ok(payload, "the Windows launcher must carry an encoded argv payload");
+  return JSON.parse(Buffer.from(payload, "base64").toString("utf16le"));
+}
+
 async function requestServer(server, { method, path, body }) {
   const request = Readable.from([Buffer.from(JSON.stringify(body))]);
   request.method = method;
@@ -134,12 +141,53 @@ test("OpenAI provider seam passes the key only through child memory and redacts 
     onProgress: (event) => progress.push(event),
   });
 
-  assert.equal(captured.command, "pnpm");
+  assert.equal(captured.command, process.platform === "win32" ? "powershell.exe" : "pnpm");
   assert.equal(captured.apiKeyAtSpawn, secret);
   assert.equal(captured.modelAtSpawn, "gpt-5.6-sol");
   assert.equal(captured.args.join(" ").includes(secret), false, "key must never enter argv");
   assert.equal(JSON.stringify(progress).includes(secret), false, "key must never enter progress output");
   assert.equal(captured.environment.OPENAI_API_KEY, undefined, "parent must clear its child-environment copy after spawn");
+  atomizer.dispose();
+});
+
+test("Windows atomizer invokes pnpm through PowerShell without flattening paths into a command string", async () => {
+  const manifestPath = String.raw`C:\Users\Beau Boorman\Atomic Course\sources.json`;
+  const outDir = String.raw`C:\Users\Beau Boorman\Atomic Course\generated output`;
+  const captured = {};
+  const atomizer = createAtomizer({
+    provider: "openai",
+    apiKey: "sk-test-windows-command-form",
+    model: "gpt-5.6-sol",
+    platform: "win32",
+    spawnImpl(command, args, options) {
+      Object.assign(captured, { command, args: [...args], options });
+      return mockChild();
+    },
+  });
+
+  await atomizer.run({ manifestPath, outDir });
+
+  assert.equal(captured.command, "powershell.exe");
+  assert.deepEqual(captured.args.slice(0, -1), [
+    "-NoLogo",
+    "-NoProfile",
+    "-NonInteractive",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-Command",
+  ]);
+  assert.deepEqual(decodeWindowsPnpmArgs(captured.args), [
+    "exec",
+    "tsx",
+    "src/atomization/atomize.ts",
+    "--manifest",
+    manifestPath,
+    "--out-dir",
+    outDir,
+    "--no-spine",
+  ]);
+  assert.equal(captured.args.at(-1).includes(manifestPath), false, "paths must not be interpolated into shell source");
+  assert.equal(captured.options.shell, undefined, "the encoded argv must reach an explicit shell executable without shell re-parsing");
   atomizer.dispose();
 });
 
@@ -394,6 +442,29 @@ test("reader packager explicitly strips any ambient API key", async () => {
   }
   assert.equal(environments.length, 3);
   assert.ok(environments.every((environment) => environment.OPENAI_API_KEY === undefined));
+});
+
+test("Windows course packager uses the same argv-safe pnpm launcher", async () => {
+  const calls = [];
+  const graphPath = String.raw`C:\Users\Beau Boorman\Atomic Course\graph.json`;
+  const outDir = String.raw`C:\Users\Beau Boorman\Atomic Course\offline reader`;
+  const packager = createCoursePackager({
+    platform: "win32",
+    runImpl: async (command, args, options) => calls.push({ command, args, options }),
+  });
+
+  await packager.run({ graphPath, outDir });
+
+  assert.equal(calls[0].command, "powershell.exe");
+  assert.deepEqual(decodeWindowsPnpmArgs(calls[0].args), [
+    "exec",
+    "vite",
+    "build",
+    "--config",
+    "builder/vite.course.config.ts",
+  ]);
+  assert.equal(calls[0].options.env.BUILDER_GRAPH_PATH, graphPath);
+  assert.equal(calls[0].options.env.BUILDER_COURSE_OUT_DIR, outDir);
 });
 
 test("fixture-backed build makes the real one-file reader without logging or writing the key", { timeout: 120_000 }, async () => {

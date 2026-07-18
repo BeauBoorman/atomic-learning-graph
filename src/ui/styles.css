@@ -55,6 +55,7 @@
   --mark: #f2dc9a;
   --mark-ink: #22201b;
   --analogy-rule: #c9a24a;
+  --map-goal-ring: #8a6a1f;
   --shadow: 0 24px 60px -20px rgba(34, 32, 27, 0.28);
 
   --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -100,6 +101,7 @@
   --mark: #f2dc9a;
   --mark-ink: #22201b;
   --analogy-rule: #c9a24a;
+  --map-goal-ring: #8a6a1f;
   --shadow: 0 24px 60px -20px rgba(34, 32, 27, 0.28);
 }
 
@@ -118,6 +120,7 @@
   --mark: #6a4a16;
   --mark-ink: #fffdf8;
   --analogy-rule: #b08a3c;
+  --map-goal-ring: #b08a3c;
   --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
 }
 
@@ -1239,8 +1242,12 @@ select {
   background: var(--surface);
 }
 
+/* Double ring + deep brass, exactly as node.goal draws it in GraphMap.tsx: the double border
+   is the goal's non-hue signal, and --map-goal-ring holds 3:1 against both the surface and the
+   amber fill in light mode (the old --analogy-rule brass was 2.35:1 — hue-only under a
+   projector). */
 .legend-swatch.goal {
-  border-color: var(--analogy-rule);
+  border: 3px double var(--map-goal-ring);
   background: var(--mark);
 }
 

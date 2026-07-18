@@ -72,10 +72,12 @@ function RenderingStep({
   rendering,
   stepIndex,
   resolved,
+  attribution,
 }: {
   rendering: Rendering;
   stepIndex: number;
   resolved: ResolvedPassage;
+  attribution: boolean;
 }) {
   const step = rendering.steps[stepIndex];
   const mark = useRef<HTMLButtonElement>(null);
@@ -94,6 +96,7 @@ function RenderingStep({
         open={sourceOpen}
         onOpen={() => setSourceOpen(true)}
         onClose={() => setSourceOpen(false)}
+        attribution={attribution}
       />
     </li>
   );
@@ -141,14 +144,26 @@ export function RenderingRoute({
       <h1 id="rendering-title" ref={title} tabIndex={-1}>{rendering.plainTitle}</h1>
 
       <ol className="rendering-steps">
-        {rendering.steps.map((step, stepIndex) => (
-          <RenderingStep
-            key={`${rendering.format}:${stepIndex}:${step.text}`}
-            rendering={rendering}
-            stepIndex={stepIndex}
-            resolved={resolveCitation(rendering, stepIndex)}
-          />
-        ))}
+        {/* One visible colophon per SOURCE, on its first step. Every step keeps its own sheet
+            and footnote mark; only the repeated attribution paragraph is deduplicated — it was
+            printed identically under all four steps of a route. */}
+        {(() => {
+          const attributedSources = new Set<string>();
+          return rendering.steps.map((step, stepIndex) => {
+            const resolved = resolveCitation(rendering, stepIndex);
+            const attribution = !attributedSources.has(resolved.source.id);
+            attributedSources.add(resolved.source.id);
+            return (
+              <RenderingStep
+                key={`${rendering.format}:${stepIndex}:${step.text}`}
+                rendering={rendering}
+                stepIndex={stepIndex}
+                resolved={resolved}
+                attribution={attribution}
+              />
+            );
+          });
+        })()}
       </ol>
 
       <div className="route-actions" aria-label="Lesson routes">
@@ -226,6 +241,10 @@ export function LessonPage({
     const onKey = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName ?? "")) return;
+      // The map plate is its own modal; a dialog's inert background stops clicks and focus but
+      // NOT document-level key handlers, so `S` with the map open stacked the source sheet on
+      // top of the plate. The map owns the screen while it is up.
+      if (document.querySelector("dialog.map-sheet[open]")) return;
       if (event.key !== "s" && event.key !== "S") return;
       event.preventDefault();
       // Focus the mark BEFORE opening: <dialog> restores focus to whatever was focused when it

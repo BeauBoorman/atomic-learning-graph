@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { resolve } from "node:path";
 import { repoRoot } from "./atomizer.mjs";
+import { pnpmSpawnInvocation } from "./pnpm-spawn.mjs";
 
 function run(command, args, options) {
   return new Promise((resolvePromise, rejectPromise) => {
@@ -18,7 +19,7 @@ function run(command, args, options) {
   });
 }
 
-export function createCoursePackager({ runImpl = run, cwd = repoRoot } = {}) {
+export function createCoursePackager({ runImpl = run, platform = process.platform, cwd = repoRoot } = {}) {
   return {
     async run({ graphPath, outDir }) {
       const environment = { ...process.env };
@@ -26,11 +27,11 @@ export function createCoursePackager({ runImpl = run, cwd = repoRoot } = {}) {
       environment.BUILDER_GRAPH_PATH = graphPath;
       environment.BUILDER_COURSE_OUT_DIR = outDir;
 
-      await runImpl(
-        "pnpm",
+      const pnpm = pnpmSpawnInvocation(
         ["exec", "vite", "build", "--config", "builder/vite.course.config.ts"],
-        { cwd, env: environment },
+        { platform },
       );
+      await runImpl(pnpm.command, pnpm.args, { ...pnpm.spawnOptions, cwd, env: environment });
       await runImpl("node", ["builder/inline-course.mjs", "--out-dir", outDir], {
         cwd,
         env: environment,

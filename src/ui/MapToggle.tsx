@@ -36,11 +36,26 @@ export function MapToggle({
   theme,
 }: MapToggleProps) {
   const [open, setOpen] = useState(false);
+  // The map stays MOUNTED slightly past close: the plate animates out over 260ms (.sheet's
+  // transition), and unmounting the GraphMap on the same frame as close() blanked the plate
+  // mid-flight — the learner watched an empty sheet slide away. 320ms covers the transition
+  // with margin; under reduced motion the close is instant and the extra mounted frames are
+  // invisible behind display:none.
+  const [mounted, setMounted] = useState(false);
   const [selectedId, setSelectedId] = useState<ConceptId>(currentId);
   const plate = useRef<HTMLDialogElement>(null);
   const summon = useRef<HTMLButtonElement>(null);
 
   useEffect(() => setSelectedId(currentId), [currentId]);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      return;
+    }
+    const timer = window.setTimeout(() => setMounted(false), 320);
+    return () => window.clearTimeout(timer);
+  }, [open]);
 
   useEffect(() => {
     const node = plate.current;
@@ -99,11 +114,11 @@ export function MapToggle({
           <button type="button" className="sheet-close" aria-label="Close the map" onClick={dismiss}>
             ×
           </button>
-          {/* Mounted only while open, and deliberately: Cytoscape measures its container at
-              mount, and a display:none dialog measures 0. The GraphMap's ResizeObserver re-fits
-              when the real box arrives a frame later, which is exactly the case it was written
-              for. */}
-          {open && (
+          {/* Mounted only while open (plus the close animation), and deliberately: Cytoscape
+              measures its container at mount, and a display:none dialog measures 0. The
+              GraphMap's ResizeObserver re-fits when the real box arrives a frame later, which
+              is exactly the case it was written for. */}
+          {mounted && (
             <GraphMap
               graph={graph}
               goalId={goalId}

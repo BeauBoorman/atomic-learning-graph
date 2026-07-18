@@ -77,20 +77,29 @@ const palette = {
   light: {
     surface: "#fffdf8",   // --surface
     text: "#22201b",      // --ink.        16.01 on --surface, 12.00 on goal amber
-    border: "#8f8375",    // --line
+    border: "#8f8375",    // --line.       3.63 on --surface at the full opacity borders use
+    /* Edges get their own, darker warm grey. Node borders draw at full opacity, so --line
+       clears 3:1 there — but edges drew the same hue at 0.55–0.72 opacity, which blends to
+       1.79:1 against the surface and fails non-text contrast (WCAG 1.4.11). A projector or a
+       bright room erases them entirely. #6b6154 at full opacity is 5.9:1. */
+    edge: "#6b6154",
     route: "#8c2f2a",     // --primary (claret)
     done: "#eae4d6",      // --surface-soft
     goal: "#f2dc9a",      // --mark (amber)
-    goalBorder: "#c9a24a", // --analogy-rule (brass)
+    /* Deep brass, not --analogy-rule: the old #c9a24a ring was 2.35:1 against the surface and
+       the amber fill it encloses is 2.09:1, so in light mode the goal was hue-only. #8a6a1f is
+       4.9:1 on the surface and 3.7:1 on the amber fill. Matches --map-goal-ring in styles.css. */
+    goalBorder: "#8a6a1f",
   },
   dark: {
     surface: "#1d1a15",
     text: "#f2ece1",      // 14.75 on --surface, 6.86 on goal amber
     border: "#7a7062",
+    edge: "#7a7062",      // dark edges already clear 3:1 at their drawn opacity
     route: "#e79a86",     // terracotta — claret's dark-theme voice
     done: "#282419",
     goal: "#6a4a16",
-    goalBorder: "#b08a3c",
+    goalBorder: "#b08a3c", // matches --map-goal-ring in the dark block
   },
 } as const;
 
@@ -227,11 +236,13 @@ export function stylesFor(
       selector: "edge",
       style: {
         width: 1.5,
-        "line-color": color.border,
-        "target-arrow-color": color.border,
+        "line-color": color.edge,
+        "target-arrow-color": color.edge,
         "target-arrow-shape": "none",
         "curve-style": "bezier",
-        opacity: 0.55,
+        // Light edges draw at full strength: opacity is what blended them below 3:1 (see the
+        // palette note on `edge`). Dark keeps the quieter weave it already had.
+        opacity: theme === "light" ? 0.9 : 0.55,
         "overlay-opacity": 0,
         "transition-property": "line-color, target-arrow-color, width, opacity",
         "transition-duration": reduceMotion ? 0 : 180,
@@ -240,8 +251,8 @@ export function stylesFor(
     {
       selector: "edge[type = 'prereq']",
       style: {
-        "line-color": color.border,
-        "target-arrow-color": color.border,
+        "line-color": color.edge,
+        "target-arrow-color": color.edge,
         "target-arrow-shape": "triangle",
         "arrow-scale": 0.8,
         /* Taxi edges follow the rank axis, so this tracks rankDir above. It said "rightward"
@@ -251,7 +262,8 @@ export function stylesFor(
         "curve-style": showFullMap ? "taxi" : "straight",
         "taxi-direction": "downward",
         "taxi-turn": showFullMap ? 20 : 12,
-        opacity: 0.72,
+        // 0.72 blended the light edge back under 3:1; 0.9 of #6b6154 holds 4.7:1.
+        opacity: theme === "light" ? 0.9 : 0.72,
       },
     },
     {
@@ -298,13 +310,16 @@ export function stylesFor(
       },
     },
     // The one place amber appears on the map. Matches .legend-swatch.goal exactly
-    // (border --analogy-rule, background --mark) — the key and the map are one palette.
+    // (border --map-goal-ring, background --mark) — the key and the map are one palette.
+    // The DOUBLE border is the goal's non-hue signal: every other node wears a single solid
+    // ring, so the goal reads as the goal even on a projector that flattens the amber away.
     {
       selector: "node.goal",
       style: {
         "background-color": color.goal,
         "border-color": color.goalBorder,
-        "border-width": 3,
+        "border-width": 4,
+        "border-style": "double",
       },
     },
     /* `current` and `selected` used to be a fourth and fifth hue (orange). They are the same
@@ -369,6 +384,21 @@ export function GraphMap({
   const graphRef = useRef<cytoscape.Core | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  /* THE LEARNER'S VIEW IS THEIRS. Once they zoom or pan deliberately — wheel, pinch, drag, the
+     +/− controls, the keyboard — no automatic re-fit may take it away. Arrow-keying through
+     concepts and window resizes used to call fit and silently discard the zoom the learner had
+     just chosen. `userAdjustedView` records the deliberate gesture; `applyingProgrammaticView`
+     is how our own fits avoid counting as one (a fit fires the same zoom/pan events a wheel
+     does). The explicit Fit control and the 0 key reset the flag: asking to fit IS a view
+     choice. A rebuild (new core) starts fresh. */
+  const userAdjustedView = useRef(false);
+  const applyingProgrammaticView = useRef(false);
+
+  const autoFit = (cy: cytoscape.Core, padding: number) => {
+    applyingProgrammaticView.current = true;
+    fitAtLegibleZoom(cy, padding);
+    applyingProgrammaticView.current = false;
+  };
 
   const keyboardOrder = useMemo(() => {
     if (!showFullMap) return initialPath;
@@ -450,7 +480,7 @@ export function GraphMap({
       } as unknown as cytoscape.LayoutOptions)
       .run();
 
-    fitAtLegibleZoom(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
+    autoFit(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
 
     // Tap SELECTS and keeps the map open. In Cytoscape a tap fires on pointerup even when the
     // gesture was a pan, and this map is meant to be panned — fusing select and activate here
@@ -468,16 +498,27 @@ export function GraphMap({
       cy.elements().removeClass("dimmed highlighted");
     });
 
+    // A wheel, pinch, or drag fires these same events — so do our own fits, which is what
+    // `applyingProgrammaticView` distinguishes: every fit this file performs goes through
+    // autoFit, which raises the flag around itself.
+    cy.on("zoom pan", () => {
+      if (!applyingProgrammaticView.current) userAdjustedView.current = true;
+    });
+
     graphRef.current = cy;
+    userAdjustedView.current = false;
     // resize() only re-measures the canvas; it does NOT re-fit the graph. The map lives
     // behind a toggle, so the container's real size arrives AFTER the layout ran — leaving
     // the zoom/pan computed against the wrong box and the route rendered as an unreadable
-    // smudge off to one side. Re-fit whenever the box changes; the +/-/Fit controls still
-    // let the learner zoom deliberately. Re-fit ONLY: re-running dagre on every resize frame
-    // would relayout the graph under the learner mid-drag.
+    // smudge off to one side. Re-fit whenever the box changes — UNLESS the learner has taken
+    // the view for themselves; then a resize only re-measures and their zoom survives.
+    // Re-fit ONLY: re-running dagre on every resize frame would relayout the graph under the
+    // learner mid-drag.
     const resizeObserver = new ResizeObserver(() => {
       cy.resize();
-      fitAtLegibleZoom(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
+      if (!userAdjustedView.current) {
+        autoFit(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
+      }
     });
     resizeObserver.observe(viewportRef.current);
 
@@ -488,12 +529,15 @@ export function GraphMap({
     };
   }, [graph, initialPath, showFullMap]);
 
+  // Restyle ONLY. A theme switch repaints the same graph in the other palette; re-fitting here
+  // threw away the zoom the learner was holding. A showFullMap flip rebuilds the whole core in
+  // the mount effect above — which fits — so the fit this effect used to do was redundant there
+  // and destructive here.
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const cy = graphRef.current;
     if (!cy) return;
     cy.style(stylesFor(theme, reduceMotion, showFullMap));
-    fitAtLegibleZoom(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
   }, [showFullMap, theme]);
 
   useEffect(() => {
@@ -537,18 +581,29 @@ export function GraphMap({
       });
     });
 
-    // Every guided node already fits at a readable size. Keep the whole route centered instead
-    // of panning it away when selection changes; selection-centering is useful only in the full DAG.
-    if (!showFullMap) {
-      fitAtLegibleZoom(cy, GUIDED_FIT_PADDING);
-      return;
-    }
+    // Selection changes NEVER re-fit. In the guided view nothing moves the viewport, so there
+    // is nothing to correct; the fit that used to run here on every arrow key was the thing
+    // discarding the learner's zoom. Full-map selection still centres — a pan that brings the
+    // selection into view while leaving the zoom exactly where the learner put it.
+    if (!showFullMap) return;
 
     const selected = cy.getElementById(selectedId);
     if (selected.nonempty()) {
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduceMotion) cy.center(selected);
-      else cy.animate({ center: { eles: selected }, duration: 280 });
+      // Centering is ours, not the learner's — its pan events must not claim the view for them.
+      applyingProgrammaticView.current = true;
+      if (reduceMotion) {
+        cy.center(selected);
+        applyingProgrammaticView.current = false;
+      } else {
+        cy.animate({
+          center: { eles: selected },
+          duration: 280,
+          complete: () => {
+            applyingProgrammaticView.current = false;
+          },
+        });
+      }
     }
     /* `graph` IS LOAD-BEARING HERE AND IT DOES NOT LOOK IT — do not let a linter remove it.
        Deleting the status ternary took away this effect's last direct READ of `graph`, so it now
@@ -570,7 +625,9 @@ export function GraphMap({
   const fit = () => {
     const cy = graphRef.current;
     if (!cy) return;
-    fitAtLegibleZoom(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
+    // An explicit Fit is a view choice: automatic fits may follow again until the next gesture.
+    userAdjustedView.current = false;
+    autoFit(cy, showFullMap ? FULL_MAP_FIT_PADDING : GUIDED_FIT_PADDING);
   };
 
   const handleKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -586,7 +643,8 @@ export function GraphMap({
 
   const selectedTitle = nameOf(selectedId);
   const visibleCount = showFullMap ? graph.concepts.length : initialPath.length;
-  const textAlternativeIds = showFullMap ? keyboardOrder : initialPath;
+  const routeIds = new Set(initialPath);
+  const offRouteIds = keyboardOrder.filter((id) => !routeIds.has(id));
   const coveredIds = new Set(covered);
 
   return (
@@ -649,19 +707,31 @@ export function GraphMap({
           <button type="button" onClick={fit} aria-label="Fit visible concepts in view">Fit</button>
         </div>
       </div>
-      <ol className="sr-only" id="graph-text-alternative">
-        {textAlternativeIds.map((id, index) => {
-          const title = nameOf(id);
-          const status = coveredIds.has(id)
-            ? "covered"
-            : id === currentId
-              ? "next step"
-              : id === goalId
-                ? "goal"
-                : "not started";
-          return <li key={id}>Step {index + 1}: {title}, {status}.</li>;
-        })}
-      </ol>
+      {/* "Step N" belongs to the ROUTE only. The full map used to pour all ten concepts through
+          this list as "Step 8: …, not started" — numbering and promising steps a five-step
+          course does not contain. Off-route concepts are named as what they are: on the map,
+          not on the route. */}
+      <div className="sr-only" id="graph-text-alternative">
+        <ol>
+          {initialPath.map((id, index) => {
+            const title = nameOf(id);
+            const status = coveredIds.has(id)
+              ? "covered"
+              : id === currentId
+                ? "next step"
+                : id === goalId
+                  ? "goal"
+                  : "not started";
+            return <li key={id}>Step {index + 1}: {title}, {status}.</li>;
+          })}
+        </ol>
+        {showFullMap && offRouteIds.length > 0 && (
+          <p>
+            Also on the map, not part of your route:{" "}
+            {offRouteIds.map((id) => nameOf(id)).join(", ")}.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

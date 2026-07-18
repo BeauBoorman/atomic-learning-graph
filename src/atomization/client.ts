@@ -3,13 +3,24 @@ import type { RunUsageTokens } from "./run-receipt";
 
 export const MODEL_CANDIDATES = [process.env.OPENAI_MODEL ?? "gpt-5.6-sol"];
 
+/** The builder's provider adapter rewrites api.openai.com calls to the provider the teacher
+ *  actually chose (see builder/provider-fetch.mjs). Errors surfaced to that teacher must carry
+ *  the chosen provider's name — a wrong Anthropic key branded "OpenAI API 401" reads as our bug,
+ *  not their typo. Outside the builder the env var is unset and the label stays "OpenAI". */
+const PROVIDER_LABEL =
+  process.env.ALG_BUILDER_PROVIDER === "anthropic"
+    ? "Anthropic"
+    : process.env.ALG_BUILDER_PROVIDER === "openai-compatible"
+      ? "OpenAI-compatible endpoint"
+      : "OpenAI";
+
 export function isObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function outputText(response: JsonObject): string {
   const output = response.output;
-  if (!Array.isArray(output)) throw new Error("OpenAI response contains no output array");
+  if (!Array.isArray(output)) throw new Error(`${PROVIDER_LABEL} response contains no output array`);
   for (const item of output) {
     if (!isObject(item) || !Array.isArray(item.content)) continue;
     for (const content of item.content) {
@@ -18,26 +29,26 @@ export function outputText(response: JsonObject): string {
       }
     }
   }
-  throw new Error("OpenAI response contains no output_text content");
+  throw new Error(`${PROVIDER_LABEL} response contains no output_text content`);
 }
 
 function billedTokenCount(value: unknown, field: string): number {
   if (!Number.isSafeInteger(value) || (value as number) < 0) {
-    throw new Error(`OpenAI response usage.${field} must be a non-negative integer`);
+    throw new Error(`${PROVIDER_LABEL} response usage.${field} must be a non-negative integer`);
   }
   return value as number;
 }
 
 function responseUsage(response: JsonObject): RunUsageTokens {
   if (!isObject(response.usage)) {
-    throw new Error("OpenAI response contains no usage object");
+    throw new Error(`${PROVIDER_LABEL} response contains no usage object`);
   }
   const input = billedTokenCount(response.usage.input_tokens, "input_tokens");
   const output = billedTokenCount(response.usage.output_tokens, "output_tokens");
   const total = billedTokenCount(response.usage.total_tokens, "total_tokens");
   if (total !== input + output) {
     throw new Error(
-      `OpenAI response usage.total_tokens (${total}) does not equal input_tokens + output_tokens (${input + output})`,
+      `${PROVIDER_LABEL} response usage.total_tokens (${total}) does not equal input_tokens + output_tokens (${input + output})`,
     );
   }
   return { input, output, total };
@@ -64,7 +75,7 @@ export class ResponsesClient {
     const raw = (await response.json()) as JsonObject;
     if (!response.ok) {
       const error = isObject(raw.error) && typeof raw.error.message === "string" ? raw.error.message : JSON.stringify(raw);
-      throw new Error(`OpenAI API ${response.status} ${path}: ${error}`);
+      throw new Error(`${PROVIDER_LABEL} API ${response.status} ${path}: ${error}`);
     }
     return raw;
   }
