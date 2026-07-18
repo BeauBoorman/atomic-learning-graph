@@ -81,7 +81,10 @@
             </div>
             <div class="field">
               <label for="source">Paste your source text</label>
-              <textarea id="source" minlength="300" maxlength="250000" placeholder="Paste plain text only — no PDF, links, or formatting." required></textarea>
+              <!-- minlength mirrors MINIMUM_TEXT_LENGTH in builder/build-course.mjs (the server-side
+                   gate); builder/tests.mjs pins the two together. -->
+              <textarea id="source" minlength="12000" maxlength="250000" placeholder="Paste plain text only — no PDF, links, or formatting." required></textarea>
+              <div class="hint">Paste at least 12,000 characters — about five pages. The engine refuses to ship a course with fewer than six grounded concepts, and shorter texts fail after your API key has already been charged.</div>
               <div id="estimate" aria-live="polite"><span id="source-size">0 characters</span><span id="cost-estimate">Paste text to see the complete build cost — no key or model call needed.</span></div>
             </div>
             <div class="pair">

@@ -49,6 +49,8 @@ export function createAtomizer({
   spawnImpl = spawn,
   platform = process.platform,
   cwd = repoRoot,
+  heartbeatQuietMs = 15_000,
+  heartbeatRepeatMs = 30_000,
 } = {}) {
   if (!["openai", "anthropic", "openai-compatible"].includes(provider)) {
     throw new Error(`unsupported model provider: ${provider}`);
@@ -94,13 +96,33 @@ export function createAtomizer({
       delete childEnvironment.OPENAI_API_KEY;
 
       let diagnostic = "";
+      let lastMessageAt = Date.now();
       const consume = (line) => {
         diagnostic = `${diagnostic}\n${redactSecret(line, credentials.apiKey)}`.slice(-12_000);
         const message = friendlyProgress(line, provider);
-        if (message) onProgress({ type: "engine", message: redactSecret(message, credentials.apiKey) });
+        if (message) {
+          lastMessageAt = Date.now();
+          onProgress({ type: "engine", message: redactSecret(message, credentials.apiKey) });
+        }
       };
       pipeLines(child.stdout, consume);
       pipeLines(child.stderr, consume);
+
+      // The engine's success path is silent for minutes during per-concept translation, and the
+      // page's timeline rows are append-only (index.html addStatus) — so surface truthful elapsed
+      // time only, never a fabricated percentage, at most one row per heartbeatRepeatMs.
+      let lastHeartbeatAt = 0;
+      const heartbeat = setInterval(() => {
+        const now = Date.now();
+        if (now - lastMessageAt < heartbeatQuietMs || now - lastHeartbeatAt < heartbeatRepeatMs) return;
+        lastHeartbeatAt = now;
+        const seconds = Math.round((now - lastMessageAt) / 1000);
+        onProgress({
+          type: "engine",
+          message: `Still working — ${seconds}s since the last engine message. Long silences are normal during lesson translation.`,
+        });
+      }, Math.min(1000, heartbeatQuietMs));
+      heartbeat.unref?.();
 
       await new Promise((resolvePromise, rejectPromise) => {
         child.once("error", (error) => rejectPromise(error));
@@ -113,7 +135,7 @@ export function createAtomizer({
         });
       }).catch((error) => {
         throw new Error(redactSecret(error instanceof Error ? error.message : String(error), credentials.apiKey));
-      });
+      }).finally(() => clearInterval(heartbeat));
     },
     dispose() {
       credentials.apiKey = "";

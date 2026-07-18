@@ -68,6 +68,59 @@ describe("ResponsesClient usage accounting", () => {
     expect(fetchMock.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
   });
 
+  it("diagnoses a 401 on the model probe as a rejected key, never as a missing model", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: { message: "Incorrect API key provided" } }), { status: 401 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const client = new ResponsesClient("wrong-key");
+
+    const error = await client.initialize().catch((caught: Error) => caught);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe(
+      "Your API key was rejected by the provider — check the key and rebuild. Nothing was generated.",
+    );
+    expect((error as Error).message).not.toMatch(/pinned GPT-5\.x candidates/u);
+  });
+
+  it("diagnoses a 403 on the model probe the same way", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: { message: "forbidden" } }), { status: 403 }),
+    ));
+    const client = new ResponsesClient("revoked-key");
+    await expect(client.initialize()).rejects.toThrow(/API key was rejected by the provider/u);
+  });
+
+  it("keeps the missing-model diagnosis for non-auth probe failures", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: { message: "model not found" } }), { status: 404 }),
+    ));
+    const client = new ResponsesClient("valid-key");
+    await expect(client.initialize()).rejects.toThrow(/none of the pinned GPT-5\.x candidates are available/u);
+  });
+
+  it("brands provider errors with the endpoint the builder actually routed to", async () => {
+    // PROVIDER_LABEL is resolved at module load from the builder's routing env var
+    // (builder/provider-fetch.mjs rewrites the transport; the label must follow it).
+    vi.resetModules();
+    vi.stubEnv("ALG_BUILDER_PROVIDER", "anthropic");
+    try {
+      const { ResponsesClient: RoutedClient } = await import("./client");
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: { message: "invalid x-api-key" } }), { status: 500 }),
+      ));
+      const client = new RoutedClient("wrong-anthropic-key");
+      client.model = "claude-opus-4-8";
+
+      const error = await client.request("i", "in", {}, "probe").catch((caught: Error) => caught);
+      expect((error as Error).message).toMatch(/^Anthropic API 500/u);
+      expect((error as Error).message).not.toContain("OpenAI");
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
+  });
+
   it("aborts a request that exceeds its timeout", async () => {
     vi.useFakeTimers();
     const fetchMock = vi.fn().mockImplementation(
