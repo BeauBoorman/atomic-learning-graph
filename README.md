@@ -151,6 +151,14 @@ explicit; a run cannot silently replace the committed demo graph:
 pnpm atomize -- --out-dir .artifacts/d2l
 ```
 
+The syntactic atomicity advisory remains the default. An explicit opt-in adds the build-time GPT-5.6
+semantic judge to `atomicity-report.json`; it costs one additional model call per concept and cannot
+change convergence or the command's exit code:
+
+```bash
+pnpm atomize -- --out-dir .artifacts/d2l-judged --atomicity-judge
+```
+
 An existing `graph.json`, `graph.run.json`, or `atomicity-report.json` makes the run fail closed.
 Replacing the committed demo artifacts therefore requires an unmistakable, deliberate command:
 
@@ -180,6 +188,8 @@ sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside th
 - `src/atomization/analogy.ts`: optional build-time analogies for the fixed interest set.
 - `src/graph/invariants.ts`: the six hard deterministic proof invariants.
 - `src/graph/atomicity-report.ts`: an advisory-only concept atomicity reporter; never a gate.
+- `src/graph/atomicity-scorer-llm.ts`: opt-in build-time GPT-5.6 semantic atomicity judge; fail-open
+  and injected with the existing Responses client.
 - `src/graph/path.ts`: deterministic prerequisite-ancestor walk with a stable tie-break.
 - `src/graph/load.ts`: fail-closed loader for the committed graph.
 - `src/ui/`: static React interface over the embedded graph, with local-only interactions.
@@ -218,8 +228,8 @@ Honest limits, stated up front:
   architecture.
 - **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
   alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 68 cited
-  steps. Their citations and run-log hash are gated. On-demand renderings and a learned atomicity
-  scorer remain in [ROADMAP.md](ROADMAP.md).
+  steps. Their citations and run-log hash are gated. On-demand renderings remain in
+  [ROADMAP.md](ROADMAP.md); the learned atomicity judge is opt-in advisory evidence, not a gate.
 
 ## Licences
 

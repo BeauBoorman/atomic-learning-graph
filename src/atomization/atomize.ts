@@ -3,7 +3,11 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AtomizedConcept, Concept, Edge, LearningGraph, Source } from "../types";
-import { reportAtomicityWarnings } from "../graph/atomicity-report";
+import {
+  reportAtomicityWarnings,
+  reportAtomicityWarningsWithScorer,
+} from "../graph/atomicity-report";
+import { llmJudgeAtomicityScorer } from "../graph/atomicity-scorer-llm";
 import { invalidLessonCitations, invalidProvenance } from "../graph/invariants";
 import { checkLessonReadability } from "../graph/readability";
 import { MANIFEST_PATH, OER_DIR, loadManifest, validateManifest } from "./manifest";
@@ -437,6 +441,7 @@ export interface AtomizeOptions {
   overwriteExisting: boolean;
   toyOnly: boolean;
   noSpine: boolean;
+  atomicityJudge: boolean;
 }
 
 export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
@@ -447,11 +452,13 @@ export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
   let overwriteExisting = false;
   let toyOnly = false;
   let noSpine = false;
+  let atomicityJudge = false;
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--toy") toyOnly = true;
     else if (arg === "--no-spine") noSpine = true;
+    else if (arg === "--atomicity-judge") atomicityJudge = true;
     else if (arg === "--overwrite-existing") overwriteExisting = true;
     else if (arg === "--manifest" || arg === "--out-dir") {
       const value = args[index + 1];
@@ -467,7 +474,7 @@ export function parseAtomizeArgs(args: readonly string[]): AtomizeOptions {
     throw new Error("--out-dir is required; atomization never writes into data/ implicitly");
   }
   if (toyOnly && noSpine) throw new Error("--no-spine is only valid for a full artifact run");
-  return { manifestPath, outDir, overwriteExisting, toyOnly, noSpine };
+  return { manifestPath, outDir, overwriteExisting, toyOnly, noSpine, atomicityJudge };
 }
 
 export async function main(args: readonly string[] = process.argv.slice(2)): Promise<void> {
@@ -549,7 +556,14 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
 
   const converged = await translateAndConvergeLessons(baseConverged, client);
   const readabilityWarnings = checkLessonReadability(converged);
-  const warnings = [...reportAtomicityWarnings(converged), ...readabilityWarnings];
+  const syntacticWarnings = reportAtomicityWarnings(converged);
+  const judgeWarnings = options.atomicityJudge
+    ? await reportAtomicityWarningsWithScorer(
+        converged,
+        llmJudgeAtomicityScorer(client),
+      )
+    : [];
+  const warnings = [...syntacticWarnings, ...judgeWarnings, ...readabilityWarnings];
   let enriched = converged;
   try {
     enriched = await generateAnalogies(converged, client);

@@ -38,6 +38,8 @@ pretends to work.
 
 ## 3. Atomicity scorer: seeded by `isSingleConcept`
 
+**Status (2026-07-17): implemented as an opt-in build-time advisory.**
+
 **What:** a real atomicity judge that catches multi-concept nodes a syntactic rule cannot. For
 example, `"Scaled dot-product attention computes a weighted average."` bundles scaling, dot product,
 softmax, and weighted average in one un-coordinated noun phrase. This is the `it.skip` KNOWN-LIMIT case
@@ -54,8 +56,11 @@ built against an `AtomicityScorer` interface so richer scorers drop in behind th
 - `llmJudgeAtomicityScorer`: a **build-time** (never request-time) LLM judge scoring atomicity,
   used to catch the known-limit case above.
 
-The MVP ships `syntacticAtomicityScorer`. The interface is the promise that the richer scorers slot in
-with zero change to callers. This slot is the reason the invariant was demoted instead of cut.
+The default remains `syntacticAtomicityScorer`. `--atomicity-judge` adds the injected
+`llmJudgeAtomicityScorer` pass and writes its findings to the same advisory report. Its strict
+Responses API calls fail open on request, timeout, or parse errors, and the pass runs only after hard
+graph and lesson convergence; it has no path into a build decision or exit code. The embedding scorer
+remains future work.
 
 ## 4. Relationship topology: present in the contract, narrow in the demo
 

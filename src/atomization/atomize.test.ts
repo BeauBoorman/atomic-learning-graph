@@ -28,6 +28,15 @@ describe("atomizer input and output selection", () => {
       .toThrow(/unknown option/i);
   });
 
+  it("keeps the LLM atomicity judge opt-in and off by default", () => {
+    expect(parseAtomizeArgs(["--out-dir", ".artifacts/demo"])).toMatchObject({
+      atomicityJudge: false,
+    });
+    expect(
+      parseAtomizeArgs(["--out-dir", ".artifacts/demo", "--atomicity-judge"]),
+    ).toMatchObject({ atomicityJudge: true });
+  });
+
   it("refuses an occupied --out-dir before initializing a model client", async () => {
     const outDir = mkdtempSync(resolve(tmpdir(), "atomic-out-dir-"));
     writeFileSync(resolve(outDir, "graph.json"), "do not clobber\n", "utf8");
