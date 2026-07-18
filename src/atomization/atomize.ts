@@ -180,9 +180,10 @@ function dedupeConcepts(concepts: AtomizedConcept[]): AtomizedConcept[] {
   for (const concept of concepts) {
     const id = concept.id.trim().toLowerCase();
     const title = concept.title.trim().toLowerCase().replace(/\s+/g, " ");
-    if (seenIds.has(id) || seenTitles.has(title)) continue;
+    const titleKey = JSON.stringify([concept.provenance.sourceId, title]);
+    if (seenIds.has(id) || seenTitles.has(titleKey)) continue;
     seenIds.add(id);
-    seenTitles.add(title);
+    seenTitles.add(titleKey);
     out.push({ ...concept, id });
   }
   return out;

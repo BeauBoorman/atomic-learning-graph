@@ -6,6 +6,7 @@ import type { AtomizedConcept, Source } from "../types";
 import type { ResponsesClient } from "./client";
 import {
   chunkSourceText,
+  discoverInventory,
   discoverRelationships,
   loadSources,
   main,
@@ -238,6 +239,81 @@ describe("unpinned source chunking", () => {
     expect(source).toMatch(/export async function discoverInventory[\s\S]*?for \(const chunk of planChunks\(sources\)\)/);
     expect(source).not.toMatch(/function selectExcerpt[\s\S]*?chunkSourceText/);
     expect(source).not.toMatch(/function targetedQuoteExcerpt[\s\S]*?chunkSourceText/);
+  });
+});
+
+describe("unpinned inventory title dedupe", () => {
+  it("preserves identical titles from different sources for the semantic judge", async () => {
+    const sources: Source[] = [
+      {
+        id: "islam-source",
+        title: "Islam source",
+        license: "CC0-1.0",
+        author: "Test",
+        text: "Muslims perform ritual prayer at prescribed times each day as a central act of worship.",
+      },
+      {
+        id: "christian-source",
+        title: "Christian source",
+        license: "CC0-1.0",
+        author: "Test",
+        text: "Christians offer prayer through Jesus using words and patterns taught within their tradition.",
+      },
+    ];
+    const request = vi.fn().mockImplementation(
+      async (_instructions: string, input: string, _schema: unknown, schemaName: string) => {
+        if (schemaName === "concept_inventory") {
+          const islam = input.includes("SOURCE_ID=islam-source");
+          return {
+            concepts: [{
+              id: islam ? "islamic-prayer" : "christian-prayer",
+              title: "Prayer",
+              summary: islam
+                ? "Ritual prayer in Islam follows prescribed daily times."
+                : "Christian prayer follows the words and patterns taught by Jesus.",
+              provenance: {
+                sourceId: islam ? "islam-source" : "christian-source",
+                quotedText: islam ? sources[0].text : sources[1].text,
+              },
+              tags: [islam ? "islam" : "christianity", "prayer"],
+              prerequisites: [],
+              related: [],
+            }],
+          };
+        }
+        if (schemaName === "dedupe_pair_sweep") return { pairs: [{ a: 0, b: 1 }] };
+        if (schemaName === "dedupe_partition") {
+          return {
+            groups: [
+              { indices: [0], reason: "Islamic prayer is its own doctrinal treatment." },
+              { indices: [1], reason: "Christian prayer is its own doctrinal treatment." },
+            ],
+          };
+        }
+        throw new Error(`unexpected schema ${schemaName}`);
+      },
+    );
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    try {
+      const discovered = await discoverInventory(
+        { request } as unknown as ResponsesClient,
+        sources,
+      );
+      expect(discovered).toHaveLength(2);
+      expect(discovered.map(({ provenance }) => provenance.sourceId).sort()).toEqual([
+        "christian-source",
+        "islam-source",
+      ]);
+      expect(request).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.any(Object),
+        "dedupe_partition",
+      );
+    } finally {
+      log.mockRestore();
+    }
   });
 });
 
