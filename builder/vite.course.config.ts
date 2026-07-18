@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { katexWoff2Only, inlineFontAssets } from "../scripts/vite-plugin-katex-woff2";
 import { loadGraph } from "../src/graph/load";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -19,6 +20,7 @@ export default defineConfig({
   base: "./",
   plugins: [
     react(),
+    katexWoff2Only(),
     {
       name: "local-course-title",
       transformIndexHtml(html) {
@@ -35,6 +37,7 @@ export default defineConfig({
     outDir: resolve(outDir),
     emptyOutDir: true,
     modulePreload: { polyfill: false },
+    assetsInlineLimit: inlineFontAssets,
     rollupOptions: {
       input: resolve(repoRoot, "index.html"),
     },

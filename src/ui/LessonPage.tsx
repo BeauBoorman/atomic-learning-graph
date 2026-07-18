@@ -6,6 +6,7 @@ import type {
   PassionId,
   Rendering,
 } from "../types";
+import { MathText } from "./MathText";
 import { Citation, FootnoteMark } from "./Citation";
 import type { ResolvedPassage } from "./model";
 import { titleFor } from "./titles";
@@ -87,7 +88,7 @@ function RenderingStep({
     <li className="rendering-step">
       <p className="rendering-step-number">Step {stepIndex + 1} of {rendering.steps.length}</p>
       <p className="rendering-step-text">
-        {step.text}
+        <MathText text={step.text} />
         <FootnoteMark ref={mark} open={sourceOpen} onOpen={() => setSourceOpen(true)} />
       </p>
       <Citation
@@ -293,7 +294,7 @@ export function LessonPage({
           point of a footnote mark. Rendered as a sibling element it would wrap to its own line
           and read as a button, which is what "Show the source" already was. */}
       <p className="lesson-text">
-        {step.text}
+        <MathText text={step.text} />
         <FootnoteMark ref={mark} open={sourceOpen} onOpen={() => setSourceOpen(true)} />
       </p>
 
