@@ -9,11 +9,12 @@ license: "CC-BY-SA-4.0"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 4.1 Softmax Regression by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0."
 tags:
   - "classification"
-  - "probability"
+  - "normalization"
+  - "probabilities"
   - "softmax"
 ---
 
-Softmax transforms neural network outputs into a valid discrete probability distribution.
+Softmax exponentiates scores and normalizes them into values that sum to one.
 
 ## Prerequisites
 
@@ -25,4 +26,4 @@ Source: d2l-softmax-regression
 
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
 
-> As a side effect, we encountered the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions.
+> We can then transform these values so that they add up to $1$ by dividing each by their sum.

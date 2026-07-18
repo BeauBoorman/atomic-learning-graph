@@ -19,51 +19,65 @@ Every answer in the key carries the verbatim source passage that grounds it. Que
 
 Passages are listed in passage-text order, not exam order.
 
-**P1** — from Dive into Deep Learning — 4.1 Softmax Regression (d2l-softmax-regression):
-
-> As a side effect, we encountered the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions.
-
-**P2** — from Dive into Deep Learning — 11.1 Queries, Keys, and Values (d2l-queries-keys-values):
-
-> As such, the attention over generates a linear combination of values contained in the database.
-
-**P3** — from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding (d2l-self-attention):
+**P1** — from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding (d2l-self-attention):
 
 > Because every token is attending to each other token (unlike the case where decoder steps attend to encoder steps), such architectures are typically described as self-attention models , and elsewhere described as intra-attention model .
 
-**P4** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
+**P2** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
 
 > For current purposes, you can think of a vector as a fixed-length array of scalars.
 
+**P3** — from Dive into Deep Learning — 11.1 Queries, Keys, and Values (d2l-queries-keys-values):
+
+> For now, simply consider the following: denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values.
+
+**P4** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
+
+> Given two vectors $\mathbf{x}, \mathbf{y} \in \mathbb{R}^d$, their dot product $\mathbf{x}^\top \mathbf{y}$ (also known as inner product, $\langle \mathbf{x}, \mathbf{y}  \rangle$) is a sum over the products of the elements at the same position: $\mathbf{x}^\top \mathbf{y} = \sum_{i=1}^{d} x_i y_i$.
+
 **P5** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
-
-> Given two vectors , their dot product (also known as inner product, ) is a sum over the products of the elements at the same position: .
-
-**P6** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
 
 > Informally, the norm of a vector tells us how big it is.
 
-**P7** — from Dive into Deep Learning — 4.1 Softmax Regression (d2l-softmax-regression):
+**P6** — from Dive into Deep Learning — 4.1 Softmax Regression (d2l-softmax-regression):
 
 > Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability.
 
-**P8** — from Dive into Deep Learning — 11.1 Queries, Keys, and Values (d2l-queries-keys-values):
+**P7** — from Dive into Deep Learning — 11.1 Queries, Keys, and Values (d2l-queries-keys-values):
 
-> The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys .
+> The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
 
-**P9** — from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding (d2l-self-attention):
+**P8** — from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding (d2l-self-attention):
 
 > The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token.
 
-**P10** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
+**P9** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
 
-> The matrix--vector product is simply a column vector of length m, whose element is the dot product : We can think of multiplication with a matrix as a transformation that projects vectors from to .
+> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$: $$
+> \mathbf{A}\mathbf{x}
+> = \begin{bmatrix}
+> \mathbf{a}^\top_{1} \\
+> \mathbf{a}^\top_{2} \\
+> \vdots \\
+> \mathbf{a}^\top_m \\
+> \end{bmatrix}\mathbf{x}
+> = \begin{bmatrix}
+>  \mathbf{a}^\top_{1} \mathbf{x}  \\
+>  \mathbf{a}^\top_{2} \mathbf{x} \\
+> \vdots\\
+>  \mathbf{a}^\top_{m} \mathbf{x}\\
+> \end{bmatrix}.
+> $$
+
+**P10** — from Dive into Deep Learning — 4.1 Softmax Regression (d2l-softmax-regression):
+
+> We can then transform these values so that they add up to $1$ by dividing each by their sum.
 
 ## Answer Key — Part A
 
 ### A1. Vectors
 
-A vector is a fixed-length array whose elements are scalar values.
+A vector is a fixed-length array whose elements are scalars.
 
 Source receipt:
 
@@ -77,11 +91,11 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A2. Dot Product
 
-The dot product sums products of corresponding elements from two vectors.
+The dot product of two vectors sums the products of elements at corresponding positions.
 
 Source receipt:
 
-> Given two vectors , their dot product (also known as inner product, ) is a sum over the products of the elements at the same position: .
+> Given two vectors $\mathbf{x}, \mathbf{y} \in \mathbb{R}^d$, their dot product $\mathbf{x}^\top \mathbf{y}$ (also known as inner product, $\langle \mathbf{x}, \mathbf{y}  \rangle$) is a sum over the products of the elements at the same position: $\mathbf{x}^\top \mathbf{y} = \sum_{i=1}^{d} x_i y_i$.
 
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
@@ -91,11 +105,25 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A3. Matrix–Vector Product
 
-A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
+A matrix–vector product contains one dot product between the input vector and each row of the matrix.
 
 Source receipt:
 
-> The matrix--vector product is simply a column vector of length m, whose element is the dot product : We can think of multiplication with a matrix as a transformation that projects vectors from to .
+> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$: $$
+> \mathbf{A}\mathbf{x}
+> = \begin{bmatrix}
+> \mathbf{a}^\top_{1} \\
+> \mathbf{a}^\top_{2} \\
+> \vdots \\
+> \mathbf{a}^\top_m \\
+> \end{bmatrix}\mathbf{x}
+> = \begin{bmatrix}
+>  \mathbf{a}^\top_{1} \mathbf{x}  \\
+>  \mathbf{a}^\top_{2} \mathbf{x} \\
+> \vdots\\
+>  \mathbf{a}^\top_{m} \mathbf{x}\\
+> \end{bmatrix}.
+> $$
 
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
@@ -105,11 +133,11 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A4. Softmax
 
-Softmax transforms neural network outputs into a valid discrete probability distribution.
+Softmax exponentiates scores and normalizes them into values that sum to one.
 
 Source receipt:
 
-> As a side effect, we encountered the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions.
+> We can then transform these values so that they add up to $1$ by dividing each by their sum.
 
 Source ID: d2l-softmax-regression  
 Title: Dive into Deep Learning — 4.1 Softmax Regression  
@@ -119,11 +147,11 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A5. Queries, Keys, and Values
 
-An attention mechanism uses query–key compatibility to determine weights applied to values.
+Attention can be framed using a query applied to a collection of key–value pairs.
 
 Source receipt:
 
-> The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys .
+> For now, simply consider the following: denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values.
 
 Source ID: d2l-queries-keys-values  
 Title: Dive into Deep Learning — 11.1 Queries, Keys, and Values  
@@ -133,11 +161,11 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A6. Attention Pooling
 
-Attention pooling forms a linear combination of stored values.
+Attention pooling combines values linearly using weights determined by query–key compatibility.
 
 Source receipt:
 
-> As such, the attention over generates a linear combination of values contained in the database.
+> The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
 
 Source ID: d2l-queries-keys-values  
 Title: Dive into Deep Learning — 11.1 Queries, Keys, and Values  
@@ -147,7 +175,7 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A7. Self-Attention
 
-Self-attention lets every token attend to every other token when constructing token representations.
+Self-attention lets every token attend to every other token in the same sequence.
 
 Source receipt:
 
@@ -161,7 +189,7 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A8. Positional Encoding
 
-Positional encodings provide token-order information to a model as additional token-associated inputs.
+Positional encodings provide token-order information to models as additional token-associated inputs.
 
 Source receipt:
 
@@ -175,7 +203,7 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A9. Softmax Preserves Ordering
 
-Softmax preserves the ordering of its inputs, so the largest input also identifies the highest-probability class.
+Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
 
 Source receipt:
 
@@ -189,7 +217,7 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ### A10. Vector Norm
 
-A vector norm measures the magnitude or size of a vector.
+A vector norm provides a scalar measure of the vector's magnitude.
 
 Source receipt:
 
@@ -203,16 +231,16 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 ## Answer Key — Part B
 
-- P1 → Softmax (`softmax`)
-- P2 → Attention Pooling (`attention-pooling`)
-- P3 → Self-Attention (`self-attention`)
-- P4 → Vectors (`vectors`)
-- P5 → Dot Product (`dot-product`)
-- P6 → Vector Norm (`vector-norm`)
-- P7 → Softmax Preserves Ordering (`softmax-ordering`)
-- P8 → Queries, Keys, and Values (`qkv`)
-- P9 → Positional Encoding (`positional-encoding`)
-- P10 → Matrix–Vector Product (`matrix-vector-product`)
+- P1 → Self-Attention (`self-attention`)
+- P2 → Vectors (`vectors`)
+- P3 → Queries, Keys, and Values (`qkv`)
+- P4 → Dot Product (`dot-product`)
+- P5 → Vector Norm (`vector-norm`)
+- P6 → Softmax Preserves Ordering (`softmax-ordering`)
+- P7 → Attention Pooling (`attention-pooling`)
+- P8 → Positional Encoding (`positional-encoding`)
+- P9 → Matrix–Vector Product (`matrix-vector-product`)
+- P10 → Softmax (`softmax`)
 
 ## Source Attributions
 

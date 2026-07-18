@@ -7,10 +7,10 @@ ShareAlike is viral on adaptations: the lessons cannot be relicensed.
 
 The 4 source documents in data/oer/ are adapted from Dive into Deep Learning by
 Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, pinned to v1.0.3 at commit b2e2ae30898a9d0126a9699ae7e441de3e272715. They are used under
-CC-BY-SA-4.0. To produce the plain-text corpus: fenced code blocks, display and inline math,
-tables, emphasis delimiters, and inline role directives were removed; links and reference
-anchors were resolved to plain text; whitespace was collapsed. Section headings and tab
-directives (:begin_tab: / :end_tab:) are retained inline.
+CC-BY-SA-4.0. To produce the plain-text corpus: fenced code blocks, tables, emphasis delimiters,
+and inline role directives were removed; inline and display LaTeX were preserved verbatim; links
+and reference anchors were resolved to plain text; whitespace outside preserved LaTeX was
+collapsed. Section headings and tab directives (:begin_tab: / :end_tab:) are retained inline.
 
 Lessons generated from these sources are modified, AI-translated adaptations. They are not
 endorsed by the Dive into Deep Learning authors. Per-source titles, links, hashes, and

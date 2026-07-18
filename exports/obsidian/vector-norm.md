@@ -11,9 +11,10 @@ tags:
   - "linear algebra"
   - "magnitude"
   - "norms"
+  - "vectors"
 ---
 
-A vector norm measures the magnitude or size of a vector.
+A vector norm provides a scalar measure of the vector's magnitude.
 
 ## Prerequisites
 

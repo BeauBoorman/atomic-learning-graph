@@ -7,6 +7,12 @@ export const D2L_AUTHOR = "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander 
 export const D2L_LICENSE_STATEMENT =
   "Creative Commons Attribution-ShareAlike 4.0 International Public License";
 export const CC_BY_SA_4_DEED = "https://creativecommons.org/licenses/by-sa/4.0/";
+export const LATEX_PRESERVING_MODIFICATIONS =
+  "Extracted from the pinned Markdown: fenced code blocks, tables, emphasis delimiters, and " +
+  "inline role directives (:numref:, :eqref:, :cite:) were removed; inline and display LaTeX " +
+  "were preserved verbatim; links and reference anchors were resolved to plain text; whitespace " +
+  "outside preserved LaTeX was collapsed. Section headings and tab directives " +
+  "(:begin_tab: / :end_tab:) are retained inline.";
 
 export interface D2LSourceSpec {
   id: string;
@@ -63,7 +69,7 @@ export const GOLDEN_ANCHORS: readonly GoldenAnchor[] = [
   {
     conceptId: "softmax",
     sourceId: "d2l-softmax-regression",
-    text: "We can then transform these values so that they add up to 1 by dividing each by their sum.",
+    text: "by dividing each by their sum. This process is called normalization.",
   },
   {
     conceptId: "qkv",
@@ -390,10 +396,10 @@ ShareAlike is viral on adaptations: the lessons cannot be relicensed.
 
 The ${entries.length} source documents in data/oer/ are adapted from Dive into Deep Learning by
 ${D2L_AUTHOR}, pinned to ${D2L_TAG} at commit ${D2L_COMMIT}. They are used under
-CC-BY-SA-4.0. To produce the plain-text corpus: fenced code blocks, display and inline math,
-tables, emphasis delimiters, and inline role directives were removed; links and reference
-anchors were resolved to plain text; whitespace was collapsed. Section headings and tab
-directives (:begin_tab: / :end_tab:) are retained inline.
+CC-BY-SA-4.0. To produce the plain-text corpus: fenced code blocks, tables, emphasis delimiters,
+and inline role directives were removed; inline and display LaTeX were preserved verbatim; links
+and reference anchors were resolved to plain text; whitespace outside preserved LaTeX was
+collapsed. Section headings and tab directives (:begin_tab: / :end_tab:) are retained inline.
 
 Lessons generated from these sources are modified, AI-translated adaptations. They are not
 endorsed by the Dive into Deep Learning authors. Per-source titles, links, hashes, and

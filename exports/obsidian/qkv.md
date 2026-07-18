@@ -14,7 +14,7 @@ tags:
   - "values"
 ---
 
-An attention mechanism uses query–key compatibility to determine weights applied to values.
+Attention can be framed using a query applied to a collection of key–value pairs.
 
 ## Prerequisites
 
@@ -26,4 +26,4 @@ Source: d2l-queries-keys-values
 
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
 
-> The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys .
+> For now, simply consider the following: denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values.

@@ -8,6 +8,7 @@ import type { LearningGraph } from "../src/types";
 import {
   ANKI_PATH,
   emitAnkiArtifact,
+  escapeAnkiField,
   verifyAnkiArtifact,
   writeAnkiArtifact,
 } from "./emit-anki";
@@ -59,7 +60,7 @@ describe("Anki build artifact", () => {
       const row = rows.find((candidate) => candidate.startsWith(`What is ${concept.title}?\t`));
       expect(row).toBeDefined();
       expect(row).toContain(concept.summary);
-      expect(row).toContain(concept.provenance.quotedText);
+      expect(row).toContain(escapeAnkiField(concept.provenance.quotedText));
       expect(row).toContain(`Source ID: ${source.id}`);
       expect(row).toContain(`Title: ${source.title}`);
       expect(row).toContain(`Author: ${source.author}`);
