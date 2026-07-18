@@ -120,7 +120,7 @@ describe("UI learning model", () => {
     );
     expect(afterOnePage.pages).toEqual(fresh.pages);
     expect(afterOnePage.total).toBe(fresh.total);
-    expect(afterOnePage.remaining[0]).toEqual({ conceptId: "qkv", stepIndex: 0 });
+    expect(afterOnePage.remaining[0]).toEqual({ conceptId: "softmax", stepIndex: 1 });
   });
 
   it("drops declarations that are not prerequisites of a newly selected goal", async () => {
@@ -141,7 +141,7 @@ describe("UI learning model", () => {
 
   it("keeps an empty declaration byte-identical to the pre-declaration course", () => {
     const expected =
-      '{"pages":[{"conceptId":"vectors","stepIndex":0},{"conceptId":"vectors","stepIndex":1},{"conceptId":"dot-product","stepIndex":0},{"conceptId":"dot-product","stepIndex":1},{"conceptId":"softmax","stepIndex":0},{"conceptId":"qkv","stepIndex":0},{"conceptId":"self-attention","stepIndex":0},{"conceptId":"self-attention","stepIndex":1}],"remaining":[{"conceptId":"vectors","stepIndex":0},{"conceptId":"vectors","stepIndex":1},{"conceptId":"dot-product","stepIndex":0},{"conceptId":"dot-product","stepIndex":1},{"conceptId":"softmax","stepIndex":0},{"conceptId":"qkv","stepIndex":0},{"conceptId":"self-attention","stepIndex":0},{"conceptId":"self-attention","stepIndex":1}],"completeCount":0,"total":8,"percent":0,"complete":false}';
+      '{"pages":[{"conceptId":"vectors","stepIndex":0},{"conceptId":"vectors","stepIndex":1},{"conceptId":"dot-product","stepIndex":0},{"conceptId":"softmax","stepIndex":0},{"conceptId":"softmax","stepIndex":1},{"conceptId":"qkv","stepIndex":0},{"conceptId":"self-attention","stepIndex":0},{"conceptId":"self-attention","stepIndex":1}],"remaining":[{"conceptId":"vectors","stepIndex":0},{"conceptId":"vectors","stepIndex":1},{"conceptId":"dot-product","stepIndex":0},{"conceptId":"softmax","stepIndex":0},{"conceptId":"softmax","stepIndex":1},{"conceptId":"qkv","stepIndex":0},{"conceptId":"self-attention","stepIndex":0},{"conceptId":"self-attention","stepIndex":1}],"completeCount":0,"total":8,"percent":0,"complete":false}';
 
     expect(JSON.stringify(deriveProgress(graph, "self-attention", "quick", [], [])))
       .toBe(expected);

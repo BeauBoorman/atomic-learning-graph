@@ -7,6 +7,7 @@ import { fixtureGraph, QUOTES } from "../graph/fixture-graph";
 import { invalidRenderingCitations } from "../graph/invariants";
 import type { LearningGraph } from "../types";
 import {
+  RENDERING_PROMPT_VERSION,
   generateAndWriteRenderings,
   generateRenderings,
   main,
@@ -93,6 +94,13 @@ describe("build-time alternate renderings", () => {
     expect(how).toContain("US grade 8–10");
     expect(why).toContain("Produce 2–4 ordered");
     expect(how).toContain("Produce 2–4 ordered");
+    for (const prompt of [why, how]) {
+      expect(prompt).toContain("exactly ONE load-bearing claim");
+      expect(prompt).toContain("two different source spans");
+      expect(prompt).toContain("SPLIT it into two steps");
+      expect(prompt).toContain("each with its own verbatim grounding quote");
+      expect(prompt).toContain("Never attach one quote to a step that makes two separate claims");
+    }
     expect(why).toContain("why does this concept exist");
     expect(how).toContain("what actually happens, step by step");
   });
@@ -183,7 +191,7 @@ describe("build-time alternate renderings", () => {
       const run = JSON.parse(readFileSync(runLogPath, "utf8")) as Record<string, unknown>;
       expect(run).toMatchObject({
         model: "fake-model",
-        renderingPromptVersion: "renderings-v1-question-routes",
+        renderingPromptVersion: "renderings-v2-one-claim-per-step",
         strictStructuredOutputs: true,
       });
       expect(run).toHaveProperty("renderingsSha256");
@@ -191,6 +199,10 @@ describe("build-time alternate renderings", () => {
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  });
+
+  it("versions the strengthened one-claim-per-step rendering contract", () => {
+    expect(RENDERING_PROMPT_VERSION).toBe("renderings-v2-one-claim-per-step");
   });
 
   it("drops an ungrounded step while keeping the remaining grounded rendering", async () => {

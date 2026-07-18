@@ -66,15 +66,14 @@ remains future work.
 
 **What:** `LearningGraph.edges[]` carries three edge kinds: `prereq`, `method`, and `related`.
 The raw `AtomizedConcept` contract requires a `related` array on every model-returned concept, and
-the build step converts those IDs into canonical `related` edges. The committed ten-concept artifact
-is narrower: its nine edges are all `prereq`, no concept has more than one incoming prerequisite,
-and its five-node demo spine is explicitly required as a direct chain.
+the unpinned build path can convert those IDs into canonical `related` edges. The pinned product
+artifact is narrower by specification: its full ten-concept spine contains nine `prereq` edges,
+zero other links, and no concept has more than one incoming prerequisite.
 
-**Why cut from the MVP:** the relationship phase requested `related`, but this one-book corpus and
-one-goal run landed no `related` edges, so the committed artifact demonstrates a prerequisite tree,
-not a relationship mesh. That is an observed property of this run, not an unimplemented edge type.
-The required spine constrains five nodes, but the prompt does not forbid additional related links or
-prerequisite joins; the absence of both outside the spine must not be attributed to the pin alone.
+**Why cut from the MVP:** reproducible demo structure won over relationship discovery. The product
+relationship phase now receives and is projected onto the complete nine-edge spine, so the committed
+artifact demonstrates a prerequisite tree, not a relationship mesh. The other edge kinds remain in
+the graph contract for explicit unpinned experiments.
 
 **What it needs before it can return:** a broader corpus and an unpinned build-time relationship run,
 using the existing graph type and conversion step. That is an experiment, not a prediction: a later

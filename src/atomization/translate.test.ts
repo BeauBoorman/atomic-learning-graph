@@ -55,13 +55,20 @@ const oneConceptGraph = (): LearningGraph => {
 
 describe("Phase 3 lesson translation", () => {
   it("pins the claim-anchored prompt and strict schema without a concept-level tier", () => {
-    expect(PROMPT_VERSION).toBe("atomizer-v3-claim-anchored-lessons");
+    expect(PROMPT_VERSION).toBe("atomizer-v4-full-spine-one-claim-steps");
     expect(TRANSLATE_INSTRUCTIONS).toContain("You are a translator, not an author.");
     expect(TRANSLATE_INSTRUCTIONS).toContain("VERBATIM, character-for-character");
     expect(TRANSLATE_INSTRUCTIONS).toContain("specific load-bearing claim");
     expect(TRANSLATE_INSTRUCTIONS).toContain("topically related");
     expect(TRANSLATE_INSTRUCTIONS).toContain("TRIM the step's wording");
     expect(TRANSLATE_INSTRUCTIONS).toContain("Prefer trimming the claim over attaching a weak quote");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("exactly ONE load-bearing claim");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("two different source spans");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("SPLIT it into two steps");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("each with its own verbatim grounding quote");
+    expect(TRANSLATE_INSTRUCTIONS).toContain(
+      "Never attach one quote to a step that makes two separate claims",
+    );
     expect(TRANSLATE_INSTRUCTIONS).toContain("causal links");
     expect(TRANSLATE_INSTRUCTIONS).toContain('temporal ordering (such as "earlier")');
     expect(TRANSLATE_INSTRUCTIONS).toContain('necessity (such as "without it, X would be impossible")');

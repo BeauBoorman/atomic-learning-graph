@@ -24,7 +24,7 @@ import {
   type TranslationRequestOptions,
 } from "./translate";
 
-export const RENDERING_PROMPT_VERSION = "renderings-v1-question-routes";
+export const RENDERING_PROMPT_VERSION = "renderings-v2-one-claim-per-step";
 export const RENDERINGS_PATH = resolve(OER_DIR, "..", "renderings.json");
 export const RENDERINGS_RUN_PATH = resolve(OER_DIR, "..", "renderings.run.json");
 

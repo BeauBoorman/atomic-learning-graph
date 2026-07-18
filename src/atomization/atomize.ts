@@ -12,10 +12,11 @@ import { invalidLessonCitations, invalidProvenance } from "../graph/invariants";
 import { checkLessonReadability } from "../graph/readability";
 import { MANIFEST_PATH, OER_DIR, loadManifest, validateManifest } from "./manifest";
 import {
-  GOLDEN_PATH,
+  FULL_GRAPH_SPINE,
   GoldenGraphHalt,
   convergeGraph,
   type ExpectedSource,
+  type FullGraphSpine,
 } from "./repair";
 import {
   writeGraphArtifact,
@@ -160,10 +161,10 @@ function sourcePassages(sourceText: string): string[] {
 
 function selectExcerpt(source: Source): string {
   const keywordsBySource: Record<string, RegExp> = {
-    "d2l-linear-algebra": /vector|fixed-length array|dot product|scalar|same position/i,
-    "d2l-softmax-regression": /softmax|add up to 1|dividing each by their sum|probabilit/i,
-    "d2l-queries-keys-values": /query|keys and values|attention pooling|database/i,
-    "d2l-self-attention": /self-attention|each token|query, keys, and values|attending/i,
+    "d2l-linear-algebra": /vector|fixed-length array|dot product|scalar|same position|norm|matrix/i,
+    "d2l-softmax-regression": /softmax|add up to 1|dividing each by their sum|probabilit|ordering/i,
+    "d2l-queries-keys-values": /query|keys and values|attention pooling|database|weighted average/i,
+    "d2l-self-attention": /self-attention|each token|query, keys, and values|attending|position/i,
   };
   const paragraphs = sourcePassages(source.text);
   const selected: string[] = [];
@@ -185,10 +186,15 @@ function selectExcerpt(source: Source): string {
 function targetedQuoteExcerpt(source: Source, conceptId: string): string {
   const patterns: Record<string, RegExp> = {
     vectors: /you can think of a vector as a fixed-length array of scalars/i,
+    "vector-norm": /norm of a vector tells us how big it is/i,
     "dot-product": /is a sum over the products of the elements at the same position/i,
+    "matrix-vector-product": /matrix--vector product|multiplication with a matrix as a transformation/i,
     softmax: /transform these values so that they add up to 1 by dividing each by their sum/i,
+    "softmax-ordering": /softmax operation preserves the ordering among its arguments/i,
     qkv: /actual "code" for executing on the set of keys and values, namely the query/i,
+    "attention-pooling": /attention can operate on arbitrarily large databases|attention pooling operation/i,
     "self-attention": /because every token is attending to each other token/i,
+    "positional-encoding": /preserving information about the order of tokens|positional encoding/i,
   };
   const pattern = patterns[conceptId] ?? new RegExp(conceptId.replace(/-/g, "[ -]"), "i");
   const paragraphs = sourcePassages(source.text);
@@ -245,6 +251,36 @@ function groundInventory(concepts: AtomizedConcept[], sources: Source[], require
   return grounded;
 }
 
+/** Deterministically retain the full product inventory and force every pinned source assignment. */
+export function pinInventoryToSpine(
+  concepts: AtomizedConcept[],
+  sources: Source[],
+  spine: FullGraphSpine,
+): AtomizedConcept[] {
+  const proposedById = new Map(dedupeConcepts(concepts).map((concept) => [concept.id, concept]));
+  const sourceById = new Map(sources.map((source) => [source.id, source]));
+  const missing = spine.concepts.filter(({ id }) => !proposedById.has(id)).map(({ id }) => id);
+  if (missing.length > 0) throw new Error(`inventory omitted required IDs: ${missing.join(", ")}`);
+
+  return spine.concepts.map(({ id, sourceId }) => {
+    const concept = proposedById.get(id)!;
+    const source = sourceById.get(sourceId);
+    const quote = source && groundedQuote(source.text, concept.provenance.quotedText);
+    if (!source || !quote) {
+      throw new GoldenGraphHalt(
+        `model emitted ungrounded required node ${id} for pinned source ${sourceId}; ` +
+          `offending span ${JSON.stringify(concept.provenance.quotedText)}`,
+      );
+    }
+    return {
+      ...concept,
+      provenance: { sourceId, quotedText: quote },
+      prerequisites: [],
+      related: [],
+    };
+  });
+}
+
 function mergeRelationships(inventory: AtomizedConcept[], relations: AtomizedConcept[]): AtomizedConcept[] {
   const relationById = new Map(relations.map((concept) => [concept.id, concept]));
   if (relationById.size !== inventory.length || inventory.some((concept) => !relationById.has(concept.id))) {
@@ -254,6 +290,26 @@ function mergeRelationships(inventory: AtomizedConcept[], relations: AtomizedCon
     ...concept,
     prerequisites: [...new Set(relationById.get(concept.id)?.prerequisites ?? [])],
     related: [...new Set(relationById.get(concept.id)?.related ?? [])],
+  }));
+}
+
+/** Project model relationship output onto the exact product edge set; no discovered edge survives. */
+export function pinRelationshipsToSpine(
+  inventory: AtomizedConcept[],
+  relations: AtomizedConcept[],
+  spine: FullGraphSpine,
+): AtomizedConcept[] {
+  const merged = mergeRelationships(inventory, relations);
+  const prerequisitesById = new Map<string, string[]>();
+  for (const edge of spine.prereqEdges) {
+    const prerequisites = prerequisitesById.get(edge.to) ?? [];
+    prerequisites.push(edge.from);
+    prerequisitesById.set(edge.to, prerequisites);
+  }
+  return merged.map((concept) => ({
+    ...concept,
+    prerequisites: prerequisitesById.get(concept.id) ?? [],
+    related: [],
   }));
 }
 
@@ -313,6 +369,7 @@ async function inventoryPhase(
   sources: Source[],
   requiredIds: readonly string[],
   toy: boolean,
+  structure?: FullGraphSpine,
 ): Promise<AtomizedConcept[]> {
   const sourceIds = sources.map((source) => source.id);
   const instructions =
@@ -321,14 +378,21 @@ async function inventoryPhase(
     "Emit AtomizedConcept objects. This is inventory phase: prerequisites and related MUST be empty arrays. " +
     "Use only listed sourceId values. Summaries should describe exactly one self-contained concept.";
   const requiredIdInstruction = requiredIds.length > 0
-    ? `Required stable IDs: ${requiredIds.join(", ")}.`
+    ? `Required stable IDs: ${requiredIds.join(", ")}. Emit every listed ID exactly once and emit no other IDs.`
     : toy
       ? "Choose exactly three stable kebab-case IDs grounded in the supplied source."
       : "Choose 8 to 10 stable kebab-case IDs grounded in the supplied source.";
-  const demoGroundingMap = toy || requiredIds.length === 0
+  const demoGroundingMap = toy || requiredIds.length === 0 || !structure
     ? ""
-    : "For the full demo run, use this grounding map: vectors -> d2l-linear-algebra; dot-product -> d2l-linear-algebra; softmax -> d2l-softmax-regression; qkv -> d2l-queries-keys-values; self-attention -> d2l-self-attention.\n";
-  const input = `${toy ? "Produce exactly 3" : "Produce 8 to 10"} distinct concepts. ${requiredIdInstruction}
+    : `For the full demo run, these source assignments are mandatory:\n${structure.concepts
+        .map(({ id, sourceId }) => `${id} -> ${sourceId}`)
+        .join("\n")}\n`;
+  const requestedCount = structure
+    ? `Produce exactly ${structure.concepts.length}`
+    : toy
+      ? "Produce exactly 3"
+      : "Produce 8 to 10";
+  const input = `${requestedCount} distinct concepts. ${requiredIdInstruction}
 Required source IDs are restricted to: ${sourceIds.join(", ")}.
 ${demoGroundingMap}
 Copy a substantial prose sentence for each quotedText. Do not rely on formula-only passages.
@@ -342,7 +406,11 @@ ${sourcePrompt(sources)}`;
       const proposed = parseConcepts(raw);
       for (const requiredId of requiredIds) {
         const concept = proposed.find((candidate) => candidate.id.trim().toLowerCase() === requiredId);
-        const source = concept && sources.find((candidate) => candidate.id === concept.provenance.sourceId);
+        const pinnedSourceId = structure?.concepts.find(({ id }) => id === requiredId)?.sourceId;
+        const source = concept && sources.find(
+          (candidate) => candidate.id === (pinnedSourceId ?? concept.provenance.sourceId),
+        );
+        if (concept && pinnedSourceId) concept.provenance.sourceId = pinnedSourceId;
         if (!concept || !source || groundedQuote(source.text, concept.provenance.quotedText)) continue;
         const repaired = await client.request(
           "Repair one required node's provenance. Return one substantial prose sentence copied verbatim from the supplied STORED source passage. Never paraphrase, normalize punctuation, or use formula-adjacent prose whose symbols are omitted.",
@@ -352,7 +420,9 @@ ${sourcePrompt(sources)}`;
         );
         if (typeof repaired.quotedText === "string") concept.provenance.quotedText = repaired.quotedText;
       }
-      const grounded = groundInventory(proposed, sources, requiredIds);
+      const grounded = structure
+        ? pinInventoryToSpine(proposed, sources, structure)
+        : groundInventory(proposed, sources, requiredIds);
       if (!toy && grounded.length < 6) throw new Error(`only ${grounded.length} grounded concepts survived`);
       return grounded;
     } catch (error) {
@@ -368,6 +438,7 @@ async function relationshipPhase(
   client: ResponsesClient,
   inventory: AtomizedConcept[],
   requiredPath: readonly string[],
+  structure?: FullGraphSpine,
 ): Promise<AtomizedConcept[]> {
   const ids = inventory.map((concept) => concept.id);
   const instructions =
@@ -376,8 +447,13 @@ async function relationshipPhase(
   const requiredPathInstruction = requiredPath.length > 0
     ? `Required direct prerequisite chain: ${requiredPath.join(" -> ")}. Every consecutive pair MUST be encoded in the later node's prerequisites array.\n`
     : "";
+  const fullStructureInstruction = structure
+    ? `Return exactly these prerequisite edges and no others: ${structure.prereqEdges
+        .map(({ from, to }) => `${from} -> ${to}`)
+        .join(", ")}. Every related array MUST be empty.\n`
+    : "";
   const input = `Frozen IDs: ${ids.join(", ")}.
-${requiredPathInstruction}Make every non-root concept participate in the prerequisite graph; avoid cycles. Related links do not count as prerequisites.
+${requiredPathInstruction}${fullStructureInstruction}Make every non-root concept participate in the prerequisite graph; avoid cycles. Related links do not count as prerequisites.
 
 Frozen inventory JSON:
 ${JSON.stringify({ concepts: inventory }, null, 2)}`;
@@ -386,7 +462,10 @@ ${JSON.stringify({ concepts: inventory }, null, 2)}`;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       const raw = await client.request(instructions, input, relationshipSchema, "concept_relationships");
-      const merged = mergeRelationships(inventory, parseConcepts(raw));
+      const parsed = parseConcepts(raw);
+      const merged = structure
+        ? pinRelationshipsToSpine(inventory, parsed, structure)
+        : mergeRelationships(inventory, parsed);
       if (!hasRequiredChain(merged, requiredPath)) throw new Error("relationship phase omitted the required direct chain");
       return merged;
     } catch (error) {
@@ -540,10 +619,12 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
     return;
   }
 
-  const spine = options.noSpine ? [] : GOLDEN_PATH;
-  const inventory = await inventoryPhase(client, sources, spine, false);
-  const atomized = await relationshipPhase(client, inventory, spine);
-  const goalId = options.noSpine ? selectUnpinnedGoal(atomized) : GOLDEN_PATH.at(-1)!;
+  const structure = options.noSpine ? undefined : FULL_GRAPH_SPINE;
+  const spine = structure?.path ?? [];
+  const requiredIds = structure?.concepts.map(({ id }) => id) ?? [];
+  const inventory = await inventoryPhase(client, sources, requiredIds, false, structure);
+  const atomized = await relationshipPhase(client, inventory, spine, structure);
+  const goalId = options.noSpine ? selectUnpinnedGoal(atomized) : FULL_GRAPH_SPINE.goalId;
   const initialGraph = buildGraph(atomized, sources, goalId, options.noSpine);
   const expectedSources: ExpectedSource[] = sources.map((source) => ({ ...source }));
   const attemptLog: Array<{ attempt: number; issues: unknown[] }> = [];
@@ -551,6 +632,7 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
   const baseConverged = await convergeGraph(initialGraph, {
     expectedSources,
     spine,
+    structure,
     onAttempt: (attempt, issues) => {
       attemptLog.push({ attempt, issues });
       console.log(`Convergence attempt ${attempt}: ${issues.length === 0 ? "PASS" : issues.map((issue) => issue.kind).join(", ")}`);

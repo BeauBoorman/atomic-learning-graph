@@ -746,7 +746,7 @@ describe("generated data/graph.json", () => {
 
   it("grounds every generated rendering in its declared source", () => {
     const set = loadRenderingsForVerification();
-    expect(set.renderings.flatMap((rendering) => rendering.steps)).toHaveLength(68);
+    expect(set.renderings.flatMap((rendering) => rendering.steps)).toHaveLength(60);
     expect(invalidRenderingCitations(loadGraph(), set)).toEqual([]);
   });
 

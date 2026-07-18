@@ -10,7 +10,7 @@ tags:
   - "vectors"
 ---
 
-The dot product combines two vectors by summing products of elements at corresponding positions.
+The dot product sums products of corresponding elements from two vectors.
 
 ## Prerequisites
 

@@ -22,12 +22,67 @@ export const GOLDEN_PATH: readonly ConceptId[] = [
   "self-attention",
 ] as const;
 
+export interface FullGraphSpine {
+  concepts: readonly { id: ConceptId; sourceId: SourceId }[];
+  prereqEdges: readonly Edge[];
+  path: readonly ConceptId[];
+  goalId: ConceptId;
+}
+
+/**
+ * The product graph's deterministic structure. The model still writes grounded concept content and
+ * lesson prose, but it cannot rename, add, drop, re-source, or rewire product concepts.
+ */
+export const FULL_GRAPH_SPINE = {
+  concepts: [
+    { id: "vectors", sourceId: "d2l-linear-algebra" },
+    { id: "vector-norm", sourceId: "d2l-linear-algebra" },
+    { id: "dot-product", sourceId: "d2l-linear-algebra" },
+    { id: "matrix-vector-product", sourceId: "d2l-linear-algebra" },
+    { id: "softmax", sourceId: "d2l-softmax-regression" },
+    { id: "softmax-ordering", sourceId: "d2l-softmax-regression" },
+    { id: "qkv", sourceId: "d2l-queries-keys-values" },
+    { id: "attention-pooling", sourceId: "d2l-queries-keys-values" },
+    { id: "self-attention", sourceId: "d2l-self-attention" },
+    { id: "positional-encoding", sourceId: "d2l-self-attention" },
+  ],
+  prereqEdges: [
+    { from: "vectors", to: "dot-product", type: "prereq" },
+    { from: "vectors", to: "vector-norm", type: "prereq" },
+    { from: "dot-product", to: "matrix-vector-product", type: "prereq" },
+    { from: "dot-product", to: "softmax", type: "prereq" },
+    { from: "softmax", to: "qkv", type: "prereq" },
+    { from: "softmax", to: "softmax-ordering", type: "prereq" },
+    { from: "qkv", to: "attention-pooling", type: "prereq" },
+    { from: "qkv", to: "self-attention", type: "prereq" },
+    { from: "self-attention", to: "positional-encoding", type: "prereq" },
+  ],
+  path: GOLDEN_PATH,
+  goalId: "self-attention",
+} as const satisfies FullGraphSpine;
+
 const edgeKey = (edge: Pick<Edge, "from" | "to">): string => `${edge.from}->${edge.to}`;
-const protectedNodes = (spine: readonly ConceptId[]): Set<ConceptId> => new Set(spine);
-const protectedEdgeKeys = (spine: readonly ConceptId[]): Set<string> =>
-  new Set(spine.slice(0, -1).map((from, index) => `${from}->${spine[index + 1]}`));
-const isProtectedEdge = (edge: Edge, spine: readonly ConceptId[]): boolean =>
-  edge.type === "prereq" && protectedEdgeKeys(spine).has(edgeKey(edge));
+const exactEdgeKey = (edge: Edge): string => `${edge.from}->${edge.to}:${edge.type}`;
+const protectedNodes = (
+  spine: readonly ConceptId[],
+  structure?: FullGraphSpine,
+): Set<ConceptId> =>
+  new Set(structure ? structure.concepts.map(({ id }) => id) : spine);
+const protectedEdgeKeys = (
+  spine: readonly ConceptId[],
+  structure?: FullGraphSpine,
+): Set<string> =>
+  new Set(
+    structure
+      ? structure.prereqEdges.map(edgeKey)
+      : spine.slice(0, -1).map((from, index) => `${from}->${spine[index + 1]}`),
+  );
+const isProtectedEdge = (
+  edge: Edge,
+  spine: readonly ConceptId[],
+  structure?: FullGraphSpine,
+): boolean =>
+  edge.type === "prereq" && protectedEdgeKeys(spine, structure).has(edgeKey(edge));
 
 export class GoldenGraphHalt extends Error {
   constructor(message: string) {
@@ -54,6 +109,10 @@ export type ConvergenceIssueKind =
   | "golden-node"
   | "golden-edge"
   | "golden-order"
+  | "spine-node"
+  | "spine-edge"
+  | "spine-source"
+  | "spine-goal"
   | "concept-floor"
   | "fixture-source"
   | "source";
@@ -165,6 +224,8 @@ export interface ConvergenceOptions {
   expectedSources?: ExpectedSource[];
   /** Empty only for an explicit unpinned experiment; defaults to the protected product spine. */
   spine?: readonly ConceptId[];
+  /** Exact product structure; omitted by fixture and explicitly unpinned runs. */
+  structure?: FullGraphSpine;
   onAttempt?: (attempt: number, issues: ConvergenceIssue[]) => void;
   repairOrphan?: (
     graph: LearningGraph,
@@ -233,14 +294,18 @@ function sameSource(actual: Source, expected: ExpectedSource): boolean {
 
 export function convergenceIssues(
   graph: LearningGraph,
-  options: Pick<ConvergenceOptions, "minConcepts" | "expectedSources" | "spine"> = {},
+  options: Pick<
+    ConvergenceOptions,
+    "minConcepts" | "expectedSources" | "spine" | "structure"
+  > = {},
 ): ConvergenceIssue[] {
   const issues: ConvergenceIssue[] = [];
-  const minConcepts = options.minConcepts ?? 6;
-  const spine = options.spine ?? GOLDEN_PATH;
+  const minConcepts = options.minConcepts ?? options.structure?.concepts.length ?? 6;
+  const spine = options.structure?.path ?? options.spine ?? GOLDEN_PATH;
+  const protectedConceptIds = options.structure?.concepts.map(({ id }) => id) ?? spine;
   const conceptIds = new Set(graph.concepts.map((concept) => concept.id));
 
-  const missingGolden = spine.filter((id) => !conceptIds.has(id));
+  const missingGolden = protectedConceptIds.filter((id) => !conceptIds.has(id));
   if (missingGolden.length > 0) {
     issues.push({
       kind: "golden-node",
@@ -249,8 +314,26 @@ export function convergenceIssues(
     });
   }
 
-  const missingGoldenEdges = spine.slice(0, -1)
-    .map((from, index): Edge => ({ from, to: spine[index + 1], type: "prereq" }))
+  if (options.structure) {
+    const expectedIds = new Set(options.structure.concepts.map(({ id }) => id));
+    const unexpectedConceptIds = graph.concepts
+      .map(({ id }) => id)
+      .filter((id) => !expectedIds.has(id));
+    if (unexpectedConceptIds.length > 0) {
+      issues.push({
+        kind: "spine-node",
+        conceptIds: unexpectedConceptIds,
+        message: `unexpected concepts outside full spine: ${unexpectedConceptIds.join(", ")}`,
+      });
+    }
+  }
+
+  const requiredEdges =
+    options.structure?.prereqEdges ??
+    spine
+      .slice(0, -1)
+      .map((from, index): Edge => ({ from, to: spine[index + 1], type: "prereq" }));
+  const missingGoldenEdges = requiredEdges
     .filter(
       (required) =>
         !graph.edges.some(
@@ -263,6 +346,47 @@ export function convergenceIssues(
       edges: missingGoldenEdges,
       message: `missing protected golden edges: ${missingGoldenEdges.map(edgeKey).join(", ")}`,
     });
+  }
+  if (options.structure) {
+    const expectedEdgeKeys = new Set(options.structure.prereqEdges.map(exactEdgeKey));
+    const seenEdgeKeys = new Set<string>();
+    const unexpectedEdges = graph.edges.filter((edge) => {
+      const key = exactEdgeKey(edge);
+      if (!expectedEdgeKeys.has(key) || seenEdgeKeys.has(key)) return true;
+      seenEdgeKeys.add(key);
+      return false;
+    });
+    if (unexpectedEdges.length > 0) {
+      issues.push({
+        kind: "spine-edge",
+        edges: unexpectedEdges,
+        message: `unexpected edges outside full spine: ${unexpectedEdges.map(exactEdgeKey).join(", ")}`,
+      });
+    }
+
+    const expectedSourceByConcept = new Map(
+      options.structure.concepts.map(({ id, sourceId }) => [id, sourceId]),
+    );
+    const wrongSourceConcepts = graph.concepts
+      .filter(
+        (concept) =>
+          expectedSourceByConcept.has(concept.id) &&
+          concept.provenance.sourceId !== expectedSourceByConcept.get(concept.id),
+      )
+      .map(({ id }) => id);
+    if (wrongSourceConcepts.length > 0) {
+      issues.push({
+        kind: "spine-source",
+        conceptIds: wrongSourceConcepts,
+        message: `full-spine concepts have wrong source assignments: ${wrongSourceConcepts.join(", ")}`,
+      });
+    }
+    if (graph.goalId !== options.structure.goalId) {
+      issues.push({
+        kind: "spine-goal",
+        message: `goal ${graph.goalId} does not match pinned goal ${options.structure.goalId}`,
+      });
+    }
   }
 
   const dangling = danglingEdges(graph);
@@ -364,12 +488,12 @@ async function repairOnce(
   options: ConvergenceOptions,
 ): Promise<LearningGraph> {
   let repaired: LearningGraph = JSON.parse(JSON.stringify(graph));
-  const minConcepts = options.minConcepts ?? 6;
-  const spine = options.spine ?? GOLDEN_PATH;
-  const goldenNodes = protectedNodes(spine);
+  const minConcepts = options.minConcepts ?? options.structure?.concepts.length ?? 6;
+  const spine = options.structure?.path ?? options.spine ?? GOLDEN_PATH;
+  const goldenNodes = protectedNodes(spine, options.structure);
 
   for (const edge of issues.flatMap((issue) => (issue.kind === "dangling" ? issue.edges ?? [] : []))) {
-    if (isProtectedEdge(edge, spine)) {
+    if (isProtectedEdge(edge, spine, options.structure)) {
       throw new GoldenGraphHalt(`protected edge ${edgeKey(edge)} is dangling`);
     }
     repaired.edges = repaired.edges.filter((candidate) => candidate !== edge && edgeKey(candidate) !== edgeKey(edge));
@@ -379,10 +503,10 @@ async function repairOnce(
     const cycle = findCycleEdges(repaired);
     const backEdge = cycle.at(-1);
     const removable =
-      backEdge && !isProtectedEdge(backEdge, spine)
+      backEdge && !isProtectedEdge(backEdge, spine, options.structure)
         ? backEdge
         : [...cycle]
-            .filter((edge) => !isProtectedEdge(edge, spine))
+            .filter((edge) => !isProtectedEdge(edge, spine, options.structure))
             .sort((left, right) => edgeKey(right).localeCompare(edgeKey(left)))[0];
     if (!removable) {
       throw new GoldenGraphHalt(`cycle contains only protected edges: ${cycle.map(edgeKey).join(", ")}`);
@@ -447,8 +571,18 @@ export async function convergeGraph(
     const issues = convergenceIssues(candidate, options);
     options.onAttempt?.(attempt, issues);
     if (issues.length === 0) return sortGraph(candidate);
-    if (issues.some((issue) => issue.kind === "golden-node")) {
-      throw new GoldenGraphHalt(issues.find((issue) => issue.kind === "golden-node")?.message ?? "missing golden node");
+    const structuralIssue = issues.find((issue) =>
+      [
+        "golden-node",
+        "golden-edge",
+        "spine-node",
+        "spine-edge",
+        "spine-source",
+        "spine-goal",
+      ].includes(issue.kind),
+    );
+    if (structuralIssue) {
+      throw new GoldenGraphHalt(structuralIssue.message);
     }
     candidate = await repairOnce(candidate, issues, frozenIds, options);
   }

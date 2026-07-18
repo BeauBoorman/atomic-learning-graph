@@ -44,8 +44,8 @@ describe("Citation — the receipt, rendered", () => {
    *  are ON THE DEMO ROUTE. Passage() returns bare text with no <mark> and no error when
    *  indexOf misses, so the failure mode is a receipt that looks perfect and highlights nothing.
    *  This asserts the RENDERED OUTPUT of the real wiring, which is the only thing a judge sees. */
-  it("highlights the cited words in all 31 rendered receipts", () => {
-    expect(steps).toHaveLength(31);
+  it("highlights the cited words in all 27 rendered receipts", () => {
+    expect(steps).toHaveLength(27);
     for (const { id, stepIndex, text } of steps) {
       expect(render(id, stepIndex, text), `${id}:${stepIndex} rendered no <mark>`).toContain("<mark>");
     }

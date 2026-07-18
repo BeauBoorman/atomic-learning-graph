@@ -3,26 +3,18 @@
     {
       "conceptId": "attention-pooling",
       "format": "why-it-exists",
-      "plainTitle": "Handling changing amounts of data without redesign",
+      "plainTitle": "Why combine stored information by importance",
       "steps": [
         {
-          "text": "Earlier networks expected inputs with a fixed size, so their design was tied to a set amount of data.",
+          "text": "Networks built for fixed-size inputs can struggle when the amount and content of the input truly vary.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
-            "quotedText": "So far all the networks we have reviewed crucially relied on the input being of a well-defined size."
+            "quotedText": "This approach can lead to significant problems when the input is truly of varying size with varying information content, such as in in the transformation of text ."
           }
         },
         {
-          "text": "Workarounds processed items one at a time or used specially shaped filters, but truly variable inputs still caused serious problems—especially when their information content also changed.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-queries-keys-values",
-            "quotedText": "Variable size is addressed by sequentially processing one token at a time, or by specially designed convolution kernels . This approach can lead to significant problems when the input is truly of varying size with varying information content, such as in in the transformation of text ."
-          }
-        },
-        {
-          "text": "Long inputs make it hard for a network to remember everything it has already seen or produced.",
+          "text": "For long sequences, a network can have difficulty keeping track of everything it has generated or seen.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
@@ -30,8 +22,16 @@
           }
         },
         {
-          "text": "Attention pooling solves the size problem by using the same procedure whether the data collection is small or extremely large.",
+          "text": "Attention pooling addresses this by combining many stored values, with weights based on how well the query matches their keys.",
           "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-queries-keys-values",
+            "quotedText": "The attention mechanism computes a linear combination over values via attention pooling, where weights are derived according to the compatibility between a query and keys ."
+          }
+        },
+        {
+          "text": "The same pooling operation can work with arbitrarily large stores of information without changing how it is performed.",
+          "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
             "quotedText": "Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed."
@@ -42,18 +42,10 @@
     {
       "conceptId": "attention-pooling",
       "format": "how-it-works",
-      "plainTitle": "How attention combines any number of records",
+      "plainTitle": "How attention combines stored values",
       "steps": [
         {
-          "text": "The system receives a query and a database containing any number of key-and-value pairs.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-queries-keys-values",
-            "quotedText": "denote by a database of m tuples of keys and values. Moreover, denote by a query."
-          }
-        },
-        {
-          "text": "It gives each value a weight based on how well the query matches that value’s key.",
+          "text": "It derives a weight for each stored value based on how well the query matches the value’s key.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
@@ -61,19 +53,11 @@
           }
         },
         {
-          "text": "It multiplies the values by those weights and adds the results together to produce one combined output.",
+          "text": "Attention pooling uses those weights to form a linear combination—a weighted sum—of the stored values.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
-            "quotedText": "the attention over generates a linear combination of values contained in the database."
-          }
-        },
-        {
-          "text": "The same procedure works no matter how many records the database contains; the pooling operation itself does not change.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-queries-keys-values",
-            "quotedText": "attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed."
+            "quotedText": "The attention mechanism computes a linear combination over values via attention pooling"
           }
         }
       ]
@@ -81,10 +65,10 @@
     {
       "conceptId": "dot-product",
       "format": "why-it-exists",
-      "plainTitle": "Why we need one score from two lists",
+      "plainTitle": "Why combine matching values into one result?",
       "steps": [
         {
-          "text": "Earlier tools could only work position by position or total values. The dot product adds a more useful operation: combining two matching lists into one meaningful score.",
+          "text": "It goes beyond basic element-by-element operations, sums, and averages, making linear algebra more useful.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -92,7 +76,7 @@
           }
         },
         {
-          "text": "This score lets us apply a different level of importance to each value, producing weighted sums and averages.",
+          "text": "It can express a weighted sum, which combines values according to a set of weights.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -100,7 +84,15 @@
           }
         },
         {
-          "text": "It also makes larger operations possible. Matrix calculations use repeated dot products for tasks such as rotating data and computing each layer of a neural network.",
+          "text": "After two vectors are scaled to unit length, it can express the cosine of the angle between them.",
+          "stepTier": "deep",
+          "citation": {
+            "sourceId": "d2l-linear-algebra",
+            "quotedText": "After normalizing two vectors to have unit length, the dot products express the cosine of the angle between them."
+          }
+        },
+        {
+          "text": "It also supplies the key calculation for matrix–vector products, including computing each neural-network layer’s outputs from the previous layer.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -112,18 +104,18 @@
     {
       "conceptId": "dot-product",
       "format": "how-it-works",
-      "plainTitle": "How two lists of numbers become one number",
+      "plainTitle": "How two lists of numbers produce one result",
       "steps": [
         {
-          "text": "First, multiply each number in one vector—a fixed-length list of numbers—by the number in the same position in the other vector.",
+          "text": "Multiply the elements that are in the same position in the two vectors, or fixed-length lists of numbers.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
-            "quotedText": "the products of the elements at the same position"
+            "quotedText": "The dot product of two vectors is a sum over the products of the elements at the same position"
           }
         },
         {
-          "text": "Then add all those products together. The resulting single number is the dot product.",
+          "text": "Add those products together.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -135,18 +127,10 @@
     {
       "conceptId": "matrix-vector-product",
       "format": "why-it-exists",
-      "plainTitle": "Why multiply a table by a list of values?",
+      "plainTitle": "Why multiply a matrix by a vector?",
       "steps": [
         {
-          "text": "Basic element-by-element operations, sums, and averages are not enough for more powerful linear algebra. Matrix–vector products build on dot products to combine many related inputs at once.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-linear-algebra",
-            "quotedText": "So far, we have only performed elementwise operations, sums, and averages. And if this was all we could do, linear algebra would not deserve its own section."
-          }
-        },
-        {
-          "text": "This operation lets one matrix turn an input vector into a new vector, making it useful for applying transformations such as rotations.",
+          "text": "It lets a matrix transform a vector into another vector, including transformations such as rotations.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -154,7 +138,7 @@
           }
         },
         {
-          "text": "It also provides the central calculation that passes information from one layer of a neural network to the next. Without it, those layers could not compute their outputs in this standard way.",
+          "text": "It performs the key calculation used to get each neural-network layer’s output from the previous layer’s output.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -162,7 +146,7 @@
           }
         },
         {
-          "text": "The sizes must fit: the matrix must have one column for every value in the input vector. Otherwise, the matching dot products cannot be computed.",
+          "text": "Its input sizes must match: the matrix’s number of columns must equal the vector’s length.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -174,18 +158,10 @@
     {
       "conceptId": "matrix-vector-product",
       "format": "how-it-works",
-      "plainTitle": "How a table of numbers multiplies a list",
+      "plainTitle": "How a matrix and vector are multiplied",
       "steps": [
         {
-          "text": "First, the number of columns in the matrix must match the number of values in the input vector.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-linear-algebra",
-            "quotedText": "Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length)."
-          }
-        },
-        {
-          "text": "Next, treat each row of the matrix as its own list of numbers.",
+          "text": "Treat each row of the matrix as its own row vector.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -193,19 +169,19 @@
           }
         },
         {
-          "text": "For each row, multiply its values by the input values in matching positions, then add those products. This dot product becomes one value in the result.",
+          "text": "For each output entry, calculate the dot product of a matrix row and the input vector.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
-            "quotedText": "The dot product of two vectors is a sum over the products of the elements at the same position"
+            "quotedText": "The matrix--vector product is simply a column vector of length m, whose element is the dot product :"
           }
         },
         {
-          "text": "The results are stacked into one output column, with one value for every matrix row.",
+          "text": "Return those entries as a column vector of length m.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
-            "quotedText": "The matrix--vector product is simply a column vector of length m, whose element is the dot product"
+            "quotedText": "The matrix--vector product is simply a column vector of length m, whose element is the dot product :"
           }
         }
       ]
@@ -213,10 +189,10 @@
     {
       "conceptId": "positional-encoding",
       "format": "why-it-exists",
-      "plainTitle": "Why tokens need order clues",
+      "plainTitle": "Why models need extra clues about word order",
       "steps": [
         {
-          "text": "Older sequence models handled tokens one at a time, so their processing naturally followed the sequence. Self-attention instead handles work in parallel.",
+          "text": "Self-attention supports parallel computation by dropping the step-by-step processing used by RNNs, a type of sequence model.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -224,7 +200,7 @@
           }
         },
         {
-          "text": "That speed comes with a gap: self-attention alone does not keep track of token order. Without another signal, the model can miss which token came first, even when order changes the meaning.",
+          "text": "But self-attention alone does not preserve the sequence’s order.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -232,7 +208,7 @@
           }
         },
         {
-          "text": "The solution is to give each token an extra input that carries its place in the sequence. This restores order information without giving up self-attention’s parallel processing.",
+          "text": "The dominant solution is to give the model order information as an extra input linked to each token.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -247,15 +223,7 @@
       "plainTitle": "How token order is added",
       "steps": [
         {
-          "text": "Self-attention processes all tokens in parallel, so it does not keep track of their original order on its own.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-self-attention",
-            "quotedText": "Note that self-attention by itself does not preserve the order of the sequence."
-          }
-        },
-        {
-          "text": "The system gives each token an extra input that indicates where that token appears in the sequence.",
+          "text": "The model receives token-order information as an extra input linked to each token.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -263,7 +231,7 @@
           }
         },
         {
-          "text": "This extra input, called a positional encoding, may either be learned during training or set in advance.",
+          "text": "These positional inputs can be learned during training or fixed in advance.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -271,7 +239,7 @@
           }
         },
         {
-          "text": "The positional encoding is added to each token’s input representation before self-attention uses it.",
+          "text": "The positional encoding is added to the input representations.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -286,35 +254,35 @@
       "plainTitle": "Why networks need a flexible way to find relevant information",
       "steps": [
         {
-          "text": "Older networks expected fixed-size input. Processing variable-length data one piece at a time helped, but long sequences made it hard to remember everything already seen or produced.",
+          "text": "Networks built for fixed-size inputs can struggle when the amount and content of information vary, especially in long sequences.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
-            "quotedText": "In particular, for long sequences it becomes quite difficult to keep track of everything that has already been generated or even viewed by the network."
+            "quotedText": "This approach can lead to significant problems when the input is truly of varying size with varying information content, such as in in the transformation of text . In particular, for long sequences it becomes quite difficult to keep track of everything that has already been generated or even viewed by the network."
           }
         },
         {
-          "text": "Queries, keys, and values solve this by letting a network select useful items from a set and combine them, instead of squeezing all available information into one fixed-size summary.",
+          "text": "A query can work with key–value pairs regardless of how large the collection is, so the same basic operation can handle different amounts of information.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
-            "quotedText": "By design, the attention mechanism provides a differentiable means of control by which a neural network can select elements from a set and to construct an associated weighted sum over representations."
+            "quotedText": "We can design queries q that operate on (k,v) pairs in such a manner as to be valid regardless of the database size."
           }
         },
         {
-          "text": "This approach keeps the selection rule small even when there is a lot of information to search, so the network does not need many extra settings to learn.",
+          "text": "Attention can operate on collections of any size without changing how it combines the information.",
           "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-queries-keys-values",
-            "quotedText": "This is a desirable property for a network layer as it does not require too many parameters to learn."
-          }
-        },
-        {
-          "text": "It also works as the amount of stored information grows; the network can use the same combining process without redesigning it for each input size.",
-          "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
             "quotedText": "Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed."
+          }
+        },
+        {
+          "text": "The query can remain concise even when searching a large space, which helps a network layer avoid having too many parameters to learn.",
+          "stepTier": "deep",
+          "citation": {
+            "sourceId": "d2l-queries-keys-values",
+            "quotedText": "What is quite remarkable is that the actual \"code\" for executing on the set of keys and values, namely the query, can be quite concise, even though the space to operate on is significant. This is a desirable property for a network layer as it does not require too many parameters to learn."
           }
         }
       ]
@@ -322,10 +290,10 @@
     {
       "conceptId": "qkv",
       "format": "how-it-works",
-      "plainTitle": "How attention combines stored information",
+      "plainTitle": "How attention combines stored values",
       "steps": [
         {
-          "text": "The system takes a query and compares it with the stored keys to produce a weight for each key–value pair.",
+          "text": "The mechanism derives a weight for each value from how compatible the query is with that value’s key.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
@@ -333,19 +301,11 @@
           }
         },
         {
-          "text": "It commonly normalizes the weights so they are nonnegative and add up to 1, using a calculation called softmax.",
+          "text": "Attention pooling uses those weights to compute a linear combination—a weighted sum—of the values.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-queries-keys-values",
-            "quotedText": "A common strategy for ensuring that the weights sum up to 1 is to normalize them via In particular, to ensure that the weights are also nonnegative, one can resort to exponentiation."
-          }
-        },
-        {
-          "text": "It multiplies each stored value by its weight and adds the results together, giving more influence to values with larger weights.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-queries-keys-values",
-            "quotedText": "the attention over generates a linear combination of values contained in the database."
+            "quotedText": "The attention mechanism computes a linear combination over values via attention pooling"
           }
         }
       ]
@@ -353,38 +313,38 @@
     {
       "conceptId": "self-attention",
       "format": "why-it-exists",
-      "plainTitle": "Why tokens need direct connections",
+      "plainTitle": "Why let every word connect directly?",
       "steps": [
         {
-          "text": "Earlier sequence models used CNNs or RNNs. CNNs mainly connect nearby text patterns, while RNNs process tokens one at a time, which limits parallel work.",
-          "stepTier": "core",
+          "text": "CNNs and RNNs were often used to encode sequences before attention-based alternatives were considered.",
+          "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-self-attention",
-            "quotedText": "Note that sequential operations prevent parallel computation, while a shorter path between any combination of sequence positions makes it easier to learn long-range dependencies within the sequence ."
+            "quotedText": "In deep learning, we often use CNNs or RNNs to encode sequences."
           }
         },
         {
-          "text": "Self-attention exists so every token can connect directly with every other token. These short paths make far-apart relationships easier to learn, while the tokens can be processed in parallel.",
+          "text": "Self-attention makes every token directly connected to every other token, allowing parallel computation and the shortest maximum path between sequence positions.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
-            "quotedText": "As we can see from , each token is directly connected to any other token via self-attention."
+            "quotedText": "As we can see from , each token is directly connected to any other token via self-attention. Therefore, computation can be parallel with sequential operations and the maximum path length is also . All in all, both CNNs and self-attention enjoy parallel computation and self-attention has the shortest maximum path length."
           }
         },
         {
-          "text": "This advantage has a cost: work grows sharply as the sequence gets longer, so very long inputs can become impractically slow.",
+          "text": "A shorter path between sequence positions makes long-range relationships easier to learn.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-self-attention",
+            "quotedText": "a shorter path between any combination of sequence positions makes it easier to learn long-range dependencies within the sequence"
+          }
+        },
+        {
+          "text": "The tradeoff is that self-attention’s computing cost grows quadratically with sequence length, making very long sequences prohibitively slow.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-self-attention",
             "quotedText": "However, the quadratic computational complexity with respect to the sequence length makes self-attention prohibitively slow for very long sequences."
-          }
-        },
-        {
-          "text": "Removing one-by-one processing also removes built-in word order. When order matters, the model needs extra position information added to each token.",
-          "stepTier": "deep",
-          "citation": {
-            "sourceId": "d2l-self-attention",
-            "quotedText": "Note that self-attention by itself does not preserve the order of the sequence."
           }
         }
       ]
@@ -392,10 +352,10 @@
     {
       "conceptId": "self-attention",
       "format": "how-it-works",
-      "plainTitle": "How each token uses the others",
+      "plainTitle": "How each token builds its next representation",
       "steps": [
         {
-          "text": "The sequence enters the attention process. Each token gets its own query, keys, and values—sets of numbers used to compare tokens and carry information.",
+          "text": "Each token in the sequence is given its own query, keys, and values.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -403,7 +363,7 @@
           }
         },
         {
-          "text": "For each token, its query is compared with the other tokens’ keys, letting it focus on any token in the same sequence.",
+          "text": "To compute a token’s representation for the next layer, its query can attend to any other token by matching against that token’s keys.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -411,7 +371,7 @@
           }
         },
         {
-          "text": "Those comparison scores set how much each other token contributes. Their information is combined into a weighted sum, producing the token’s next representation.",
+          "text": "For each token, the full set of query-key match scores is used to build a weighted sum over the other tokens.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-self-attention",
@@ -423,38 +383,38 @@
     {
       "conceptId": "softmax",
       "format": "why-it-exists",
-      "plainTitle": "Why class scores need to become usable probabilities",
+      "plainTitle": "Why neural networks need probability-ready outputs",
       "steps": [
         {
-          "text": "Classification often needs more than picking one category; it may need the probability that each category applies. That lets a model express uncertainty even when the final task only uses the top choice.",
+          "text": "Treating classification like ordinary regression is unsatisfactory because its outputs may not add up to 1, as probabilities should.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-softmax-regression",
-            "quotedText": "those where we wish to make soft assignments, i.e., to assess the probability that each category applies."
+            "quotedText": "There is no guarantee that the outputs sum up to 1 in the way we expect probabilities to behave."
           }
         },
         {
-          "text": "Before softmax, raw class scores could be treated like ordinary regression outputs. But those scores may be negative, above 1, or fail to add up to 1, so they cannot safely serve as probabilities.",
+          "text": "Those outputs may also be negative or greater than 1, making the estimation difficult and easily disrupted by unusual data points.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-softmax-regression",
-            "quotedText": "There is no guarantee that the outputs sum up to 1 in the way we expect probabilities to behave. There is no guarantee that the outputs are even nonnegative, even if their outputs sum up to 1, or that they do not exceed 1."
+            "quotedText": "There is no guarantee that the outputs are even nonnegative, even if their outputs sum up to 1, or that they do not exceed 1. Both aspects render the estimation problem difficult to solve and the solution very brittle to outliers."
           }
         },
         {
-          "text": "These invalid values also make learning fragile: unusual examples can push a supposed probability beyond its valid range. Softmax provides the needed way to squeeze raw scores into usable probabilities.",
+          "text": "Softmax provides a convenient way to turn an ordinary neural network layer’s outputs into valid probability distributions over separate categories.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-softmax-regression",
-            "quotedText": "Both aspects render the estimation problem difficult to solve and the solution very brittle to outliers. For instance, if we assume that there is a positive linear dependency between the number of bedrooms and the likelihood that someone will buy a house, the probability might exceed 1 when it comes to buying a mansion! As such, we need a mechanism to \"squish\" the outputs."
+            "quotedText": "As a side effect, we encountered the softmax, a convenient activation function that transforms outputs of an ordinary neural network layer into valid discrete probability distributions."
           }
         },
         {
-          "text": "An earlier alternative, the probit model, added normally distributed random noise to produce probabilities. It was appealing, but softmax generally worked better and made model training easier.",
+          "text": "A probit model was another option, but compared with softmax, it does not work quite as well or produce a particularly good problem for training the model.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-softmax-regression",
-            "quotedText": "This is the so-called probit model, first introduced by . While appealing, it does not work quite as well nor lead to a particularly nice optimization problem, when compared to the softmax."
+            "quotedText": "While appealing, it does not work quite as well nor lead to a particularly nice optimization problem, when compared to the softmax."
           }
         }
       ]
@@ -462,10 +422,10 @@
     {
       "conceptId": "softmax",
       "format": "how-it-works",
-      "plainTitle": "Turning scores into class probabilities",
+      "plainTitle": "How outputs become probabilities",
       "steps": [
         {
-          "text": "For each class score, the system applies an exponential function, which makes every resulting value nonnegative and makes larger scores produce larger values.",
+          "text": "Apply an exponential function to each output, making every resulting value nonnegative.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-softmax-regression",
@@ -473,69 +433,15 @@
           }
         },
         {
-          "text": "It adds those values together, then divides each value by that total. This normalization makes all the results add up to 1.",
+          "text": "Divide each resulting value by the sum of all the values, so they add up to 1.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-softmax-regression",
-            "quotedText": "We can then transform these values so that they add up to 1 by dividing each by their sum. This process is called normalization."
+            "quotedText": "We can then transform these values so that they add up to 1 by dividing each by their sum."
           }
         },
         {
-          "text": "The resulting numbers are treated as the estimated probabilities for the classes. The class that started with the largest score also ends with the highest probability.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-softmax-regression",
-            "quotedText": "Note that the largest coordinate of corresponds to the most likely class according to . Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability."
-          }
-        }
-      ]
-    },
-    {
-      "conceptId": "softmax-ordering",
-      "format": "why-it-exists",
-      "plainTitle": "Find the top class without extra work",
-      "steps": [
-        {
-          "text": "A classifier often needs only the winning class, even though its model produces a probability for every class.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-softmax-regression",
-            "quotedText": "often, even when we only care about hard assignments, we still use models that make soft assignments."
-          }
-        },
-        {
-          "text": "Because softmax keeps the input scores in the same order, the largest score already points to the class with the highest probability. Without this property, every probability would have to be calculated before choosing the winner.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-softmax-regression",
-            "quotedText": "Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability."
-          }
-        }
-      ]
-    },
-    {
-      "conceptId": "softmax-ordering",
-      "format": "how-it-works",
-      "plainTitle": "How the largest input stays on top",
-      "steps": [
-        {
-          "text": "Softmax turns each input into a positive value using an exponential function, then divides each value by the total so all results add up to 1.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-softmax-regression",
-            "quotedText": "We can then transform these values so that they add up to 1 by dividing each by their sum. This process is called normalization."
-          }
-        },
-        {
-          "text": "This operation keeps the inputs in the same order, so the largest input becomes the largest probability.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-softmax-regression",
-            "quotedText": "Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability."
-          }
-        },
-        {
-          "text": "The system can therefore select the class with the largest input without calculating the softmax probabilities first.",
+          "text": "The largest resulting value identifies the class the model considers most likely.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-softmax-regression",
@@ -545,12 +451,58 @@
       ]
     },
     {
-      "conceptId": "vector-norm",
+      "conceptId": "softmax-ordering",
       "format": "why-it-exists",
-      "plainTitle": "Why we need a single measure of size",
+      "plainTitle": "Find the Most Likely Class with Less Work",
       "steps": [
         {
-          "text": "Vectors can contain many components, so we need one number that captures their overall size rather than merely counting how many components they have.",
+          "text": "The highest input score points to the class the model considers most likely.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-softmax-regression",
+            "quotedText": "Note that the largest coordinate of corresponds to the most likely class according to ."
+          }
+        },
+        {
+          "text": "Because softmax keeps the input scores in the same order, you can find the highest-probability class without calculating softmax.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-softmax-regression",
+            "quotedText": "Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability."
+          }
+        }
+      ]
+    },
+    {
+      "conceptId": "softmax-ordering",
+      "format": "how-it-works",
+      "plainTitle": "How the Largest Input Identifies the Top Class",
+      "steps": [
+        {
+          "text": "Softmax keeps its input values in the same order.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-softmax-regression",
+            "quotedText": "the softmax operation preserves the ordering among its arguments"
+          }
+        },
+        {
+          "text": "Therefore, the largest input identifies the class with the highest probability, without calculating softmax.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-softmax-regression",
+            "quotedText": "because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability"
+          }
+        }
+      ]
+    },
+    {
+      "conceptId": "vector-norm",
+      "format": "why-it-exists",
+      "plainTitle": "Why We Need a Measure of Vector Size",
+      "steps": [
+        {
+          "text": "A norm provides a notion of size based on the magnitude of a vector’s components, rather than how many components it has.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -558,7 +510,15 @@
           }
         },
         {
-          "text": "This size measure lets us compare vectors and measure how far apart two vectors are—tasks that component-by-component arithmetic alone does not summarize.",
+          "text": "Different norms are useful because they can represent different notions of size.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-linear-algebra",
+            "quotedText": "Many functions are valid norms and different norms encode different notions of size."
+          }
+        },
+        {
+          "text": "Norms are commonly applied to the difference between two vectors to measure how far apart they are.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -566,19 +526,11 @@
           }
         },
         {
-          "text": "Without it, many deep-learning goals would lack a clear numeric target, such as reducing the gap between predictions and correct answers.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-linear-algebra",
-            "quotedText": "These distances, which constitute the objectives of deep learning algorithms, are often expressed as norms."
-          }
-        },
-        {
-          "text": "Different tasks may need different ideas of size, so more than one valid measure exists; for example, one common choice is less affected by extreme values than another.",
+          "text": "This distance measurement matters in deep learning because algorithm goals are often expressed as norms.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-linear-algebra",
-            "quotedText": "Many functions are valid norms and different norms encode different notions of size."
+            "quotedText": "These distances, which constitute the objectives of deep learning algorithms, are often expressed as norms."
           }
         }
       ]
@@ -589,15 +541,7 @@
       "plainTitle": "How a vector’s size is calculated",
       "steps": [
         {
-          "text": "Start with the vector’s elements. For the Euclidean length, square every element and add those squares together.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-linear-algebra",
-            "quotedText": "The Euclidean norm that we all learned in elementary school geometry when calculating the hypotenuse of a right triangle is the square root of the sum of squares of a vector's elements."
-          }
-        },
-        {
-          "text": "Take the square root of that sum. The result is one number representing the vector’s size.",
+          "text": "The norm takes a vector and returns one number.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -605,7 +549,15 @@
           }
         },
         {
-          "text": "For the Manhattan version, take each element’s absolute value—its distance from zero—and add those values instead.",
+          "text": "For the Euclidean norm, it squares each element, adds those squares, and takes the square root.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-linear-algebra",
+            "quotedText": "The Euclidean norm that we all learned in elementary school geometry when calculating the hypotenuse of a right triangle is the square root of the sum of squares of a vector's elements."
+          }
+        },
+        {
+          "text": "For the Manhattan norm, it instead adds the absolute values of the vector’s elements.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -617,18 +569,10 @@
     {
       "conceptId": "vectors",
       "format": "why-it-exists",
-      "plainTitle": "Why we group related numbers",
+      "plainTitle": "Why group values into vectors?",
       "steps": [
         {
-          "text": "Working with one number at a time is not enough for sophisticated models, which need linear algebra tools that handle groups of values.",
-          "stepTier": "core",
-          "citation": {
-            "sourceId": "d2l-linear-algebra",
-            "quotedText": "Most everyday mathematics consists of manipulating numbers one at a time."
-          }
-        },
-        {
-          "text": "Vectors let one record hold several related facts. For example, a loan model can keep an applicant’s income, employment length, and past defaults together.",
+          "text": "A vector lets one real-world example carry several meaningful values together, such as a loan applicant’s income, employment length, and previous defaults.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -636,11 +580,19 @@
           }
         },
         {
-          "text": "Once values are grouped this way, models can combine them efficiently—for example, by giving each value a different importance and calculating one weighted result.",
+          "text": "Vectors also support weighted sums and weighted averages through dot products.",
+          "stepTier": "core",
+          "citation": {
+            "sourceId": "d2l-linear-algebra",
+            "quotedText": "For example, given some set of values, denoted by a vector , and a set of weights, denoted by , the weighted sum of the values in according to the weights could be expressed as the dot product . When the weights are nonnegative and sum to 1, i.e., , the dot product expresses a weighted average."
+          }
+        },
+        {
+          "text": "Vectors are needed for a key neural-network calculation: using a matrix to compute each layer’s output from the previous layer’s output.",
           "stepTier": "deep",
           "citation": {
             "sourceId": "d2l-linear-algebra",
-            "quotedText": "For example, given some set of values, denoted by a vector , and a set of weights, denoted by , the weighted sum of the values in according to the weights could be expressed as the dot product ."
+            "quotedText": "Matrix--vector products also describe the key calculation involved in computing the outputs of each layer in a neural network given the outputs from the previous layer."
           }
         }
       ]
@@ -648,10 +600,10 @@
     {
       "conceptId": "vectors",
       "format": "how-it-works",
-      "plainTitle": "How a vector stores and accesses values",
+      "plainTitle": "What a vector contains",
       "steps": [
         {
-          "text": "A vector holds a set number of individual values, called scalars, in an ordered array.",
+          "text": "A vector holds a fixed number of scalar values, which are individual numbers.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
@@ -659,27 +611,11 @@
           }
         },
         {
-          "text": "Each scalar becomes one element of the vector and can be selected by its position, called an index.",
+          "text": "These scalar values are called the vector’s elements, entries, or components.",
           "stepTier": "core",
           "citation": {
             "sourceId": "d2l-linear-algebra",
             "quotedText": "As with their code counterparts, we call these scalars the elements of the vector (synonyms include entries and components)."
-          }
-        },
-        {
-          "text": "In Python code, positions start at 0, while linear algebra labels them starting at 1.",
-          "stepTier": "deep",
-          "citation": {
-            "sourceId": "d2l-linear-algebra",
-            "quotedText": "Caution: in Python, as in most programming languages, vector indices start at 0, also known as zero-based indexing, whereas in linear algebra subscripts begin at 1 (one-based indexing)."
-          }
-        },
-        {
-          "text": "Code can report how many elements the vector contains by using `len` or the vector’s `shape` information.",
-          "stepTier": "deep",
-          "citation": {
-            "sourceId": "d2l-linear-algebra",
-            "quotedText": "In code, this corresponds to the tensor's length, accessible via Python's built-in len function. We can also access the length via the shape attribute."
           }
         }
       ]

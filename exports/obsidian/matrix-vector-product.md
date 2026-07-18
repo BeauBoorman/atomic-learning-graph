@@ -1,6 +1,6 @@
 ---
 id: "matrix-vector-product"
-title: "Matrix–Vector Products"
+title: "Matrix–Vector Product"
 source: "d2l-linear-algebra"
 url: "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md"
 license: "CC-BY-SA-4.0"
@@ -10,7 +10,7 @@ tags:
   - "vectors"
 ---
 
-A matrix–vector product produces a vector whose elements are dot products between matrix rows and the input vector.
+A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
 
 ## Prerequisites
 
