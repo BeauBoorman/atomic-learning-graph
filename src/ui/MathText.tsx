@@ -17,7 +17,10 @@ const SHORT_INLINE_MATH = /^(?:[A-Za-z]{1,3}|\\[A-Za-z]+)(?:[_^](?:[A-Za-z0-9]|\
 
 function shouldRenderInlineTex(tex: string): boolean {
   const trimmed = tex.trim();
-  if (/^\d/u.test(trimmed)) return false;
+  // A clean standalone integer ("$1$", "$42$") is genuine math (e.g. "the weights sum to $1$").
+  // Longer digit-leading spans are prose prices that paired across separate dollar signs
+  // ("$0.43 (~$0.043 per concept", "$5 and $10") — those must stay literal.
+  if (/^\d/u.test(trimmed)) return /^\d+$/u.test(trimmed);
   return SHORT_INLINE_MATH.test(trimmed) || INLINE_TEX_SIGNAL.test(trimmed);
 }
 

@@ -286,15 +286,12 @@ export function Citation({
             the source; nothing on this page is written while you read.
           </p>
 
-          {/* Disclose, never edit. The corpus extractor replaced display maths with a space, which
-              is why a passage can read "Given two vectors , their dot product". Editing the quote to
-              tidy that would break indexOf, the sha256 gate on data/graph.json and ADR-001 in one
-              move; saying so out loud costs nothing and is the honest posture. The second sentence
-              closes the CC BY-SA 4.0 §3(b) gap: the old line stated the SOURCE's licence and never
-              this edition's. */}
+          {/* Disclose, never edit. Source mathematics is preserved verbatim in the quote bytes and
+              rendered inline with KaTeX (see MathText). The licence line closes the CC BY-SA 4.0
+              §3(b) gap: the old line stated only the SOURCE's licence, not this edition's. */}
           <p className="sheet-foot">
-            Equations from the source are not shown. This edition is published under the same licence
-            as the source, {licenseLabel(source.license)}.
+            Source mathematics is rendered inline as the author wrote it. This edition is published
+            under the same licence as the source, {licenseLabel(source.license)}.
           </p>
         </div>
       </dialog>
