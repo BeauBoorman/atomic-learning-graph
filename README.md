@@ -1,5 +1,8 @@
 # Atomic Learning: a plain-English edition of a real textbook
 
+We don't ask what kind of learner you are. We give every learner several grounded routes to the
+same idea. We also show you the receipts.
+
 **[Open the live demo →](https://beauboorman.github.io/atomic-learning-graph/)** — runs entirely in your browser; nothing is generated while you read.
 
 <!-- GIF still to cut from the finished app: one 6-second loop — pick a goal → lesson page →
@@ -7,9 +10,6 @@
      Then uncomment the line below (docs/demo.gif exists).
 ![Pick a goal, read one idea, check the receipt](docs/demo.gif)
 -->
-
-We don't ask what kind of learner you are. We give every learner several grounded routes to the
-same idea. We also show you the receipts.
 
 Pick something you want to understand. We work backwards through a prerequisite graph to the ideas
 it rests on, and teach them one page at a time, in order. Every page is a plain-English translation
