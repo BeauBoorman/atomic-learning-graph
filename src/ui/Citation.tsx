@@ -9,7 +9,7 @@ const licenseUrls: Record<string, string> = {
   "CC0-1.0": "https://creativecommons.org/publicdomain/zero/1.0/",
 };
 
-/** "CC-BY-SA-4.0" → "CC BY-SA 4.0" — the way a colophon spells a licence. */
+/** "CC-BY-SA-4.0" → "CC BY-SA 4.0" — the way a colophon spells a license. */
 const licenseLabel = (license: string): string =>
   license.replace(/^CC-/, "CC ").replace(/-(\d)/, " $1");
 
@@ -31,7 +31,7 @@ function citeParts(title: string): {
 
 /** "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola" → "Zhang, Lipton, Li & Smola".
  *  Bails out to the full string unless every part yields a surname, so a name shape this does not
- *  understand is printed in full rather than mangled. Attribution is a licence obligation. */
+ *  understand is printed in full rather than mangled. Attribution is a license obligation. */
 function surnames(author: string): string {
   const people = author
     .split(/,\s*|\s+and\s+/)
@@ -162,7 +162,7 @@ interface CitationProps {
   onClose: () => void;
   /** Whether to print the visible colophon. An alternate route cites the SAME source on every
    *  step, and printing the identical attribution under each of its four steps read as a
-   *  stuck rubber stamp. The first step for each source keeps it — the licence obligation is
+   *  stuck rubber stamp. The first step for each source keeps it — the license obligation is
    *  discharged once, visibly — and the rest keep only their sheet and footnote mark. */
   attribution?: boolean;
 }
@@ -219,7 +219,7 @@ export function Citation({
   return (
     <section className="citation" aria-label="Lesson source">
       {/* Always visible (once per source on the page), and deliberately so: attribution is a
-          LICENCE OBLIGATION, and an obligation you discharge only if the reader performs a
+          LICENSE OBLIGATION, and an obligation you discharge only if the reader performs a
           gesture is not discharged. What is summoned is the source TEXT, never the credit. */}
       {attribution && <p className="colophon">
         <span className="colophon-mark" aria-hidden="true">ᵃ</span>
@@ -287,11 +287,11 @@ export function Citation({
           </p>
 
           {/* Disclose, never edit. Source mathematics is preserved verbatim in the quote bytes and
-              rendered inline with KaTeX (see MathText). The licence line closes the CC BY-SA 4.0
-              §3(b) gap: the old line stated only the SOURCE's licence, not this edition's. */}
+              rendered inline with KaTeX (see MathText). The license line closes the CC BY-SA 4.0
+              §3(b) gap: the old line stated only the SOURCE's license, not this edition's. */}
           <p className="sheet-foot">
             Source mathematics is rendered inline as the author wrote it. This edition is published
-            under the same licence as the source, {licenseLabel(source.license)}.
+            under the same license as the source, {licenseLabel(source.license)}.
           </p>
         </div>
       </dialog>

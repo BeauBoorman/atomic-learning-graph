@@ -1,4 +1,4 @@
-// THE ATOMIZER'S INPUT CONTRACT — the licence gate.
+// THE ATOMIZER'S INPUT CONTRACT — the license gate.
 //
 // `Source.license` is REQUIRED by the graph model (types.ts), but nothing was enforcing it at
 // INGESTION, and the full source text is embedded in `data/graph.json` in a PUBLIC repo. Without a
@@ -10,11 +10,11 @@
 //   1. Zero new dependencies. The repo has typescript/tsx/vitest and nothing else; YAML front-matter
 //      needs a parser, and `resolveJsonModule` is already on. An 8-day build should not add a dep to
 //      express five fields.
-//   2. A licence audit should be ONE reviewable file, not a fact scattered across N documents. A
-//      judge (or Beau) can read `data/oer/sources.json` in ten seconds and see every licence.
+//   2. A license audit should be ONE reviewable file, not a fact scattered across N documents. A
+//      judge (or Beau) can read `data/oer/sources.json` in ten seconds and see every license.
 //   3. It is an ALLOWLIST, not a directory scan. A `.txt` sitting in `data/oer/` that is not listed
 //      in the manifest is NOT a source and MUST NOT be ingested. Filenames are not source IDs —
-//      a dropped-in file with no licence must be inert, not silently atomized.
+//      a dropped-in file with no license must be inert, not silently atomized.
 //   4. It is the checksum target for the atomizer's run log (corpus checksum + graph checksum).
 //
 // WHY THESE TYPES LIVE HERE AND NOT IN `types.ts`: `types.ts` is the GRAPH model — what the product
@@ -40,7 +40,7 @@ export interface SourceManifestEntry {
   title: string;
   /** Where the source came from. Optional only because some open corpora ship offline. */
   url?: string;
-  /** SPDX licence identifier. MUST be in ALLOWED_LICENSES — see the fail-closed rule below. */
+  /** SPDX license identifier. MUST be in ALLOWED_LICENSES — see the fail-closed rule below. */
   license: string;
   /** Required attribution copied into the shipped graph. */
   author: string;
@@ -53,12 +53,12 @@ export interface SourceManifest {
 }
 
 /**
- * The open licences this project will ingest. EXACT-MATCH SPDX identifiers, deliberately — a regex
+ * The open licenses this project will ingest. EXACT-MATCH SPDX identifiers, deliberately — a regex
  * or a fuzzy `includes("CC")` is a gate an atomizer can walk straight through ("CC-BY-NC-ND" and
  * "CC BY, sort of" both contain "CC").
  *
- * FAIL CLOSED: a licence string that is not in this list is REJECTED, including an unrecognised but
- * plausibly-open one. Adding a licence is a deliberate human act — a typo must never widen the gate.
+ * FAIL CLOSED: a license string that is not in this list is REJECTED, including an unrecognised but
+ * plausibly-open one. Adding a license is a deliberate human act — a typo must never widen the gate.
  *
  * WHY THESE AND NOT OTHERS. OER means the 5R permissions (Retain, Reuse, Revise, Remix,
  * Redistribute). `-ND` (NoDerivatives) forbids Revise and Remix, so it is NOT OER and is excluded.
@@ -82,8 +82,8 @@ export const ALLOWED_LICENSES: readonly string[] = [
  *
  * THE CONTRACT THE ATOMIZER MUST SATISFY: `src/atomization/atomize.ts` reads its corpus ONLY
  * through this function. It must never `readdir(data/oer)` and ingest what it finds. A source that
- * is missing a licence, carries a non-open licence, or is simply not listed here MUST NOT reach
- * GPT-5.6 and MUST NOT appear in `data/graph.json`. "The model already read it" is not a licence.
+ * is missing a license, carries a non-open license, or is simply not listed here MUST NOT reach
+ * GPT-5.6 and MUST NOT appear in `data/graph.json`. "The model already read it" is not a license.
  *
  * REJECT (throw) when:
  *   - the parsed value is not an object with a non-empty `sources` array. An EMPTY corpus is a
@@ -178,13 +178,13 @@ export function validateManifest(
  * `validateManifest`'s job, and keeping them apart is what lets the validator be unit-tested
  * against hostile input without touching the filesystem.
  *
- * Throws if the manifest is absent. A missing manifest is a missing licence audit, and the atomizer
+ * Throws if the manifest is absent. A missing manifest is a missing license audit, and the atomizer
  * must refuse to run rather than quietly atomize an unlicensed corpus.
  */
 export function loadManifest(path: string = MANIFEST_PATH): unknown {
   if (!existsSync(path)) {
     throw new Error(
-      `no source manifest at ${path} — every OER source must be listed with an open licence before ` +
+      `no source manifest at ${path} — every OER source must be listed with an open license before ` +
         `\`pnpm atomize\` may read it. See data/oer/README.md for the schema.`
     );
   }

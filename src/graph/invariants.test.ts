@@ -764,11 +764,11 @@ describe("generated data/graph.json", () => {
     expect(g.sources.map((s) => s.title)).not.toContain(fixture.sources[0].title);
   });
 
-  // Every source shipped in the graph carries an open licence. `Source.license` is required by the
+  // Every source shipped in the graph carries an open license. `Source.license` is required by the
   // type, but TypeScript cannot enforce a type on JSON parsed at runtime — `loadGraph()` casts. The
-  // full source text is embedded in a PUBLIC repo; shipping it with no licence recorded is a legal
+  // full source text is embedded in a PUBLIC repo; shipping it with no license recorded is a legal
   // exposure and a hole in the exact claim being made ("openly licensed OER").
-  it("ships every source with a non-empty licence", () => {
+  it("ships every source with a non-empty license", () => {
     const g = loadGraph();
     expect(g.sources.length).toBeGreaterThan(0);
     for (const s of g.sources) expect(s.license?.trim()).toBeTruthy();

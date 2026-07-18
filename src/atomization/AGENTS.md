@@ -8,17 +8,17 @@ This directory owns the OER→graph build step. **It is the core Build Week clai
 production code, not a demo helper. Everything else in the repo — types, invariants, pathfinder, UI —
 is a multiplier on whatever this produces.
 
-## Input contract (the licence gate)
+## Input contract (the license gate)
 
 - Read the corpus **only** through `validateManifest(loadManifest())` in `./manifest.ts`. Never
   `readdir("data/oer")` and ingest what you find. **Filenames are not source IDs.**
 - Every source must be listed in `data/oer/sources.json` with `id`, `title`, `license`, `textPath`
   (and `url` where it exists). `license` must be an exact member of `ALLOWED_LICENSES`.
-- **Fail closed.** A source with a missing, empty, non-open, or unrecognised licence must NOT reach
+- **Fail closed.** A source with a missing, empty, non-open, or unrecognised license must NOT reach
   GPT-5.6 and must NOT appear in `data/graph.json`. Abort the run; do not skip the source silently.
-  "The model already read it" is not a licence.
+  "The model already read it" is not a license.
 - `Source.text` embedded in the graph is the ground truth every quote is checked against. It ships in
-  a public repo — that is exactly why the licence is enforced here rather than assumed.
+  a public repo — that is exactly why the license is enforced here rather than assumed.
 
 ## `isSingleConcept` is ADVISORY — this WINS over any general statement (SETTLED 2026-07-15)
 

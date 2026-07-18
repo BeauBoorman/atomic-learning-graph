@@ -1,14 +1,14 @@
 # OER corpus — the atomizer's input
 
-Every source the atomizer reads must be listed in **`sources.json`** with an **open licence and
+Every source the atomizer reads must be listed in **`sources.json`** with an **open license and
 attribution**.
 This is a gate, not a convention: `src/atomization/manifest.ts` (`validateManifest`) rejects the
-run if any source is missing a licence or carries a non-open one, and `pnpm atomize` reads its
+run if any source is missing a license or carries a non-open one, and `pnpm atomize` reads its
 corpus **only** through it.
 
 **Dropping a file in this directory does nothing.** The manifest is an allowlist, not a directory
 scan. A `.txt` that is not listed is not a source and will not be atomized — filenames are not
-source IDs, and an un-listed file is a file whose licence nobody checked.
+source IDs, and an un-listed file is a file whose license nobody checked.
 
 ## `sources.json`
 
@@ -45,12 +45,12 @@ source IDs, and an un-listed file is a file whose licence nobody checked.
 | `sha256` | audited corpus | Hash of the exact extracted text bytes. Verified by `pnpm verify:corpus`. |
 | `revision` | audited corpus | Immutable repository, tag, full commit, and upstream source path. |
 
-## Allowed licences (exact match — `ALLOWED_LICENSES` in `src/atomization/manifest.ts`)
+## Allowed licenses (exact match — `ALLOWED_LICENSES` in `src/atomization/manifest.ts`)
 
 `CC0-1.0` · `CC-BY-3.0` · `CC-BY-4.0` · `CC-BY-SA-3.0` · `CC-BY-SA-4.0` · `public-domain`
 
 Anything else is **rejected**, including an unrecognised but plausibly-open string (`"CC-BY, probably"`,
-`"free to use"`). A typo must never widen the gate; adding a licence is a deliberate edit to the
+`"free to use"`). A typo must never widen the gate; adding a license is a deliberate edit to the
 allowlist.
 
 - **`-ND` (NoDerivatives) is excluded** — it forbids Revise and Remix, so it fails the 5R definition
@@ -62,6 +62,6 @@ allowlist.
 
 `data/graph.json` embeds each source's complete text so provenance can be **verified** (does the
 quote actually occur here?) and **rendered** (the UI shows the cited passage with no network call).
-That means this repo republishes the source text — which is exactly why the licence field is
+That means this repo republishes the source text — which is exactly why the license field is
 required and checked. Attribution for `CC-BY*` sources comes from `author` + `title` + `url` +
 `license`.

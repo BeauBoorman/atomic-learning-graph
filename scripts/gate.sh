@@ -17,7 +17,7 @@
 #
 #   * `pnpm atomize` is deliberately NOT run here — it needs a live model key,
 #     costs money, and is non-deterministic. Its fail-closed behaviour on a
-#     missing/non-open licence and on invalid provenance is pinned by unit tests
+#     missing/non-open license and on invalid provenance is pinned by unit tests
 #     instead (src/atomization/*.test.ts).
 #   * A green gate means the committed graph, corpus, and UI hold their
 #     invariants. It does not mean the graph was regenerated today.
@@ -50,11 +50,11 @@ run "typecheck" pnpm typecheck
 # against the committed data/graph.json. This also covers:
 #   - getPath golden path on the generated graph (src/graph/path.test.ts)
 #   - fast source-level rejection of request-time network/model clients (src/ui/gate9.test.ts)
-#   - atomizer fail-closed on licence/provenance (src/atomization/*.test.ts)
+#   - atomizer fail-closed on license/provenance (src/atomization/*.test.ts)
 run "tests (incl. adversarial, vs committed data/graph.json)" pnpm test
 
-# Provenance + licence integrity of the committed corpus.
-run "corpus integrity (licence allowlist + stored text)" pnpm verify:corpus
+# Provenance + license integrity of the committed corpus.
+run "corpus integrity (license allowlist + stored text)" pnpm verify:corpus
 run "golden anchors (quoted text still resolves)" pnpm verify:anchors
 run "llms artifacts match committed graph-derived bytes" pnpm verify:llms
 run "org-roam artifact matches committed graph-derived bytes" pnpm verify:orgroam

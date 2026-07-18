@@ -57,7 +57,7 @@ Every claim on this page is a property of the committed artifact, not a descript
 | Every lesson step is anchored to a real sentence | All **31** steps carry a `quotedText` that must be a substantial content-bearing span (at least 8 lexical words, including 4 non-stopwords) and occur **verbatim in exactly one** resolved source. `src/graph/invariants.ts` refuses to write a graph where it doesn't. |
 | The path is derived, not guessed | `src/graph/path.ts` is a pure prerequisite-ancestor walk with a stable tie-break, over **9** committed prerequisite edges. Same goal in, same route out, every time. |
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it. A single hand-edited character turns the suite red. |
-| The sources are what we say they are | Four pinned CC-BY-SA-4.0 source sections (spanning three chapters), licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
+| The sources are what we say they are | Four pinned CC-BY-SA-4.0 source sections (spanning three chapters), license-checked before ingestion, with revision pins and license evidence recorded in `data/oer/sources.json`. |
 
 The product graph structure is deliberately specified, not independently discovered. A full-graph
 spine fixes all ten stable concept IDs, their source assignments, all nine prerequisite edges, and
@@ -90,7 +90,7 @@ sentence to the passage beside it. The highlighted words are the authors' own.
 The lineage is visible rather than hidden. The translation was made in a single build-time run by a
 language model, bounded at every step by deterministic checks it cannot talk its way past:
 
-1. The pipeline licence-checks every corpus source before ingestion. It uses an exact-match SPDX
+1. The pipeline license-checks every corpus source before ingestion. It uses an exact-match SPDX
    allowlist and fails closed.
 2. The model fills the pinned concepts with grounded content, returns relations that code projects
    onto the pinned edge set, translates each converged concept into cited lesson steps, and
@@ -169,7 +169,7 @@ forgetting-curve engine — we hand clean, cited cards to one that is already tr
 Requires Node.js and pnpm. No API key is needed to run, test, or build the committed graph and UI.
 
 `pnpm gate` is the acceptance bar. A passing `pnpm test` is not: it skips corpus verification, the
-gap through which a false licence notice nearly shipped. The gate brings the repository's checks
+gap through which a false license notice nearly shipped. The gate brings the repository's checks
 together and states what it **does not** prove on every run. Green is bounded evidence, not a claim
 that the model's interpretation is correct or that every product quality is solved.
 
@@ -184,7 +184,7 @@ pnpm dev
 
 `pnpm verify:corpus` is hermetic by default: it validates the committed manifest, source hashes,
 extraction transform, and derived notices without a network request. To additionally prove the pins
-still match the real upstream source and licence bytes, run `VERIFY_UPSTREAM=1 pnpm verify:corpus`.
+still match the real upstream source and license bytes, run `VERIFY_UPSTREAM=1 pnpm verify:corpus`.
 
 A production build:
 
@@ -234,7 +234,7 @@ sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside th
 
 The honest answer is machine-checkable rather than promised. `pnpm gate` is the maintenance
 status: it re-verifies every claim in this README against the committed bytes — grounding,
-licences, pinned hashes, the shipped-bundle network scan — on any machine, with no API key. A
+licenses, pinned hashes, the shipped-bundle network scan — on any machine, with no API key. A
 checkout that has rotted goes red; a green gate means the guarantees hold *today*, not that they
 held when this paragraph was written. The build receipt in
 [`data/graph.run.json`](data/graph.run.json) records what was last compiled, by which model, at
@@ -295,13 +295,13 @@ Honest limits, stated up front:
   steps. Their citations and run-log hash are gated. On-demand renderings remain in
   [ROADMAP.md](ROADMAP.md); the learned atomicity judge is opt-in advisory evidence, not a gate.
 
-## Licences
+## Licenses
 
 **Code: MIT. Demo content and D2L source text: CC-BY-SA-4.0. OpenStax proof corpus:
 CC-BY-4.0.**
 
 The source code (`src/`, `scripts/` and the build configuration) is licensed
-[MIT](LICENSE-CODE). Creative Commons recommends against CC licences for software, and ShareAlike
+[MIT](LICENSE-CODE). Creative Commons recommends against CC licenses for software, and ShareAlike
 is viral on adaptations, so the boundary is drawn between the engine and the text it renders.
 
 The lessons are adaptations of CC-BY-SA-4.0 material from *Dive into Deep Learning* by Aston Zhang,
@@ -311,10 +311,10 @@ licensed CC-BY-SA-4.0**.
 
 Redistributed D2L text under `data/oer/`, and the same text embedded in `data/graph.json`, remains
 under CC-BY-SA-4.0. The separate OpenStax source under `data/corpora/openstax-physics/` remains
-CC-BY-4.0; its adjacent README and manifest record attribution, modifications, licence evidence,
+CC-BY-4.0; its adjacent README and manifest record attribution, modifications, license evidence,
 revision, and hashes. The original project lessons and prose are licensed
 [CC-BY-SA-4.0](LICENSE).
 
 For the D2L demo corpus, see [NOTICE](NOTICE), [DATA-LICENSE](DATA-LICENSE) and
-[ATTRIBUTIONS.md](ATTRIBUTIONS.md) for per-source attribution, revision pins, licence evidence, and
+[ATTRIBUTIONS.md](ATTRIBUTIONS.md) for per-source attribution, revision pins, license evidence, and
 modification notices.

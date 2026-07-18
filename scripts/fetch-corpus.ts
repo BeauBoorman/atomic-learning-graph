@@ -98,11 +98,11 @@ export async function fetchCorpus(args: readonly string[] = process.argv.slice(2
   }
 
   if (defaultCorpus) {
-    const licenceText = await fetchPinnedText(rawD2LUrl("LICENSE"));
+    const licenseText = await fetchPinnedText(rawD2LUrl("LICENSE"));
     writeFileSync(resolve(repoRoot, "ATTRIBUTIONS.md"), renderAttributions(entries), "utf8");
     writeFileSync(resolve(repoRoot, "DATA-LICENSE"), renderDataLicense(entries), "utf8");
     writeFileSync(resolve(repoRoot, "NOTICE"), renderNotice(entries), "utf8");
-    writeFileSync(resolve(repoRoot, "LICENSE"), normalizeRepoLicense(licenceText), "utf8");
+    writeFileSync(resolve(repoRoot, "LICENSE"), normalizeRepoLicense(licenseText), "utf8");
     for (const legacyFile of legacyWikipediaFiles) {
       rmSync(resolve(corpusDir, legacyFile), { force: true });
     }
@@ -111,7 +111,7 @@ export async function fetchCorpus(args: readonly string[] = process.argv.slice(2
   console.log(
     defaultCorpus
       ? `Fetched ${entries.length} d2l sources pinned to ${D2L_TAG} (${D2L_COMMIT}) and applied the pinned extraction transform.`
-      : `Fetched ${entries.length} source(s) from ${manifestPath}; every revision, licence statement, and SHA-256 matched.`,
+      : `Fetched ${entries.length} source(s) from ${manifestPath}; every revision, license statement, and SHA-256 matched.`,
   );
 }
 

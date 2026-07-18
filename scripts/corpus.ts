@@ -275,12 +275,12 @@ export async function verifyLicenseEvidence(
     typeof evidence.licenseName !== "string" ||
     evidence.licenseName.trim().length === 0
   ) {
-    throw new Error(`source ${entry.id} has missing licence evidence`);
+    throw new Error(`source ${entry.id} has missing license evidence`);
   }
   const page = await fetchText(evidence.url);
   if (!page.includes(evidence.statement) || !page.includes(evidence.licenseName)) {
     throw new Error(
-      `licence evidence no longer contains the recorded verbatim statement ` +
+      `license evidence no longer contains the recorded verbatim statement ` +
         `${JSON.stringify(evidence.statement)}: ${evidence.url}`
     );
   }
@@ -352,8 +352,8 @@ export function renderAttributions(entries: readonly AuditedSourceEntry[]): stri
 
 - Source: [pinned ${entry.revision.tag} revision](${entry.url})
 - Author: ${entry.author}
-- Licence: \`${entry.license}\` ([licence deed](${entry.licenseDeed}))
-- Licence evidence: [licence text at the pinned commit](${entry.licenseEvidence.url})
+- License: \`${entry.license}\` ([license deed](${entry.licenseDeed}))
+- License evidence: [license text at the pinned commit](${entry.licenseEvidence.url})
 - Upstream Markdown SHA-256: \`${entry.sourceSha256}\`
 - Extracted text SHA-256: \`${entry.sha256}\`
 - Modifications made: ${entry.modifications}
@@ -369,20 +369,20 @@ ${sections.join("\n")}`;
 }
 
 export function renderDataLicense(entries: readonly AuditedSourceEntry[]): string {
-  return `DATA LICENCE
+  return `DATA LICENSE
 ============
 
 The source documents in data/oer/ are excerpts from Dive into Deep Learning by
 ${D2L_AUTHOR}. They are redistributed under the Creative Commons
-Attribution-ShareAlike 4.0 International licence (CC-BY-SA-4.0).
+Attribution-ShareAlike 4.0 International license (CC-BY-SA-4.0).
 
 Pinned source revision: ${D2L_REPO} tag ${D2L_TAG}, commit ${D2L_COMMIT}.
 The files were transformed as described in ATTRIBUTIONS.md; their extracted SHA-256 values are
 recorded in data/oer/sources.json. The ${entries.length} included source documents retain the same
-licence. AI-translated lesson adaptations produced from them are also CC-BY-SA-4.0.
+license. AI-translated lesson adaptations produced from them are also CC-BY-SA-4.0.
 
-Licence deed: ${CC_BY_SA_4_DEED}
-Full licence: LICENSE
+License deed: ${CC_BY_SA_4_DEED}
+Full license: LICENSE
 `;
 }
 

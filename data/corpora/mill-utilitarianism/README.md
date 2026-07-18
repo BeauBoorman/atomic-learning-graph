@@ -6,8 +6,8 @@ Chapter II, “What Utilitarianism Is,” from John Stuart Mill's *Utilitarianis
 `7417ae902febaa7fb3c1c1c83e5ea0d33bef0529` in the GITenberg Project Gutenberg mirror.
 
 - Author: John Stuart Mill
-- Licence: `public-domain`
-- Licence evidence: the pinned repository `README.rst` statement recorded verbatim in `sources.json`
+- License: `public-domain`
+- License evidence: the pinned repository `README.rst` statement recorded verbatim in `sources.json`
 - Source bytes and extracted-text bytes: SHA-256 values recorded in `sources.json`
 - Modifications: the contiguous Chapter II text was selected from the pinned plain-text edition;
   the Project Gutenberg header, title matter, contents, other chapters, and footer were omitted;

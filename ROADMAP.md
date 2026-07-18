@@ -101,7 +101,7 @@ extra optional field never fails the gate). Do not build now; keep the seams:
 - **Explicit `author` / `attribution` field.** Currently derived from `title` + `url` + `license`.
 - **Broader corpus.** The manifest is the single ingestion surface: adding sources post-hackathon is
   "append to `sources.json` + drop the `.txt`," no code change. Keep it that way.
-- **`-NC` / other licences.** Excluded by decision. Revisiting that decision takes one line in
+- **`-NC` / other licenses.** Excluded by decision. Revisiting that decision takes one line in
   `ALLOWED_LICENSES`, but it remains a deliberate future call, never a default. Widening the
   allowlist is a human act, never an autonomous workaround.
 
@@ -226,5 +226,5 @@ math-mask chunker handling matter in practice, not just in theory.
 ---
 
 **Load-bearing guarantees that survive every roadmap item:** manifest-only corpus reading;
-fail-closed licence gate; quote-primary provenance with no request-time LLM; `LearningGraph.edges[]`
+fail-closed license gate; quote-primary provenance with no request-time LLM; `LearningGraph.edges[]`
 as the single source of truth. These are not conveniences to trade away for a feature.

@@ -5,8 +5,8 @@ the pinned D2L demo corpus. The source is the OpenStax *Physics* section “Newt
 Motion: Inertia,” pinned to commit `8044b7aa50bddadf631dee0a9c62e54ca238a8c8`.
 
 - Author/publisher: OpenStax, Rice University
-- Licence: `CC-BY-4.0`
-- Licence evidence: the pinned upstream `LICENSE` statement recorded verbatim in `sources.json`
+- License: `CC-BY-4.0`
+- License evidence: the pinned upstream `LICENSE` statement recorded verbatim in `sources.json`
 - Source bytes and extracted-text bytes: SHA-256 values recorded in `sources.json`
 - Modifications: comments, MathML, media payloads, and XML markup removed; captions and prose
   retained; XML entities decoded; whitespace collapsed

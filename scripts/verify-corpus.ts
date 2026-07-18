@@ -73,7 +73,7 @@ for (const [index, entry] of entries.entries()) {
     entry.licenseEvidence.statement !== D2L_LICENSE_STATEMENT ||
     entry.licenseEvidence.licenseName !== D2L_LICENSE_STATEMENT
   ) {
-    throw new Error(`source ${entry.id} has incomplete or unpinned licence evidence`);
+    throw new Error(`source ${entry.id} has incomplete or unpinned license evidence`);
   }
 
   const markdownPath = resolve(OER_DIR, localMarkdownPath(entry.textPath));
@@ -115,11 +115,11 @@ if (process.env.VERIFY_UPSTREAM === "1") {
   }
 
   await Promise.all(entries.map((entry) => verifyLicenseEvidence(entry)));
-  const licenceText = await fetchPinnedText(rawD2LUrl("LICENSE"));
-  if (readFileSync(resolve(repoRoot, "LICENSE"), "utf8") !== normalizeRepoLicense(licenceText)) {
-    throw new Error("LICENSE is not the exact pinned upstream licence artefact");
+  const licenseText = await fetchPinnedText(rawD2LUrl("LICENSE"));
+  if (readFileSync(resolve(repoRoot, "LICENSE"), "utf8") !== normalizeRepoLicense(licenseText)) {
+    throw new Error("LICENSE is not the exact pinned upstream license artefact");
   }
-  console.log("Verified pinned corpus and licence bytes against upstream.");
+  console.log("Verified pinned corpus and license bytes against upstream.");
 } else {
   console.log("Skipped upstream re-fetch (set VERIFY_UPSTREAM=1 to enable it).");
 }

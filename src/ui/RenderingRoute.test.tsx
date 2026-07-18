@@ -51,7 +51,7 @@ describe("summoned rendering route", () => {
     expect(markup.match(/aria-label="Read the source behind this step"/g)).toHaveLength(2);
     expect(markup.match(/<mark>/g)).toHaveLength(2);
     // …but the visible colophon prints ONCE for the one source both steps cite. Printing the
-    // identical attribution under all steps read as a stuck rubber stamp; the licence
+    // identical attribution under all steps read as a stuck rubber stamp; the license
     // obligation is discharged by the single visible credit.
     expect(markup.match(/Read the source ⟢/g)).toHaveLength(1);
     expect(markup.match(/Plain Reading Edition/g)).toHaveLength(1);

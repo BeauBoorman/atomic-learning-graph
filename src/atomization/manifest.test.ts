@@ -1,6 +1,6 @@
 // The project's claim is "built from openly (5R) licensed OER" and it embeds the full source text
 // in a PUBLIC repo. That claim is worth exactly as much as the check behind it. These tests are the
-// check: a source without a licence must be REJECTED, not warned about, and the atomizer must be
+// check: a source without a license must be REJECTED, not warned about, and the atomizer must be
 // unable to reach GPT-5.6 with it.
 
 import { describe, it, expect } from "vitest";
@@ -41,7 +41,7 @@ const manifestWithout = (field: keyof SourceManifestEntry) => {
  * unimplemented stub.
  *
  * A bare `expect(...).toThrow()` here is a FALSE GREEN: the stub throws `not implemented`, so every
- * rejection test below would pass against a function that does nothing at all — the licence gate
+ * rejection test below would pass against a function that does nothing at all — the license gate
  * would report itself working while being empty. It would ALSO pass against an implementation that
  * throws unconditionally, which rejects valid corpora too. So: it must throw, it must not be the
  * stub, and the `accepts...` tests above pin that valid input is NOT rejected.
@@ -58,11 +58,11 @@ const expectRejected = (raw: unknown) => {
   );
   expect(
     (thrown as Error).message,
-    "rejected only because the function is a stub — that is not a licence gate"
+    "rejected only because the function is a stub — that is not a license gate"
   ).not.toMatch(/not implemented/i);
 };
 
-describe("validateManifest — the licence gate", () => {
+describe("validateManifest — the license gate", () => {
   it("accepts a complete, openly-licensed source", () => {
     expect(validateManifest({ sources: [valid] })).toEqual([valid]);
   });
@@ -72,22 +72,22 @@ describe("validateManifest — the licence gate", () => {
   });
 
   // THE HEADLINE REJECTION. This is the one the pitch depends on.
-  it("REJECTS a source with no licence", () => {
+  it("REJECTS a source with no license", () => {
     expectRejected(manifestWithout("license"));
   });
 
-  it("REJECTS a source with an empty or whitespace-only licence", () => {
+  it("REJECTS a source with an empty or whitespace-only license", () => {
     expectRejected(manifestWith({ license: "" }));
     expectRejected(manifestWith({ license: "   " }));
   });
 
   // -ND forbids Revise and Remix, so it fails the 5R definition of OER outright.
-  it("REJECTS a NoDerivatives licence (it is not OER — no Revise, no Remix)", () => {
+  it("REJECTS a NoDerivatives license (it is not OER — no Revise, no Remix)", () => {
     expectRejected(manifestWith({ license: "CC-BY-ND-4.0" }));
     expectRejected(manifestWith({ license: "CC-BY-NC-ND-4.0" }));
   });
 
-  it("REJECTS a NonCommercial licence (the allowlist must not widen implicitly)", () => {
+  it("REJECTS a NonCommercial license (the allowlist must not widen implicitly)", () => {
     expectRejected(manifestWith({ license: "CC-BY-NC-4.0" }));
     expectRejected(manifestWith({ license: "CC-BY-NC-SA-4.0" }));
   });
@@ -99,8 +99,8 @@ describe("validateManifest — the licence gate", () => {
 
   // FAIL CLOSED. KILLS a fuzzy check like `license.includes("CC")` — every string below contains
   // "CC" or reads as open to a human, and none is an exact SPDX identifier this project has vetted.
-  // An unrecognised licence is a licence nobody checked; it must not widen the gate.
-  it("REJECTS an unrecognised licence string, even a plausibly-open one (fail closed)", () => {
+  // An unrecognised license is a license nobody checked; it must not widen the gate.
+  it("REJECTS an unrecognised license string, even a plausibly-open one (fail closed)", () => {
     expectRejected(manifestWith({ license: "CC-BY, probably" }));
     expectRejected(manifestWith({ license: "free to use" }));
     expectRejected(manifestWith({ license: "open" }));
@@ -137,7 +137,7 @@ describe("validateManifest — the licence gate", () => {
   });
 
   // The corpus is a closed set. A textPath that escapes data/oer/ is either a bug or an attempt to
-  // ingest something that was never licence-checked.
+  // ingest something that was never license-checked.
   it("REJECTS a textPath that escapes data/oer/", () => {
     expectRejected(manifestWith({ textPath: "../../.env" }));
     expectRejected(manifestWith({ textPath: "/etc/passwd" }));
@@ -151,9 +151,9 @@ describe("validateManifest — the licence gate", () => {
 });
 
 // --- The REAL corpus. RED until data/oer/sources.json exists — which is correct: there is no
-// licence audit until there is a manifest, and there is no graph until there is a licence audit. ---
+// license audit until there is a manifest, and there is no graph until there is a license audit. ---
 describe("the real data/oer/sources.json", () => {
-  it("exists and every source passes the licence gate", () => {
+  it("exists and every source passes the license gate", () => {
     const entries = validateManifest(loadManifest());
     expect(entries.length).toBeGreaterThan(0);
     for (const e of entries) expect(ALLOWED_LICENSES).toContain(e.license);

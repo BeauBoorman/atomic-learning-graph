@@ -80,8 +80,8 @@ describe("Citation — the receipt, rendered", () => {
     expect(html.toLowerCase()).not.toContain("open" + "ai");
   });
 
-  it("states attribution and licence WITHOUT a user gesture", () => {
-    // Attribution is a licence obligation. An obligation discharged only if the reader performs
+  it("states attribution and license WITHOUT a user gesture", () => {
+    // Attribution is a license obligation. An obligation discharged only if the reader performs
     // a gesture is not discharged. The source TEXT is summoned; the credit never is.
     const html = render("vectors", 0, steps[0].text);
     expect(html).toContain("Plain Reading Edition");
@@ -89,8 +89,8 @@ describe("Citation — the receipt, rendered", () => {
     expect(html).toContain("Zhang, Lipton, Li &amp; Smola");
     expect(html).toContain("CC BY-SA 4.0");
     expect(html).toContain("https://creativecommons.org/licenses/by-sa/4.0/");
-    // CC BY-SA 4.0 §3(b): the old copy stated the SOURCE's licence and never this edition's.
-    expect(html).toContain("This edition is published under the same licence as the source");
+    // CC BY-SA 4.0 §3(b): the old copy stated the SOURCE's license and never this edition's.
+    expect(html).toContain("This edition is published under the same license as the source");
   });
 
   /** The route crosses FOUR d2l sections. §5.4's copy spells "§2.3, Linear Algebra" literally;

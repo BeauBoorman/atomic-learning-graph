@@ -54,7 +54,7 @@ export function emitCourseReceipt(
   atomicityReport: AtomicityReceiptFacts,
 ): string {
   const license = assertOneSharedValue(
-    "source licences",
+    "source licenses",
     manifest.sources.map((source) => source.license),
   );
   const revisionTag = assertOneSharedValue(

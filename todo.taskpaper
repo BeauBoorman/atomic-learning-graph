@@ -24,7 +24,7 @@ Done:
 	- prerequisite-edge inference @done(2026-07-15)
 	- deterministic pathfinder walk over the prereq DAG (src/graph/path.ts) @done(2026-07-15)
 	- UI shipped as Vite + React + Cytoscape (supersedes the Next.js/React Flow/dagre plan) @done(2026-07-16)
-	- licence split — code MIT / content CC-BY-SA-4.0 @done(2026-07-16)
+	- license split — code MIT / content CC-BY-SA-4.0 @done(2026-07-16)
 	- renderings pipeline + per-rendering citation gate @done(2026-07-16)
 	- gate9 CSS network hole closed @done(2026-07-16)
 	- GitHub Pages base path (supersedes "deploy to Vercel"; a live URL is NOT required) @done(2026-07-16)

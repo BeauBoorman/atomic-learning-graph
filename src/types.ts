@@ -30,15 +30,15 @@ export interface Source {
   title: string;
   url?: string;
   /**
-   * REQUIRED. The open licence the source is used under, as an EXACT SPDX identifier
+   * REQUIRED. The open license the source is used under, as an EXACT SPDX identifier
    * (e.g. "CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0", "public-domain"). The project's whole premise is
    * openly (5R) licensed OER, and the full source `text` is embedded in a PUBLIC repo — shipping
-   * that with no licence recorded is both a legal exposure and a credibility hole in the exact
+   * that with no license recorded is both a legal exposure and a credibility hole in the exact
    * claim being made.
    *
    * ENFORCED AT INGESTION, not here: TypeScript cannot check a string, and `loadGraph()` casts
    * parsed JSON. The gate is `ALLOWED_LICENSES` / `validateManifest` in
-   * `src/atomization/manifest.ts` — the atomizer refuses any source whose licence is absent or not
+   * `src/atomization/manifest.ts` — the atomizer refuses any source whose license is absent or not
    * on the vetted allowlist. This field carries that vetted value through into the shipped graph.
    */
   license: string;

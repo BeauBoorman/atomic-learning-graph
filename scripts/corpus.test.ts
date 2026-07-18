@@ -123,7 +123,7 @@ The norm is expressed as ($\\sum_i x_i^2$).`;
   });
 });
 
-describe("per-source licence evidence", () => {
+describe("per-source license evidence", () => {
   const openStax = {
     id: "openstax-physics-newtons-first-law",
     title: "OpenStax Physics — Newton's First Law of Motion: Inertia",
@@ -160,14 +160,14 @@ describe("per-source licence evidence", () => {
   });
 
   it("REJECTS missing or unverifiable recorded evidence", async () => {
-    await expect(verifyLicenseEvidence(openStax, async () => "no licence statement here"))
-      .rejects.toThrow(/licence evidence/i);
+    await expect(verifyLicenseEvidence(openStax, async () => "no license statement here"))
+      .rejects.toThrow(/license evidence/i);
     await expect(
       verifyLicenseEvidence(
         { ...openStax, licenseEvidence: undefined } as unknown as AuditedSourceEntry,
         async () => openStax.licenseEvidence.statement,
       ),
-    ).rejects.toThrow(/licence evidence/i);
+    ).rejects.toThrow(/license evidence/i);
   });
 });
 

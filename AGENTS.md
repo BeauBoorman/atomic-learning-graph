@@ -33,8 +33,8 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
   each negative test names the cheating implementation it exists to kill (`() => []`, `() => true`,
   a `" and "` substring ban, `sources.find()`, "does this concept id exist"). If a negative test
   fails, the implementation is wrong. Deleting the test deletes the invariant.
-- **The atomizer fails closed on licence.** No source reaches GPT-5.6 unless it is listed in
-  `data/oer/sources.json` with an allowlisted open licence. See `src/atomization/AGENTS.md`.
+- **The atomizer fails closed on license.** No source reaches GPT-5.6 unless it is listed in
+  `data/oer/sources.json` with an allowlisted open license. See `src/atomization/AGENTS.md`.
 - **Public README claims must match working commands.** Do not leave future-tense placeholders or
   commands that do not exist in a shipping README.
 - **Keep the demo scoped:** one subject (how LLMs work), one goal (`self-attention`), one loop.
@@ -53,17 +53,17 @@ believed it. List commands; never their status.
 |---|---|
 | `pnpm gate` | **THE acceptance bar.** typecheck + test + verify:corpus + verify:anchors + build + verify:bundle. Every stage runs even if an earlier one fails. |
 | `pnpm typecheck` | `tsc --noEmit`, must exit 0 |
-| `pnpm test` | vitest. **Passing is NOT the bar:** it does not run `verify:corpus`, and that gap is how a false licence notice nearly shipped. Use `pnpm gate`. |
+| `pnpm test` | vitest. **Passing is NOT the bar:** it does not run `verify:corpus`, and that gap is how a false license notice nearly shipped. Use `pnpm gate`. |
 | `pnpm atomize` / `atomize:toy` | Atomizes licensed sources; full runs require explicit `--out-dir`. Costs real API calls. |
 | `pnpm render` | **Costs 2 API calls per concept.** Generates once, validates and writes `data/renderings.json`, then prints the verdict for those exact landed bytes; there is no dry run. |
-| `pnpm verify:corpus` / `verify:anchors` | licence + provenance gates. Corpus verification is local by default; `VERIFY_UPSTREAM=1 pnpm verify:corpus` also checks pinned upstream bytes. |
+| `pnpm verify:corpus` / `verify:anchors` | license + provenance gates. Corpus verification is local by default; `VERIFY_UPSTREAM=1 pnpm verify:corpus` also checks pinned upstream bytes. |
 | `pnpm verify:bundle` | post-build scan of shipped JavaScript, HTML and CSS for network/model clients and remote assets |
 | `pnpm build` / `preview` | vite |
 | `pnpm dev` | ⛔ **NEVER run `dev` or `preview` in an agent.** They never exit and will hang the session until it is killed. Codex has already lost a run to this. Read the code or run `pnpm build`. |
 
 ## Current critical path
 
-**The core is BUILT and green.** Invariants, the licence gate, the atomizer, `getPath`, the UI and
+**The core is BUILT and green.** Invariants, the license gate, the atomizer, `getPath`, the UI and
 the renderings pipeline all exist and pass. Do not re-implement them. `git log` and `pnpm gate` are
 the truth; if this section disagrees with them, they win and this section is stale. Say so.
 
@@ -83,7 +83,7 @@ What remains is **shipping**, not building. Deadline **2026-07-21 17:00 PT**:
 - `pnpm typecheck` exits 0.
 - `pnpm test` passes, including every adversarial/negative test, against the committed
   `data/graph.json`.
-- `pnpm atomize` fails closed on a source with a missing/non-open licence, and on invalid provenance.
+- `pnpm atomize` fails closed on a source with a missing/non-open license, and on invalid provenance.
 - `getPath(graph, "self-attention")` routes through `vectors → dot-product → softmax → qkv →
   self-attention`, in that order.
 - The UI shows the source quote for the selected node with **no request-time LLM call**.
