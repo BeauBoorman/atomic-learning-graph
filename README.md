@@ -1,14 +1,10 @@
 # Atomic Learning: a plain-English edition of a real textbook
 
-<!-- PUBLISH STEP (owner call). The repository is public. Once GitHub Pages is enabled,
-     uncomment the two lines below and fill in <user>. `base` is
-     already set to "/atomic-learning-graph/" in vite.config.ts for a project page; if you
-     publish to a user page or a custom domain instead, set `base` back to "/" or the link
-     will serve a blank white screen. The GIF must be cut from the finished app: one 6-second
-     loop: pick a goal → lesson page → tap the footnote mark → the source sheet opens → the
-     highlight draws under the real sentence.
-**[Open the demo →](https://<user>.github.io/atomic-learning-graph/)**
+**[Open the live demo →](https://beauboorman.github.io/atomic-learning-graph/)** — runs entirely in your browser; nothing is generated while you read.
 
+<!-- GIF still to cut from the finished app: one 6-second loop — pick a goal → lesson page →
+     tap the footnote mark → the source sheet opens → the highlight draws under the real sentence.
+     Then uncomment the line below (docs/demo.gif exists).
 ![Pick a goal, read one idea, check the receipt](docs/demo.gif)
 -->
 
