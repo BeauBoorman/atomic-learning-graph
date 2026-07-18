@@ -12,7 +12,7 @@ import {
   D2L_REPO,
   D2L_SOURCES,
   D2L_TAG,
-  extractD2LText,
+  extractD2LTextLegacy,
   fetchPinnedText,
   localMarkdownPath,
   normalizeRepoLicense,
@@ -87,7 +87,9 @@ for (const [index, entry] of entries.entries()) {
     throw new Error(`source ${entry.id} stored bytes do not match their recorded SHA-256 values`);
   }
 
-  const expectedText = extractD2LText(storedMarkdown.toString("utf8"));
+  // The committed graph receipt pins the previous transform. The cleaned forward transform is used
+  // by fetch:corpus only when the corpus and graph are deliberately re-pinned together.
+  const expectedText = extractD2LTextLegacy(storedMarkdown.toString("utf8"));
   if (!storedText.equals(Buffer.from(expectedText, "utf8"))) {
     throw new Error(`source ${entry.id} text differs from the committed Markdown extraction`);
   }

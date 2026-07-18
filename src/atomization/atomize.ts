@@ -180,9 +180,10 @@ function dedupeConcepts(concepts: AtomizedConcept[]): AtomizedConcept[] {
   for (const concept of concepts) {
     const id = concept.id.trim().toLowerCase();
     const title = concept.title.trim().toLowerCase().replace(/\s+/g, " ");
+    const idKey = JSON.stringify([concept.provenance.sourceId, id]);
     const titleKey = JSON.stringify([concept.provenance.sourceId, title]);
-    if (seenIds.has(id) || seenTitles.has(titleKey)) continue;
-    seenIds.add(id);
+    if (seenIds.has(idKey) || seenTitles.has(titleKey)) continue;
+    seenIds.add(idKey);
     seenTitles.add(titleKey);
     out.push({ ...concept, id });
   }
@@ -232,9 +233,14 @@ function sourceLineRanges(text: string): SourceLineRange[] {
   return lines;
 }
 
-function hardBoundaryIndexes(text: string, lines: SourceLineRange[]): number[] {
+function hardBoundaryIndexes(
+  text: string,
+  lines: SourceLineRange[],
+  fencedRanges: ProtectedChunkRange[],
+): number[] {
   const boundaries: number[] = [];
   for (const line of lines) {
+    if (rangeContaining(fencedRanges, line.start)) continue;
     if (/^(?:#\s+\S|(?:book|chapter)(?:\s+|:))/i.test(line.content.trimStart())) {
       boundaries.push(line.start);
     }
@@ -284,7 +290,6 @@ function findLiteralCloser(
 function mapFencedCodeRanges(
   text: string,
   lines: SourceLineRange[],
-  hardBoundaries: number[],
   maxMaskSpan: number,
 ): ProtectedChunkRange[] {
   const ranges: ProtectedChunkRange[] = [];
@@ -293,8 +298,7 @@ function mapFencedCodeRanges(
     const opener = line.content.match(/^ {0,3}(`{3,}|~{3,})/);
     if (!opener) continue;
     const marker = opener[1];
-    const hardLimit = nextBoundaryAfter(hardBoundaries, line.start, text.length);
-    const scanLimit = Math.min(hardLimit, line.start + maxMaskSpan);
+    const scanLimit = Math.min(text.length, line.start + maxMaskSpan);
     let closerIndex: number | undefined;
     for (let candidate = index + 1; candidate < lines.length; candidate += 1) {
       const closer = lines[candidate];
@@ -416,13 +420,13 @@ function mathRangeAt(text: string, index: number, limit: number): ProtectedChunk
 
 function mapProtectedChunkRanges(
   text: string,
-  size: number,
   lines: SourceLineRange[],
   hardBoundaries: number[],
+  fencedRanges: ProtectedChunkRange[],
+  maxMaskSpan: number,
 ): ProtectedChunkRange[] {
-  const maxMaskSpan = Math.max(65536, boundedProduct(size, CHUNK_OVERSIZE_MULTIPLE * 4));
   // SAFE: fenced code is mapped first. Its interior is skipped by every later detector.
-  const ranges = mapFencedCodeRanges(text, lines, hardBoundaries, maxMaskSpan);
+  const ranges = [...fencedRanges];
   const tableByStart = new Map(mapPipeTableCandidates(lines).map((range) => [range.start, range]));
   const scriptureByStart = new Map(mapScriptureCandidates(lines).map((range) => [range.start, range]));
 
@@ -466,25 +470,48 @@ function cutFallsInsideMask(cut: number, masks: ProtectedChunkRange[]): boolean 
   return masks.some((mask) => mask.start < cut && cut < mask.end);
 }
 
-function balancedAtCut(text: string, start: number, cut: number, masks: ProtectedChunkRange[]): boolean {
-  const counts = { curly: 0, square: 0, round: 0 };
-  let cursor = start;
-  while (cursor < cut) {
-    const mask = rangeContaining(masks, cursor);
-    if (mask) {
-      cursor = Math.min(mask.end, cut);
-      continue;
-    }
-    const character = text[cursor];
-    if (character === "{") counts.curly += 1;
-    else if (character === "}") counts.curly -= 1;
-    else if (character === "[") counts.square += 1;
-    else if (character === "]") counts.square -= 1;
-    else if (character === "(") counts.round += 1;
-    else if (character === ")") counts.round -= 1;
-    cursor += 1;
+/**
+ * Monotone prefix bracket balance for cuts measured from one fixed `start`, with masked spans
+ * skipped. One instance sweeps its range at most once, so checking every candidate cut in a range
+ * is O(range length) total; the previous per-cut rescan made dense single-blob text quadratic
+ * (a ~1.5MB blob took minutes). `balancedAt` requires non-decreasing cuts per instance — both
+ * call sites iterate cuts in ascending order. Counting semantics are identical: characters are
+ * classified only at positions outside every mask, and skip order cannot change that set.
+ */
+class ChunkBalanceScanner {
+  private cursor: number;
+  private maskIndex = 0;
+  private readonly masks: ProtectedChunkRange[];
+  private curly = 0;
+  private square = 0;
+  private round = 0;
+
+  constructor(private readonly text: string, start: number, masks: ProtectedChunkRange[]) {
+    this.cursor = start;
+    this.masks = [...masks].sort((left, right) => left.start - right.start);
   }
-  return counts.curly === 0 && counts.square === 0 && counts.round === 0;
+
+  balancedAt(cut: number): boolean {
+    while (this.cursor < cut) {
+      while (this.maskIndex < this.masks.length && this.masks[this.maskIndex].end <= this.cursor) {
+        this.maskIndex += 1;
+      }
+      const mask = this.masks[this.maskIndex];
+      if (mask && mask.start <= this.cursor) {
+        this.cursor = Math.min(mask.end, cut);
+        continue;
+      }
+      const character = this.text[this.cursor];
+      if (character === "{") this.curly += 1;
+      else if (character === "}") this.curly -= 1;
+      else if (character === "[") this.square += 1;
+      else if (character === "]") this.square -= 1;
+      else if (character === "(") this.round += 1;
+      else if (character === ")") this.round -= 1;
+      this.cursor += 1;
+    }
+    return this.curly === 0 && this.square === 0 && this.round === 0;
+  }
 }
 
 function protectedBoundaries(start: number, end: number, masks: ProtectedChunkRange[]): number[] {
@@ -549,12 +576,24 @@ function sentenceBoundaries(text: string, start: number, end: number): number[] 
   for (let index = start; index < end - 1; index += 1) {
     if (!".!?".includes(text[index]) || sentenceBoundarySuppressed(text, index)) continue;
     let lookahead = index + 1;
+    while (lookahead < end && /["'”’»)\]}]/u.test(text[lookahead])) lookahead += 1;
+    const whitespaceStart = lookahead;
     while (lookahead < end && /\s/u.test(text[lookahead])) lookahead += 1;
-    if (lookahead === index + 1 || lookahead >= end) continue;
+    if (lookahead === whitespaceStart || lookahead >= end) continue;
     if (!/[\p{L}\p{N}\p{S}(#]/u.test(text[lookahead])) continue;
     cuts.push(lookahead);
   }
   return cuts;
+}
+
+function codePointSafeCut(text: string, start: number, cut: number, limit: number): number {
+  const before = text.charCodeAt(cut - 1);
+  const after = text.charCodeAt(cut);
+  const splitsSurrogatePair =
+    before >= 0xD800 && before <= 0xDBFF && after >= 0xDC00 && after <= 0xDFFF;
+  if (!splitsSurrogatePair) return cut;
+  if (cut - 1 > start + CHUNK_BOUNDARY_EPSILON) return cut - 1;
+  return cut + 1 <= limit ? cut + 1 : cut;
 }
 
 function acceptedChunkBoundaries(
@@ -565,12 +604,14 @@ function acceptedChunkBoundaries(
   masks: ProtectedChunkRange[],
 ): number[] {
   const unique = [...new Set(candidates)].sort((left, right) => left - right);
+  const balance = new ChunkBalanceScanner(text, start, masks);
   // SAFE: suppression and the balance guard only remove candidate cut indexes; content is inert.
+  // Candidates are ascending, so the scanner's monotone-cut requirement holds.
   return unique.filter((cut) =>
     cut > start + CHUNK_BOUNDARY_EPSILON &&
     cut < end - CHUNK_BOUNDARY_EPSILON &&
     !cutFallsInsideMask(cut, masks) &&
-    balancedAtCut(text, start, cut, masks),
+    balance.balancedAt(cut),
   );
 }
 
@@ -588,10 +629,13 @@ function forceSliceRange(
     let cut = Math.min(outwardLimit, start + target);
     const mask = rangeContaining(masks, cut);
     if (mask && mask.end <= outwardLimit) cut = mask.end;
-    while (cut < outwardLimit && (!balancedAtCut(text, start, cut, masks) || cutFallsInsideMask(cut, masks))) {
+    const balance = new ChunkBalanceScanner(text, start, masks);
+    while (cut < outwardLimit && (!balance.balancedAt(cut) || cutFallsInsideMask(cut, masks))) {
       cut += 1;
     }
+    cut = codePointSafeCut(text, start, cut, outwardLimit);
     if (cut <= start + CHUNK_BOUNDARY_EPSILON || cut >= range.end) cut = outwardLimit;
+    cut = codePointSafeCut(text, start, cut, outwardLimit);
     pieces.push({ start, end: cut, barrierBefore: false, barrierAfter: false });
     start = cut;
   }
@@ -600,9 +644,11 @@ function forceSliceRange(
     let cut = Math.min(outwardLimit, start + target);
     const mask = rangeContaining(masks, cut);
     if (mask && mask.end <= outwardLimit) cut = mask.end;
-    while (cut < outwardLimit && (!balancedAtCut(text, start, cut, masks) || cutFallsInsideMask(cut, masks))) {
+    const balance = new ChunkBalanceScanner(text, start, masks);
+    while (cut < outwardLimit && (!balance.balancedAt(cut) || cutFallsInsideMask(cut, masks))) {
       cut += 1;
     }
+    cut = codePointSafeCut(text, start, cut, outwardLimit);
     if (cut <= start + CHUNK_BOUNDARY_EPSILON || cut >= range.end) break;
     pieces.push({ start, end: cut, barrierBefore: false, barrierAfter: false });
     start = cut;
@@ -660,10 +706,13 @@ function recursivelySplitChunkRange(
     });
   }
 
-  // Preserve the original contract for one indivisible top-level prose passage: semantic units
-  // may exceed the target size. Descendants created by the hierarchy still reach the strict,
-  // progressing hard-slice fallback below, as do inputs containing multiple legacy passages.
-  if (level === 0 && sourcePassages(text.slice(range.start, range.end)).length === 1) return [range];
+  // Preserve one indivisible top-level prose passage only up to the absolute ceiling. Larger input,
+  // descendants created by the hierarchy, and multi-passage input reach the progressing fallback.
+  if (
+    level === 0 &&
+    range.end - range.start <= ceiling &&
+    sourcePassages(text.slice(range.start, range.end)).length === 1
+  ) return [range];
 
   // SAFE: terminal fallback advances strictly and only locates slice boundaries.
   return forceSliceRange(text, range, size, ceiling, masks);
@@ -671,8 +720,8 @@ function recursivelySplitChunkRange(
 
 function packChunkRanges(text: string, ranges: ChunkRange[], size: number): ChunkRange[] {
   const packed: ChunkRange[] = [];
-  // SAFE: cohesion is an offset extension only. The size budget wins for ordinary prose/list
-  // units; only a genuinely protected range may remain oversize, and it already obeys the ceiling.
+  // SAFE: cohesion is an offset extension only. The target wins for ordinary prose/list units;
+  // protected ranges and one indivisible top-level passage may remain oversize only to the ceiling.
   for (const range of ranges) {
     const previous = packed[packed.length - 1];
     if (
@@ -692,8 +741,10 @@ function packChunkRanges(text: string, ranges: ChunkRange[], size: number): Chun
 
 function structuredChunkSourceText(text: string, size: number): string[] {
   const lines = sourceLineRanges(text);
-  const hardBoundaries = hardBoundaryIndexes(text, lines);
-  const masks = mapProtectedChunkRanges(text, size, lines, hardBoundaries);
+  const maxMaskSpan = Math.max(65536, boundedProduct(size, CHUNK_OVERSIZE_MULTIPLE * 4));
+  const fencedRanges = mapFencedCodeRanges(text, lines, maxMaskSpan);
+  const hardBoundaries = hardBoundaryIndexes(text, lines, fencedRanges);
+  const masks = mapProtectedChunkRanges(text, lines, hardBoundaries, fencedRanges, maxMaskSpan);
   const ceiling = boundedProduct(size, CHUNK_OVERSIZE_MULTIPLE);
   const chunks: string[] = [];
 
@@ -847,7 +898,7 @@ export function loadSources(
 function groundInventory(concepts: AtomizedConcept[], sources: Source[], requiredIds: readonly string[]): AtomizedConcept[] {
   const sourceById = new Map(sources.map((source) => [source.id, source]));
   const grounded: AtomizedConcept[] = [];
-  for (const concept of dedupeConcepts(concepts)) {
+  for (const concept of concepts) {
     const source = sourceById.get(concept.provenance.sourceId);
     const quote = source && groundedQuote(source.text, concept.provenance.quotedText);
     if (!source || !quote) {
@@ -865,9 +916,10 @@ function groundInventory(concepts: AtomizedConcept[], sources: Source[], require
       related: [],
     });
   }
-  const missing = requiredIds.filter((id) => !grounded.some((concept) => concept.id === id));
+  const deduped = dedupeConcepts(grounded);
+  const missing = requiredIds.filter((id) => !deduped.some((concept) => concept.id === id));
   if (missing.length > 0) throw new Error(`inventory omitted required IDs: ${missing.join(", ")}`);
-  return grounded;
+  return deduped;
 }
 
 export async function discoverInventory(

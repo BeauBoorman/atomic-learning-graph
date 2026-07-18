@@ -122,7 +122,7 @@ export const zakatObligation = concept(
   ["islam", "charity", "community"],
 );
 
-/** NEVER-MERGE doctrine pairs: same topic, different doctrine. */
+/** Guard regression pairs: same topic, different doctrine, instructed and expected to stay apart. */
 export const ramadanFasting = concept(
   "ramadan-fasting-sawm",
   "Ramadan fasting (sawm)",

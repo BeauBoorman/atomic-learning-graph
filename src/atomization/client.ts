@@ -2,6 +2,12 @@ import type { JsonObject, TranslationRequestOptions } from "./translate";
 import type { RunUsageTokens } from "./run-receipt";
 
 export const MODEL_CANDIDATES = [process.env.OPENAI_MODEL ?? "gpt-5.6-sol"];
+const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
+
+export interface ResponsesRequestOptions extends Partial<TranslationRequestOptions> {
+  signal?: AbortSignal;
+  timeoutMs?: number;
+}
 
 export function isObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -52,21 +58,54 @@ export class ResponsesClient {
 
   constructor(private readonly apiKey: string) {}
 
-  private async api(path: string, init: RequestInit = {}): Promise<JsonObject> {
-    const response = await fetch(`https://api.openai.com/v1${path}`, {
-      ...init,
-      headers: {
-        authorization: `Bearer ${this.apiKey}`,
-        ...(init.body ? { "content-type": "application/json" } : {}),
-        ...(init.headers ?? {}),
-      },
-    });
-    const raw = (await response.json()) as JsonObject;
-    if (!response.ok) {
-      const error = isObject(raw.error) && typeof raw.error.message === "string" ? raw.error.message : JSON.stringify(raw);
-      throw new Error(`OpenAI API ${response.status} ${path}: ${error}`);
+  private async api(
+    path: string,
+    init: RequestInit = {},
+    options: Pick<ResponsesRequestOptions, "signal" | "timeoutMs"> = {},
+  ): Promise<JsonObject> {
+    const timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
+      throw new Error("request timeout must be a positive safe integer");
     }
-    return raw;
+    const controller = new AbortController();
+    let timedOut = false;
+    const abortFromCaller = (): void => controller.abort(options.signal?.reason);
+    if (options.signal?.aborted) abortFromCaller();
+    else options.signal?.addEventListener("abort", abortFromCaller, { once: true });
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort(new Error(`OpenAI API request timed out after ${timeoutMs} ms`));
+    }, timeoutMs);
+    timer.unref?.();
+
+    try {
+      const response = await fetch(`https://api.openai.com/v1${path}`, {
+        ...init,
+        signal: controller.signal,
+        headers: {
+          authorization: `Bearer ${this.apiKey}`,
+          ...(init.body ? { "content-type": "application/json" } : {}),
+          ...(init.headers ?? {}),
+        },
+      });
+      const raw = (await response.json()) as JsonObject;
+      if (!response.ok) {
+        const error = isObject(raw.error) && typeof raw.error.message === "string" ? raw.error.message : JSON.stringify(raw);
+        throw new Error(`OpenAI API ${response.status} ${path}: ${error}`);
+      }
+      return raw;
+    } catch (error) {
+      if (timedOut) throw new Error(`OpenAI API request timed out after ${timeoutMs} ms`, { cause: error });
+      if (options.signal?.aborted) {
+        throw options.signal.reason instanceof Error
+          ? options.signal.reason
+          : new Error("OpenAI API request aborted", { cause: error });
+      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
+      options.signal?.removeEventListener("abort", abortFromCaller);
+    }
   }
 
   async initialize(): Promise<void> {
@@ -103,7 +142,7 @@ export class ResponsesClient {
     input: string,
     schema: JsonObject,
     schemaName: string,
-    options: Partial<TranslationRequestOptions> = {},
+    options: ResponsesRequestOptions = {},
   ): Promise<JsonObject> {
     const useStrict = options.forceStrict || this.strictSchema;
     const body: JsonObject = {
@@ -123,7 +162,11 @@ export class ResponsesClient {
         },
       };
     }
-    const response = await this.api("/responses", { method: "POST", body: JSON.stringify(body) });
+    const response = await this.api(
+      "/responses",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    );
     const usage = responseUsage(response);
     this.usageTokens.input += usage.input;
     this.usageTokens.output += usage.output;
