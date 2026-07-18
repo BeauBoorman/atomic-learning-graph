@@ -127,7 +127,14 @@ export class ResponsesClient {
         this.model = model;
         break;
       } catch (error) {
-        console.warn(`Model ${model} unavailable: ${String(error)}`);
+        const description = String(error);
+        // A 401/403 on the model probe is a rejected KEY, not a missing model. Falling through to
+        // "none of the pinned candidates are available" blames the model and sends the teacher
+        // hunting for model access when the fix is retyping the key.
+        if (/\bAPI 40[13]\b/u.test(description)) {
+          throw new Error("Your API key was rejected by the provider — check the key and rebuild. Nothing was generated.");
+        }
+        console.warn(`Model ${model} unavailable: ${description}`);
       }
     }
     if (!this.model) throw new Error(`none of the pinned GPT-5.x candidates are available: ${candidates.join(", ")}`);

@@ -3,7 +3,11 @@ import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-const MINIMUM_TEXT_LENGTH = 300;
+// Floor calibrated to the engine, not to UX comfort: src/atomization/atomize.ts refuses to ship
+// fewer than 6 grounded concepts after 3 paid attempts, and the src/cost/estimator.ts calibration
+// puts ~6 concepts near 25K chars. Below ~12K chars the build fails AFTER the key has been charged.
+// Keep in sync with the textarea minlength + copy in builder/public/index.html (tests pin both).
+export const MINIMUM_TEXT_LENGTH = 12_000;
 // Retain a generous public-endpoint bound: full books are valid input, unbounded bodies are a DoS risk.
 const MAXIMUM_TEXT_LENGTH = 2_000_000;
 const SUPPORTED_PROVIDERS = new Set(["openai", "anthropic", "openai-compatible"]);
@@ -36,7 +40,11 @@ export function validateBuildInput(input) {
   const model = cleanField(input?.model, DEFAULT_MODELS[provider], 200);
   const baseUrl = typeof input?.baseUrl === "string" ? input.baseUrl.trim() : "";
   if (text.length < MINIMUM_TEXT_LENGTH) {
-    throw new Error(`Paste at least ${MINIMUM_TEXT_LENGTH.toLocaleString("en-US")} characters so there is enough material for a course.`);
+    throw new Error(
+      `Paste at least ${MINIMUM_TEXT_LENGTH.toLocaleString("en-US")} characters — about five pages. ` +
+      "The engine refuses to ship a course with fewer than six grounded concepts, and shorter texts " +
+      "fail after your API key has already been charged.",
+    );
   }
   if (text.length > MAXIMUM_TEXT_LENGTH) {
     throw new Error(`Keep this MVP build under ${MAXIMUM_TEXT_LENGTH.toLocaleString("en-US")} characters.`);

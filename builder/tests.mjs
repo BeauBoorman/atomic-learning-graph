@@ -7,11 +7,11 @@ import { join, resolve } from "node:path";
 import { PassThrough, Readable } from "node:stream";
 import test from "node:test";
 import { createAtomizer } from "./atomizer.mjs";
-import { createCourseBuilder, validateBuildInput } from "./build-course.mjs";
+import { createCourseBuilder, validateBuildInput, MINIMUM_TEXT_LENGTH } from "./build-course.mjs";
 import { createCoursePackager } from "./package-course.mjs";
 import { createProviderFetch } from "./provider-fetch.mjs";
 import { createBuilderServer, sanitizeBuildFailure } from "./server.mjs";
-import { verifyCourse } from "./verify-course.mjs";
+import { verifyCourse, withoutEmbeddedGraphPayload } from "./verify-course.mjs";
 import { estimateAtomizationCosts } from "../src/cost/estimator.ts";
 import { ResponsesClient } from "../src/atomization/client.ts";
 import { fixtureGraph, SOURCE_TEXT } from "../src/graph/fixture-graph.ts";
@@ -415,7 +415,7 @@ test("provider input validation fails closed on unknown providers and unsafe end
   const input = {
     title: "Course",
     author: "Teacher",
-    text: SOURCE_TEXT.repeat(2),
+    text: SOURCE_TEXT.repeat(40),
     apiKey: "valid-test-api-key",
     model: "high-quality-model",
     ownedContentAccepted: true,
@@ -493,7 +493,7 @@ test("fixture-backed build makes the real one-file reader without logging or wri
   const result = await build({
     title: "Fixture course",
     author: "Test teacher",
-    text: SOURCE_TEXT.repeat(2),
+    text: SOURCE_TEXT.repeat(40),
     apiKey: secret,
     ownedContentAccepted: true,
   }, (event) => events.push(event));
@@ -541,7 +541,7 @@ for (const provider of ["anthropic", "openai-compatible"]) {
       baseUrl: provider === "openai-compatible" ? "http://127.0.0.1:11434/v1" : "",
       title: "Fixture course",
       author: "Test teacher",
-      text: SOURCE_TEXT.repeat(2),
+      text: SOURCE_TEXT.repeat(40),
       apiKey: secret,
       ownedContentAccepted: true,
     }, (event) => events.push(event));
@@ -557,6 +557,129 @@ test("HTTP error boundary redacts a key even when a failing provider includes it
   const output = sanitizeBuildFailure(new Error(`provider accidentally echoed ${secret}`), secret);
   assert.equal(output.includes(secret), false);
   assert.match(output, /\[redacted\]/u);
+});
+
+test("input floor matches the engine's six-grounded-concept refusal on both client and server", () => {
+  const input = {
+    title: "Course",
+    author: "Teacher",
+    apiKey: "valid-test-api-key",
+    model: "high-quality-model",
+    ownedContentAccepted: true,
+  };
+  assert.equal(MINIMUM_TEXT_LENGTH, 12_000);
+  assert.throws(
+    () => validateBuildInput({ ...input, text: "x".repeat(MINIMUM_TEXT_LENGTH - 1) }),
+    /12,000 characters — about five pages[\s\S]*fewer than six grounded concepts[\s\S]*already been charged/u,
+    "a judge-sized paste must be refused BEFORE any paid model call, with the reason",
+  );
+  assert.equal(validateBuildInput({ ...input, text: "x".repeat(MINIMUM_TEXT_LENGTH) }).text.length, MINIMUM_TEXT_LENGTH);
+});
+
+test("builder page pins the same input floor and explains it", async () => {
+  const html = await readFile(resolve(repoRoot, "builder", "public", "index.html"), "utf8");
+  assert.match(html, new RegExp(`minlength="${MINIMUM_TEXT_LENGTH}"`, "u"), "textarea minlength must match the server floor");
+  assert.match(html, /about five pages/u);
+  assert.match(html, /fewer than six grounded concepts/u);
+  assert.match(html, /already been charged/u);
+});
+
+test("verifier exempts pasted-content mentions of network APIs but never network code", async () => {
+  const directory = await temporaryDirectory();
+  const path = resolve(directory, "index.html");
+  // Mirrors the real bundle shape (verified empirically): the minifier re-prints the
+  // __LEARNING_GRAPH__ define as an object literal with unquoted keys and template-literal strings.
+  const payload = "graph:{concepts:[{id:`a`,provenance:{quotedText:`OpenAI docs say call fetch(url) or url(http://x) via XMLHttpRequest`}}]}";
+  const page = (script) => `<!doctype html><html><head><style>body{color:#111}</style></head><body><script>${script}</script></body></html>`;
+
+  await writeFile(path, page(`var mount={${payload}};render(mount)`));
+  const verified = verifyCourse(directory);
+  assert.ok(verified.bytes > 0, "content mentioning openai/fetch(/url( must pass — it is data, not code");
+
+  // A graph-shaped region that CONTAINS code must not be exempted.
+  await writeFile(path, page("var mount={graph:{concepts:fetch(`https://api.example`)}};render(mount)"));
+  assert.throws(() => verifyCourse(directory), /fetch\(/u, "a call expression inside a graph-shaped region must still fail");
+
+  // Real network code OUTSIDE the payload must still fail even when a payload is excised.
+  await writeFile(path, page(`var mount={${payload}};fetch("https://api.example")`));
+  assert.throws(() => verifyCourse(directory), /fetch\(/u);
+
+  // Template interpolation is code — the region must not be exempted.
+  assert.equal(
+    withoutEmbeddedGraphPayload("graph:{a:`x${fetch(`u`)}`}").includes("fetch("),
+    true,
+    "an interpolated template inside the region must keep the region in the scanned bytes",
+  );
+});
+
+test("verifier passes a REAL built course whose pasted text mentions openai and fetch(", { timeout: 180_000 }, async () => {
+  const root = await temporaryDirectory();
+  const trap = " Reviewers at OpenAI note that developers write fetch(url) and CSS url(images/x.png) daily.";
+  const graph = structuredClone(fixtureGraph);
+  graph.sources[0].text += trap;
+
+  const graphPath = resolve(root, "graph.json");
+  const outDir = resolve(root, "course");
+  await writeFile(graphPath, `${JSON.stringify(graph)}\n`);
+  // The packager's third step runs verify-course.mjs itself, so completing IS the pass assertion.
+  await createCoursePackager().run({ graphPath, outDir });
+  verifyCourse(outDir);
+
+  // The same course with one real network call injected outside the payload must fail post-build.
+  const htmlPath = resolve(outDir, "index.html");
+  const html = await readFile(htmlPath, "utf8");
+  await writeFile(htmlPath, html.replace("</body>", '<script>fetch("https://exfil.example")</script></body>'));
+  assert.throws(() => verifyCourse(outDir), /fetch\(/u);
+});
+
+test("silent engine phases surface a truthful elapsed-time heartbeat, capped per repeat window", async () => {
+  const progress = [];
+  const child = new EventEmitter();
+  child.stdout = new PassThrough();
+  child.stderr = new PassThrough();
+  const atomizer = createAtomizer({
+    provider: "openai",
+    apiKey: "sk-test-heartbeat-sentinel",
+    model: "gpt-5.6-sol",
+    heartbeatQuietMs: 40,
+    heartbeatRepeatMs: 80,
+    spawnImpl: () => child,
+  });
+  const run = atomizer.run({
+    manifestPath: "/temporary/sources.json",
+    outDir: "/temporary/out",
+    onProgress: (event) => progress.push(event),
+  });
+  await new Promise((resolveWait) => setTimeout(resolveWait, 400));
+  child.stdout.end();
+  child.stderr.end();
+  child.emit("close", 0, null);
+  await run;
+
+  const heartbeats = progress.filter((event) => /^Still working — \d+s since the last engine message\./u.test(event.message));
+  assert.ok(heartbeats.length >= 2, `silence must surface repeated heartbeats (got ${heartbeats.length})`);
+  assert.ok(heartbeats.length <= 6, `heartbeats must be capped to one per repeat window (got ${heartbeats.length})`);
+  assert.equal(progress.length, heartbeats.length, "no fabricated progress beyond truthful elapsed-time rows");
+  atomizer.dispose();
+});
+
+test("a steadily-reporting engine gets no heartbeat rows", async () => {
+  const progress = [];
+  const atomizer = createAtomizer({
+    provider: "openai",
+    apiKey: "sk-test-no-heartbeat",
+    model: "gpt-5.6-sol",
+    heartbeatQuietMs: 40,
+    heartbeatRepeatMs: 80,
+    spawnImpl: () => mockChild({ stdout: "Translating 1/2: vectors\nTranslating 2/2: softmax\n" }),
+  });
+  await atomizer.run({
+    manifestPath: "/temporary/sources.json",
+    outDir: "/temporary/out",
+    onProgress: (event) => progress.push(event),
+  });
+  assert.equal(progress.filter((event) => /Still working/u.test(event.message)).length, 0);
+  atomizer.dispose();
 });
 
 test("builder page exposes only the scoped plain-text GUI", async () => {
