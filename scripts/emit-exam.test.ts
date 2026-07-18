@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixtureGraph, GOLDEN_PATH } from "../src/graph/fixture-graph";
 import { loadGraph } from "../src/graph/load";
+import { buildRecallRubric } from "../src/graph/recall-rubric";
 import type { LearningGraph } from "../src/types";
 import {
   EXAM_PATH,
@@ -93,6 +94,28 @@ describe("practice exam build artifact", () => {
     }
   });
 
+  it("emits one source-anchored recall rubric per concept", () => {
+    const graph = loadGraph();
+    const emitted = emitExamArtifact(graph);
+
+    expect(emitted.match(/^#### Recall rubric$/gmu)).toHaveLength(graph.concepts.length);
+    for (const concept of graph.concepts) {
+      const rubric = buildRecallRubric(concept);
+      for (const item of rubric.items) {
+        expect(emitted).toContain(
+          `must mention: ${item.mustMention.map((term) => `\`${term}\``).join(", ")}`,
+        );
+        expect(emitted).toContain(`Verbatim source span (\`${item.sourceId}\`)`);
+        expect(emitted).toContain(
+          item.quotedText
+            .split(/\r\n|\r|\n/u)
+            .map((line) => `> ${line}`)
+            .join("\n"),
+        );
+      }
+    }
+  });
+
   it("fails loudly rather than dropping orphaned or dangling graph content", () => {
     const orphaned = structuredClone(fixtureGraph);
     orphaned.concepts.push({ ...structuredClone(orphaned.concepts[0]), id: "orphan" });
@@ -101,6 +124,16 @@ describe("practice exam build artifact", () => {
     const dangling = structuredClone(fixtureGraph);
     dangling.edges.push({ from: "vectors", to: "missing", type: "related" });
     expect(() => emitExamArtifact(dangling)).toThrow("1 dangling edge(s)");
+  });
+
+  it("fails closed rather than emitting an ungrounded recall-rubric item", () => {
+    const tampered = structuredClone(fixtureGraph);
+    tampered.concepts[0].lesson!.steps[1].citation.quotedText =
+      "This fabricated rubric quote does not occur anywhere inside the source document.";
+
+    expect(() => emitExamArtifact(tampered)).toThrow(
+      "invalid recall rubric citations: vectors[1]:quote-not-found",
+    );
   });
 
   it("matches the committed graph-derived bytes", () => {
