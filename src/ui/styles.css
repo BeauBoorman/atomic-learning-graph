@@ -544,6 +544,12 @@ select {
   filter: brightness(1.08);
 }
 
+.resume-note {
+  margin-top: var(--s3);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .entry-form .primary-button {
   width: 100%;
   margin-top: 0.5rem;
@@ -1213,6 +1219,14 @@ select {
 
 .legend-line.related {
   border-top-style: dashed;
+  /* The drawn side-quest edge inherits the base edge grey in GraphMap (#6b6154 light /
+     #7a7062 dark), NOT the claret route color — a claret swatch here would advertise a line
+     the map never draws. Keep these literals in lockstep with colorTokens in GraphMap.tsx. */
+  border-top-color: #6b6154;
+}
+
+:root[data-theme="dark"] .legend-line.related {
+  border-top-color: #7a7062;
 }
 
 /* The three hues on the map: claret = your route and where you are; amber = the
@@ -1437,6 +1451,32 @@ footer {
 
   .sheet-body {
     padding: var(--s6) var(--s4);
+  }
+
+  /* The MAP PLATE is not a bottom sheet. It carries both classes for the shared <dialog>
+     mechanics, so the bottom-sheet override above would keep the plate's inset while forcing
+     width:100% and a bottom-anchored margin — an over-constrained box that shoves the plate off
+     the right edge and clips the zoom and close controls (split-screen and docked-DevTools
+     widths hit this). Restore the evenly-inset plate at every width. */
+  .map-sheet {
+    width: auto;
+    height: auto;
+    max-height: none;
+    margin: 0;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    transform: translateY(12px) scale(0.994);
+  }
+
+  .map-sheet[open] {
+    transform: none;
+  }
+
+  @starting-style {
+    .map-sheet[open] {
+      opacity: 0;
+      transform: translateY(12px) scale(0.994);
+    }
   }
 }
 

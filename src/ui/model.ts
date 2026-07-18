@@ -90,9 +90,11 @@ export function courseFor(
   const spinePages = fullSpine.flatMap((conceptId) => {
     const steps = concepts.get(conceptId)?.lesson?.steps ?? [];
     return steps.flatMap((step, stepIndex) => {
-      const include = depth === "quick"
-        ? remainingSpine.has(conceptId) && step.stepTier === "core"
-        : step.stepTier === "deep" || remainingSpine.has(conceptId);
+      // The entry checkbox promises "Skip this prerequisite". Both depths honor it: a declared-
+      // known concept contributes NO pages. Thorough previously kept its deep pages, so the very
+      // first page of a thorough course could be the concept the learner just said they knew.
+      const include = remainingSpine.has(conceptId)
+        && (depth === "quick" ? step.stepTier === "core" : true);
       return include ? [{ conceptId, stepIndex }] : [];
     });
   });

@@ -70,9 +70,12 @@ describe("UI learning model", () => {
     expect(thorough.filter((page) => page.conceptId === "cosine-similarity")).toHaveLength(2);
     expect(thorough.some((page) => page.conceptId === "self-attention")).toBe(false);
 
+    // The entry checkbox is the contract: "Skip this prerequisite" skips the CONCEPT, in both
+    // depths. The earlier shape kept a known concept's deep pages in thorough courses, so the
+    // first page of a thorough course could be the very concept the learner declared known —
+    // copy promising one thing, the course doing another.
     const afterCoreIsKnown = courseFor(enriched, "softmax", "thorough", ["vectors"]);
-    expect(afterCoreIsKnown).not.toContainEqual({ conceptId: "vectors", stepIndex: 0 });
-    expect(afterCoreIsKnown).toContainEqual({ conceptId: "vectors", stepIndex: 1 });
+    expect(afterCoreIsKnown.some((page) => page.conceptId === "vectors")).toBe(false);
   });
 
   // These two replace "derives completion and percentage from the same remaining course
