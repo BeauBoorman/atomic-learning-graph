@@ -82,12 +82,13 @@ language model, bounded at every step by deterministic checks it cannot talk its
    pre-builds the optional analogies as clearly labelled illustrations.
 3. Bounded validate → repair → re-validate loops check graph structure, goal reachability,
    quote-primary provenance, lesson citations, and the readability floor.
-4. On convergence, `pnpm atomize` writes the sorted graph and a run log recording the response ID of
-   every call. **It never writes a failing graph.**
+4. On convergence, `pnpm atomize` writes the sorted graph and a run log recording each call's token
+   usage and cost. **It never writes a failing graph.**
 5. The browser receives only that committed artifact and calls the pure `getPath()` function
    locally.
 
-Model output is allowed to *propose* the map. It is not trusted until the deterministic checks pass.
+The map is human-specified; model output *fills* it with grounded lessons and citations, and is not
+trusted until the deterministic checks pass.
 
 ## How this was built with Codex
 
@@ -102,8 +103,8 @@ As Codex, the coding agent, it wrote this repository in a phase-gated RED→GREE
 acceptance gates, resumed Codex phase by phase, and forbade weakening tests or hand-writing the
 graph.
 
-The same model is the build-time atomizer inside the product. It produces candidate concepts,
-relationships, lessons, and analogies for deterministic validation. That role never runs when a
+The same model is the build-time atomizer inside the product. Working inside the pinned ten-concept
+structure, it produces candidate lessons, citations, and analogies for deterministic validation. That role never runs when a
 learner reads; the browser receives only committed artifacts.
 
 So `gpt-5.6-sol` both built the machine and is the intelligence the machine calls at build time, and
@@ -211,9 +212,9 @@ Honest limits, stated up front:
 
 - **Readability is advisory, not solved.** `READABILITY_HARD_FLOOR` is US grade **16** and only
   *throws* above that; grade **10** is an advisory that warns without blocking. The committed
-  [`data/atomicity-report.json`](data/atomicity-report.json) records the real result: **7 of 10
+  [`data/atomicity-report.json`](data/atomicity-report.json) records the real result: **5 of 10
   concepts carry a low-confidence advisory**, and the default goal (`self-attention`) is estimated at
-  grade **13.52**. The floor is a build gate against runaway prose, not a promise of grade-8 English.
+  grade **11.55** (the worst is `softmax` at 14.25). The floor is a build gate against runaway prose, not a promise of grade-8 English.
   Tightening it is a re-translation, not a config change.
 - **The graph is small and the domain is narrow.** 10 concepts across four source sections (three chapters). The pitch is the
   substrate and the provenance, not coverage.

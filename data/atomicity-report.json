@@ -3,45 +3,33 @@
   "warnings": [
     {
       "conceptId": "attention-pooling",
-      "grade": 10.38,
+      "grade": 12.45,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.38"
-    },
-    {
-      "conceptId": "dot-product",
-      "grade": 10.13,
-      "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.13"
-    },
-    {
-      "conceptId": "positional-encoding",
-      "grade": 10.89,
-      "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.89"
+      "reason": "lesson readability is estimated at US grade 12.45"
     },
     {
       "conceptId": "qkv",
-      "grade": 10.75,
+      "grade": 10.3,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.75"
+      "reason": "lesson readability is estimated at US grade 10.3"
     },
     {
       "conceptId": "self-attention",
-      "grade": 13.52,
+      "grade": 11.55,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 13.52"
+      "reason": "lesson readability is estimated at US grade 11.55"
     },
     {
       "conceptId": "softmax",
-      "grade": 12.84,
+      "grade": 14.25,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 12.84"
+      "reason": "lesson readability is estimated at US grade 14.25"
     },
     {
-      "conceptId": "softmax-ordering",
-      "grade": 10.71,
+      "conceptId": "vectors",
+      "grade": 10.01,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.71"
+      "reason": "lesson readability is estimated at US grade 10.01"
     }
   ]
 }
