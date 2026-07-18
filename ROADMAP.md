@@ -121,6 +121,80 @@ prefer-prose-over-symbol-dense sources.**
 
 ---
 
+# Expansion directions (net-new, invariant-preserving)
+
+Sections 1–7 are capabilities **cut from the MVP on purpose**. The items below are the opposite:
+net-new directions surfaced during delivery review. They are listed only because each can be built
+**without ever trusting the model at request time** — the permanent invariant. None is claimed as
+started; none is a stub.
+
+## 8. Recall rubrics: a receipt for the *learner's* answer
+
+**What:** a per-concept, build-time checklist ("a correct recall states X, Y, and Z"), every rubric
+item byte-anchored to a specific source span and shipped inside the practice-exam artifact, so a
+learner's free-recall answer becomes self-checkable deterministically — the answer earns a receipt the
+same way every lesson sentence does.
+
+**Why not now:** it needs the same per-item provenance gate as (1) — `invalidProvenance` must be able
+to say "rubric item R of concept C is ungrounded," not just "concept C is ungrounded." Shipping a
+rubric before that gate could let an ungrounded checklist item through. Depends on the typed-issue-ID
+work in (1). Self-checking stays deterministic (string inclusion); no request-time model.
+
+## 9. Deterministic review schedule + spaced-repetition handoff
+
+**What:** compute an initial spaced-repetition schedule at build time (the FSRS/SM-2 update is pure
+arithmetic, no model call) and ship it with the artifact; make "export to a spaced-repetition tool" a
+first-class retention story. The Anki export already carries cited cards — retention is a **handoff**
+to a proven external scheduler, not a forgetting-curve engine reimplemented in the reader.
+
+**Why not now:** additive to the existing Anki export; a longitudinal "review over time" surface is out
+of scope for a static, shareable artifact. Invariant holds trivially — scheduling is arithmetic and
+review runs in the external tool, never in our reader.
+
+## 10. Threshold-concept flags + warranted explorables
+
+**What:** a build-time advisory (same family as the atomicity reporter, section 3) that marks the
+pivotal, hard-to-cross "threshold" concepts, so the map can surface them and attach an interactive
+explorable **only where content warrants** a manipulable widget — gated behind the reader's existing
+predict-before-reveal step, never decorative.
+
+**Why not now:** the flag is a fail-open advisory like (3) — no offline rule can *prove* which concept
+is a threshold, so it never gates a build; and an interactive explorable still must not assert an
+ungrounded claim, so it needs the per-rendering provenance gate from (1).
+
+## 11. First-principles prerequisite-edge audit
+
+**What:** a build-time advisory that asks whether each `prereq` edge is a true conceptual dependency
+(what the idea logically requires) or merely source order, surfacing missing or spurious edges for
+human review.
+
+**Why not now:** it is an advisory judgment (fail-open, never a gate, like section 3), and the pinned
+product is deliberately a narrow prereq tree (section 4); a richer dependency audit belongs with the
+broader-corpus relationship experiment, not the MVP.
+
+## 12. A named, non-circular safety property + versioned gold set
+
+**What:** publish the project's safety property in one line — *no fabricated citation passes the
+gates* — backed by a versioned adversarial gold set for each build-time judge (atomicity, dedup) and a
+reported safety metric (tamper rejections, mutation-kill rate). The point of difference is stated
+plainly: the checks are deterministic against a real CC-BY-SA source, so the validation is **not
+circular** — no model grades its own output.
+
+**Why not now (partly shipped):** the tamper gates and dedup mutation tests already exist; formalizing
+a versioned gold set and a published safety report is additive hardening — and the dedup guard's
+same-source case is still being closed before any "withstands N attacks" claim is made.
+
+## 13. Focus mode (an honest accessibility profile)
+
+**What:** an opt-in reader profile — one concept at a time, honest progress with no gamified streaks,
+a gentle return after a break — surfacing the existing single-concept lesson flow as a deliberate
+low-pressure mode.
+
+**Why not now:** a client-side UI layer over the static artifact; additive, and the MVP ships the
+default flow first. No request-time AI is involved.
+
+---
+
 **Load-bearing guarantees that survive every roadmap item:** manifest-only corpus reading;
 fail-closed licence gate; quote-primary provenance with no request-time LLM; `LearningGraph.edges[]`
 as the single source of truth. These are not conveniences to trade away for a feature.
