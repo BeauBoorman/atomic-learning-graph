@@ -41,16 +41,20 @@ const html = () => renderToStaticMarkup(
 );
 
 describe("summoned rendering route", () => {
-  it("shows every step with its own citation and source affordance", () => {
+  it("shows every step with its own citation and one attribution per source", () => {
     const markup = html();
 
     expect(markup).toContain("Why fixed-length lists help");
     expect(markup).toContain("A fixed list gives each quantity a dependable place.");
     expect(markup).toContain("That shared shape lets one operation compare many quantities.");
+    // Every step keeps its own sheet and footnote mark…
     expect(markup.match(/aria-label="Read the source behind this step"/g)).toHaveLength(2);
-    expect(markup.match(/Read the source ⟢/g)).toHaveLength(2);
     expect(markup.match(/<mark>/g)).toHaveLength(2);
-    expect(markup.match(/Plain Reading Edition/g)).toHaveLength(2);
+    // …but the visible colophon prints ONCE for the one source both steps cite. Printing the
+    // identical attribution under all steps read as a stuck rubber stamp; the licence
+    // obligation is discharged by the single visible credit.
+    expect(markup.match(/Read the source ⟢/g)).toHaveLength(1);
+    expect(markup.match(/Plain Reading Edition/g)).toHaveLength(1);
   });
 
   it("keeps the lesson one gesture away and offers a second grounded route contextually", () => {

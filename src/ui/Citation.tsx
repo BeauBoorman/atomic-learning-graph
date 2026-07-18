@@ -159,9 +159,21 @@ interface CitationProps {
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
+  /** Whether to print the visible colophon. An alternate route cites the SAME source on every
+   *  step, and printing the identical attribution under each of its four steps read as a
+   *  stuck rubber stamp. The first step for each source keeps it — the licence obligation is
+   *  discharged once, visibly — and the rest keep only their sheet and footnote mark. */
+  attribution?: boolean;
 }
 
-export function Citation({ resolved, stepText, open, onOpen, onClose }: CitationProps) {
+export function Citation({
+  resolved,
+  stepText,
+  open,
+  onOpen,
+  onClose,
+  attribution = true,
+}: CitationProps) {
   const { source } = resolved;
   const sheet = useRef<HTMLDialogElement>(null);
   const quoteId = `source-quote-${useId()}`;
@@ -205,10 +217,10 @@ export function Citation({ resolved, stepText, open, onOpen, onClose }: Citation
 
   return (
     <section className="citation" aria-label="Lesson source">
-      {/* Always visible, and deliberately so: attribution is a LICENCE OBLIGATION, and an
-          obligation you discharge only if the reader performs a gesture is not discharged.
-          What is summoned is the source TEXT, never the credit. */}
-      <p className="colophon">
+      {/* Always visible (once per source on the page), and deliberately so: attribution is a
+          LICENCE OBLIGATION, and an obligation you discharge only if the reader performs a
+          gesture is not discharged. What is summoned is the source TEXT, never the credit. */}
+      {attribution && <p className="colophon">
         <span className="colophon-mark" aria-hidden="true">ᵃ</span>
         <strong>Plain Reading Edition</strong> · meaning-for-meaning from{" "}
         <cite>
@@ -228,7 +240,7 @@ export function Citation({ resolved, stepText, open, onOpen, onClose }: Citation
         <button type="button" className="source-link" aria-haspopup="dialog" onClick={onOpen}>
           Read the source ⟢
         </button>
-      </p>
+      </p>}
 
       <dialog
         ref={sheet}

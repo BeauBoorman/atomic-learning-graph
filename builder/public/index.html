@@ -118,7 +118,10 @@
           <div class="workbench-head"><h2>Build receipts</h2><span id="state">waiting for source</span></div>
           <ol id="timeline"><li>Paste text and start the build.</li></ol>
           <div id="receipts"><div class="empty">Concepts will land here with the exact source passages that ground them.</div></div>
-          <div id="finish"><strong id="finish-copy"></strong><div class="actions"><a id="open-course" target="_blank">OPEN COURSE</a><a id="download-course">SAVE THE ONE FILE</a></div></div>
+          <!-- SAVE is the primary action: the download IS the product — one durable offline
+               file. The /course/… preview link dies with this local server, so a primary
+               button pointing at it handed the teacher a link that would 404 tomorrow. -->
+          <div id="finish"><strong id="finish-copy"></strong><div class="actions"><a id="download-course">SAVE THE ONE FILE</a><a id="open-course" target="_blank">PREVIEW (WHILE BUILDER RUNS)</a></div></div>
         </section>
       </div>
     </main>
@@ -144,6 +147,17 @@
       };
       let estimateTimer;
       let estimateVersion = 0;
+      let lastEstimates = null;
+
+      // The local server rejects request bodies over 400,000 BYTES. The counter used to count
+      // characters, which is the same number only for ASCII: 250,000 CJK characters read as
+      // "under the limit" and then bounced off the server. Budget the text's real wire size
+      // (its JSON-encoded UTF-8 bytes), with headroom for the other request fields.
+      const TEXT_BYTE_BUDGET = 380000;
+      const utf8 = new TextEncoder();
+      function textWireBytes(value) {
+        return utf8.encode(JSON.stringify(value)).length - 2;
+      }
 
       provider.addEventListener("change", () => {
         const settings = providerSettings[provider.value];
@@ -155,6 +169,7 @@
         const compatible = provider.value === "openai-compatible";
         baseUrlField.hidden = !compatible;
         baseUrl.required = compatible;
+        renderEstimate();
       });
 
       function formatCost(value) {
@@ -165,6 +180,25 @@
           minimumFractionDigits: digits,
           maximumFractionDigits: digits,
         }).format(value);
+      }
+
+      // The estimate follows the CHOSEN provider. The pricing table is calibrated on OpenAI
+      // models from a real run; for Anthropic or a compatible endpoint those dollar figures are
+      // a scale reference, not that provider's bill — say so instead of recommending
+      // "gpt-5.6-sol" to someone who just chose Anthropic.
+      function renderEstimate() {
+        if (!lastEstimates) return;
+        const recommended = lastEstimates.find((item) => item.model === "gpt-5.6-sol") ?? lastEstimates[0];
+        const cheapest = lastEstimates.reduce((best, item) =>
+          item.estimatedUsdTotal < best.estimatedUsdTotal ? item : best
+        );
+        if (provider.value === "openai") {
+          costEstimate.textContent = `This text will cost about ${formatCost(recommended.estimatedUsdTotal)} on ${recommended.model}, the recommended high-quality model, and ${formatCost(cheapest.estimatedUsdTotal)} on ${cheapest.model}, the cheapest.`;
+          return;
+        }
+        const settings = providerSettings[provider.value];
+        const modelName = model.value.trim() || "your chosen model";
+        costEstimate.textContent = `This build is roughly ${recommended.estimatedInputTokens.toLocaleString()} input and ${recommended.estimatedOutputTokens.toLocaleString()} output tokens. As a scale reference it would cost ${formatCost(cheapest.estimatedUsdTotal)}–${formatCost(recommended.estimatedUsdTotal)} on OpenAI models; what ${modelName} costs follows ${settings.providerName}'s rates.`;
       }
 
       async function refreshEstimate(text, version) {
@@ -180,13 +214,11 @@
             throw new Error("Cost estimate was empty.");
           }
           if (version !== estimateVersion) return;
-          const recommended = payload.estimates.find((item) => item.model === "gpt-5.6-sol") ?? payload.estimates[0];
-          const cheapest = payload.estimates.reduce((best, item) =>
-            item.estimatedUsdTotal < best.estimatedUsdTotal ? item : best
-          );
-          costEstimate.textContent = `This text will cost about ${formatCost(recommended.estimatedUsdTotal)} on ${recommended.model}, the recommended high-quality model, and ${formatCost(cheapest.estimatedUsdTotal)} on ${cheapest.model}, the cheapest.`;
+          lastEstimates = payload.estimates;
+          renderEstimate();
         } catch {
           if (version === estimateVersion) {
+            lastEstimates = null;
             costEstimate.textContent = "Cost estimate unavailable. Estimating never needs an API key or model call.";
           }
         }
@@ -194,11 +226,20 @@
 
       source.addEventListener("input", () => {
         const characters = source.value.length;
-        sourceSize.textContent = `${characters.toLocaleString()} characters`;
+        const bytes = textWireBytes(source.value);
+        const overBudget = bytes > TEXT_BYTE_BUDGET;
+        sourceSize.textContent = characters === 0
+          ? "0 characters"
+          : `${characters.toLocaleString()} characters · ${Math.ceil(bytes / 1000).toLocaleString()} of ${Math.floor(TEXT_BYTE_BUDGET / 1000)} KB`;
+        sourceSize.classList.toggle("error", overBudget);
         clearTimeout(estimateTimer);
         const version = ++estimateVersion;
         if (characters === 0) {
           costEstimate.textContent = "Paste text to see the complete build cost — no key or model call needed.";
+          return;
+        }
+        if (overBudget) {
+          costEstimate.textContent = "Over the size limit — trim the text until the counter is back under budget.";
           return;
         }
         costEstimate.textContent = "Calculating the complete build cost…";
@@ -229,6 +270,11 @@
 
       form.addEventListener("submit", async (submitEvent) => {
         submitEvent.preventDefault();
+        if (textWireBytes(source.value) > TEXT_BYTE_BUDGET) {
+          state.textContent = "build stopped";
+          addStatus(`The pasted text is over the ${Math.floor(TEXT_BYTE_BUDGET / 1000)} KB build limit — trim it and try again.`, "error");
+          return;
+        }
         const buildWindow = window.open("about:blank", "atomic-course-result");
         if (buildWindow) {
           buildWindow.document.title = "Building your course…";

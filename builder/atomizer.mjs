@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { pnpmSpawnInvocation } from "./pnpm-spawn.mjs";
 
 const builderDirectory = fileURLToPath(new URL(".", import.meta.url));
 const providerFetchUrl = new URL("./provider-fetch.mjs", import.meta.url).href;
@@ -15,6 +16,10 @@ function friendlyProgress(line, provider) {
   if (/^Using /u.test(line)) return `Connected to the selected ${provider} model.`;
   if (/^Inventory attempt /u.test(line)) return "Refining the concept inventory…";
   if (/^Relationship attempt /u.test(line)) return "Refining the prerequisite map…";
+  const translating = line.match(/^Translating (\d+)\/(\d+): (.*)$/u);
+  if (translating) {
+    return `Translating lesson ${translating[1]} of ${translating[2]}: ${translating[3]}…`;
+  }
   if (/^Convergence attempt /u.test(line)) return `Proof check: ${line.replace(/^Convergence attempt /u, "round ")}`;
   if (/^ATOMIZATION PASS:/u.test(line)) return line.replace(/^ATOMIZATION PASS:\s*/u, "Graph proved: ");
   if (/^Analogy layer failed/u.test(line)) return "Optional analogy enrichment was skipped; the grounded course is still valid.";
@@ -42,6 +47,7 @@ export function createAtomizer({
   model,
   baseUrl,
   spawnImpl = spawn,
+  platform = process.platform,
   cwd = repoRoot,
 } = {}) {
   if (!["openai", "anthropic", "openai-compatible"].includes(provider)) {
@@ -78,7 +84,9 @@ export function createAtomizer({
           NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --import=${providerFetchUrl}`.trim(),
         }),
       };
-      const child = spawnImpl("pnpm", args, {
+      const pnpm = pnpmSpawnInvocation(args, { platform });
+      const child = spawnImpl(pnpm.command, pnpm.args, {
+        ...pnpm.spawnOptions,
         cwd,
         env: childEnvironment,
         stdio: ["ignore", "pipe", "pipe"],
