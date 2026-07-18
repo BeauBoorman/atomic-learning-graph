@@ -365,8 +365,15 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
   // Captured only on the entry screen. Course progress never writes to this state.
   const [declaredKnown, setDeclaredKnown] = useState<ConceptId[]>([]);
   const [passion, setPassion] = useState<PassionId | undefined>(storedPassion);
-  const activeCourse = courseKey(goalId, depth, declaredKnown);
-  const activeSelfExplanationCourse = selfExplanationCourseKey(goalId, depth, declaredKnown);
+  // The RAW declaration persists across goal changes (the learner said it once); each course is
+  // identified by the subset RELEVANT to its goal, so declaring a concept no goal cares about can
+  // never fork a storage key or change a course.
+  const relevantKnown = useMemo(
+    () => knownForGoal(graph, goalId, declaredKnown),
+    [declaredKnown, goalId, graph],
+  );
+  const activeCourse = courseKey(goalId, depth, relevantKnown);
+  const activeSelfExplanationCourse = selfExplanationCourseKey(goalId, depth, relevantKnown);
   const [course, setCourse] = useState<CourseState>(
     () => ({ key: activeCourse, pages: storedPages(activeCourse) }),
   );
@@ -409,14 +416,14 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
 
   const completedPages = course.key === activeCourse ? course.pages : NO_PAGES;
   const progress = useMemo(
-    () => deriveProgress(graph, goalId, depth, completedPages, declaredKnown),
-    [completedPages, declaredKnown, depth, goalId, graph],
+    () => deriveProgress(graph, goalId, depth, completedPages, relevantKnown),
+    [completedPages, relevantKnown, depth, goalId, graph],
   );
   // The map's "covered" styling combines the fixed entry declaration with concepts whose
   // course pages are recorded. It describes course scope, never learner comprehension.
   const covered = useMemo(
-    () => coveredConcepts(graph, goalId, depth, completedPages, declaredKnown),
-    [completedPages, declaredKnown, depth, goalId, graph],
+    () => coveredConcepts(graph, goalId, depth, completedPages, relevantKnown),
+    [completedPages, relevantKnown, depth, goalId, graph],
   );
   const activeSelfExplanations = selfExplanations.key === activeSelfExplanationCourse
     ? selfExplanations.answers
@@ -528,8 +535,11 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
   };
 
   const updateGoal = (nextGoal: ConceptId) => {
+    // The declaration OUTLIVES the goal. Filtering state here silently unchecked every box the
+    // moment a learner peeked at another goal, then handed them a fresh longer course whose old
+    // progress was stranded under an unreachable storage key. Keep everything the learner said;
+    // each goal reads its own relevant subset below.
     setGoalId(nextGoal);
-    setDeclaredKnown((current) => knownForGoal(graph, nextGoal, current));
   };
 
   const updateDepth = (nextDepth: Depth) => {
@@ -617,7 +627,19 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
             onDepthChange={updateDepth}
             onKnownChange={setDeclaredKnown}
             onPassionChange={setPassion}
+            resumePageCount={course.key === activeCourse ? course.pages.length : 0}
             onStart={() => {
+              setStarted(true);
+              const done = course.key === activeCourse ? course.pages.length : 0;
+              setAnnouncement(
+                done === 0
+                  ? "Your first lesson is ready."
+                  : `Resuming your course. ${done} page${done === 1 ? "" : "s"} already covered.`,
+              );
+            }}
+            onStartFresh={() => {
+              setCourse(restartCourseState(activeCourse, activeSelfExplanationCourse));
+              setSelfExplanations({ key: activeSelfExplanationCourse, answers: {} });
               setStarted(true);
               setAnnouncement("Your first lesson is ready.");
             }}

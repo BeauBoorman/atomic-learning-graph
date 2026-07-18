@@ -15,6 +15,9 @@ interface EntryProps {
   onKnownChange: (known: ConceptId[]) => void;
   onPassionChange: (passion?: PassionId) => void;
   onStart: () => void;
+  /** Stored pages for THIS exact course configuration; 0 means a genuinely fresh start. */
+  resumePageCount?: number;
+  onStartFresh?: () => void;
 }
 
 const passionLabels: Record<PassionId, string> = {
@@ -37,6 +40,8 @@ export function Entry({
   onKnownChange,
   onPassionChange,
   onStart,
+  resumePageCount = 0,
+  onStartFresh,
 }: EntryProps) {
   const concepts = new Map(graph.concepts.map((concept) => [concept.id, concept]));
   const prerequisites = prerequisitesForGoal(graph, goalId);
@@ -138,7 +143,22 @@ export function Entry({
           {PASSION_IDS.map((id) => <option value={id} key={id}>{passionLabels[id]}</option>)}
         </select>
 
-        <button className="primary-button" type="submit">Start learning</button>
+        {resumePageCount > 0 ? (
+          <>
+            <button className="primary-button" type="submit">
+              Continue where I left off
+            </button>
+            <p className="resume-note">
+              This device already covered {resumePageCount} page{resumePageCount === 1 ? "" : "s"} of
+              this exact course.{" "}
+              <button type="button" className="text-button" onClick={onStartFresh}>
+                Start from the beginning instead
+              </button>
+            </p>
+          </>
+        ) : (
+          <button className="primary-button" type="submit">Start learning</button>
+        )}
       </form>
 
       <CostEstimatorCard />
