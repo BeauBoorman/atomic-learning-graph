@@ -28,7 +28,8 @@
       .hint, #estimate { color:var(--muted); font-size:12px; line-height:1.5; }
       .recommendation { margin:-5px 0 17px; padding:11px 13px; color:var(--ink); background:#c8ff4d12; border:1px solid #c8ff4d38; border-radius:10px; font-size:12px; line-height:1.5; }
       .recommendation strong { color:var(--lime); }
-      #estimate { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:ui-monospace,monospace; }
+      #estimate { display:grid; grid-template-columns:auto minmax(0,1fr); gap:8px 16px; margin-top:8px; font-family:ui-monospace,monospace; }
+      #cost-estimate { color:var(--ink); text-align:right; }
       .consent { display:grid; grid-template-columns:18px 1fr; gap:10px; align-items:start; color:var(--muted); font-size:12px; line-height:1.5; margin:20px 0; }
       .consent input { width:16px; height:16px; margin-top:2px; accent-color:var(--lime); }
       button { width:100%; border:0; border-radius:11px; padding:15px 18px; color:#111; background:var(--lime); font:800 15px/1 ui-sans-serif,system-ui; cursor:pointer; box-shadow:0 8px 28px #c8ff4d24; }
@@ -58,7 +59,7 @@
       .actions a { flex:1; text-align:center; text-decoration:none; color:#111; background:var(--lime); border-radius:8px; padding:10px; font-size:12px; font-weight:800; }
       .actions a:last-child { background:transparent; color:var(--ink); border:1px solid var(--line); }
       .error { color:#ffb199 !important; }
-      @media (max-width:820px) { header,.layout { grid-template-columns:1fr; } .local-badge { justify-self:start; } .pair { grid-template-columns:1fr; } }
+      @media (max-width:820px) { header,.layout { grid-template-columns:1fr; } .local-badge { justify-self:start; } .pair { grid-template-columns:1fr; } #estimate { grid-template-columns:1fr; } #cost-estimate { text-align:left; } }
     </style>
   </head>
   <body>
@@ -81,7 +82,7 @@
             <div class="field">
               <label for="source">Paste your source text</label>
               <textarea id="source" minlength="300" maxlength="250000" placeholder="Paste plain text only — no PDF, links, or formatting." required></textarea>
-              <div id="estimate"><span>0 characters</span><span>≈ 0 input tokens · final cost varies</span></div>
+              <div id="estimate" aria-live="polite"><span id="source-size">0 characters</span><span id="cost-estimate">Paste text to see the complete build cost — no key or model call needed.</span></div>
             </div>
             <div class="pair">
               <div class="field">
@@ -124,7 +125,8 @@
     <script>
       const form = document.querySelector("#build-form");
       const source = document.querySelector("#source");
-      const estimate = document.querySelector("#estimate");
+      const sourceSize = document.querySelector("#source-size");
+      const costEstimate = document.querySelector("#cost-estimate");
       const provider = document.querySelector("#provider");
       const model = document.querySelector("#model");
       const baseUrl = document.querySelector("#base-url");
@@ -140,6 +142,8 @@
         anthropic: { model: "claude-opus-4-8", keyLabel: "Anthropic API key", keyPlaceholder: "sk-ant-…", providerName: "Anthropic" },
         "openai-compatible": { model: "", keyLabel: "Endpoint API key", keyPlaceholder: "Your endpoint key", providerName: "your chosen endpoint" },
       };
+      let estimateTimer;
+      let estimateVersion = 0;
 
       provider.addEventListener("change", () => {
         const settings = providerSettings[provider.value];
@@ -153,11 +157,52 @@
         baseUrl.required = compatible;
       });
 
+      function formatCost(value) {
+        const digits = value > 0 && value < 0.01 ? 3 : 2;
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        }).format(value);
+      }
+
+      async function refreshEstimate(text, version) {
+        try {
+          const response = await fetch("/api/estimate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          if (!response.ok) throw new Error("Cost estimate failed.");
+          const payload = await response.json();
+          if (!Array.isArray(payload.estimates) || payload.estimates.length === 0) {
+            throw new Error("Cost estimate was empty.");
+          }
+          if (version !== estimateVersion) return;
+          const recommended = payload.estimates.find((item) => item.model === "gpt-5.6-sol") ?? payload.estimates[0];
+          const cheapest = payload.estimates.reduce((best, item) =>
+            item.estimatedUsdTotal < best.estimatedUsdTotal ? item : best
+          );
+          costEstimate.textContent = `This text will cost about ${formatCost(recommended.estimatedUsdTotal)} on ${recommended.model}, the recommended high-quality model, and ${formatCost(cheapest.estimatedUsdTotal)} on ${cheapest.model}, the cheapest.`;
+        } catch {
+          if (version === estimateVersion) {
+            costEstimate.textContent = "Cost estimate unavailable. Estimating never needs an API key or model call.";
+          }
+        }
+      }
+
       source.addEventListener("input", () => {
         const characters = source.value.length;
-        const tokens = Math.ceil(characters / 4);
-        estimate.firstElementChild.textContent = `${characters.toLocaleString()} characters`;
-        estimate.lastElementChild.textContent = `≈ ${tokens.toLocaleString()} input tokens · final cost varies`;
+        sourceSize.textContent = `${characters.toLocaleString()} characters`;
+        clearTimeout(estimateTimer);
+        const version = ++estimateVersion;
+        if (characters === 0) {
+          costEstimate.textContent = "Paste text to see the complete build cost — no key or model call needed.";
+          return;
+        }
+        costEstimate.textContent = "Calculating the complete build cost…";
+        estimateTimer = setTimeout(() => refreshEstimate(source.value, version), 200);
       });
 
       function addStatus(message, className = "live") {

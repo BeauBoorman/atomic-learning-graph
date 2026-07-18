@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { createAtomizer, redactSecret } from "./atomizer.mjs";
 import { createCourseBuilder } from "./build-course.mjs";
 import { createCoursePackager } from "./package-course.mjs";
+import { estimateAtomizationCosts } from "../src/cost/estimator.ts";
 
 const builderDirectory = fileURLToPath(new URL(".", import.meta.url));
 const publicDirectory = resolve(builderDirectory, "public");
@@ -82,6 +83,24 @@ export function createBuilderServer({
         response.setHeader("Content-Disposition", `attachment; filename="${safeName(course.title)}"`);
       }
       createReadStream(course.htmlPath).pipe(response);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/estimate") {
+      let input;
+      try {
+        input = await readJson(request);
+        if (typeof input?.text !== "string") throw new Error("The cost estimate requires pasted text.");
+      } catch (error) {
+        response.statusCode = 400;
+        secureHeaders(response, "application/json; charset=utf-8");
+        response.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+        return;
+      }
+
+      response.statusCode = 200;
+      secureHeaders(response, "application/json; charset=utf-8");
+      response.end(JSON.stringify({ estimates: estimateAtomizationCosts(input.text) }));
       return;
     }
 

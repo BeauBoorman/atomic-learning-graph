@@ -4,14 +4,15 @@ import { EventEmitter } from "node:events";
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { PassThrough } from "node:stream";
+import { PassThrough, Readable } from "node:stream";
 import test from "node:test";
 import { createAtomizer } from "./atomizer.mjs";
 import { createCourseBuilder, validateBuildInput } from "./build-course.mjs";
 import { createCoursePackager } from "./package-course.mjs";
 import { createProviderFetch } from "./provider-fetch.mjs";
-import { sanitizeBuildFailure } from "./server.mjs";
+import { createBuilderServer, sanitizeBuildFailure } from "./server.mjs";
 import { verifyCourse } from "./verify-course.mjs";
+import { estimateAtomizationCosts } from "../src/cost/estimator.ts";
 import { fixtureGraph, SOURCE_TEXT } from "../src/graph/fixture-graph.ts";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -52,6 +53,60 @@ function mockChild({ stdout = "", stderr = "", code = 0 } = {}) {
   });
   return child;
 }
+
+async function requestServer(server, { method, path, body }) {
+  const request = Readable.from([Buffer.from(JSON.stringify(body))]);
+  request.method = method;
+  request.url = path;
+  return new Promise((resolveRequest) => {
+    const chunks = [];
+    const response = {
+      statusCode: 200,
+      headers: {},
+      setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
+      writeHead(statusCode, headers = {}) {
+        this.statusCode = statusCode;
+        for (const [name, value] of Object.entries(headers)) this.setHeader(name, value);
+        return this;
+      },
+      write(chunk) { chunks.push(Buffer.from(chunk)); return true; },
+      end(chunk) {
+        if (chunk) chunks.push(Buffer.from(chunk));
+        resolveRequest({
+          status: this.statusCode,
+          headers: this.headers,
+          text: Buffer.concat(chunks).toString("utf8"),
+        });
+      },
+    };
+    server.emit("request", request, response);
+  });
+}
+
+test("estimate endpoint returns cross-model costs without a key or model-backed build", async () => {
+  let buildCalls = 0;
+  const server = createBuilderServer({
+    courseBuilder: async () => {
+      buildCalls += 1;
+      throw new Error("the estimate route must never enter the model-backed build path");
+    },
+  });
+
+  const text = "A grounded sample lesson about vectors and attention. ".repeat(80);
+  const response = await requestServer(server, {
+    method: "POST",
+    path: "/api/estimate",
+    body: { text },
+  });
+
+  assert.equal(response.status, 200);
+  const payload = JSON.parse(response.text);
+  assert.deepEqual(payload.estimates, estimateAtomizationCosts(text));
+  assert.equal(payload.estimates.length, 3);
+  assert.ok(payload.estimates.every((estimate) => estimate.estimatedUsdTotal > 0));
+  assert.ok(payload.estimates[0].estimatedUsdTotal > payload.estimates.at(-1).estimatedUsdTotal);
+  assert.equal(buildCalls, 0, "estimating must not invoke the model-backed course builder");
+});
 
 test("OpenAI provider seam passes the key only through child memory and redacts progress", async () => {
   const secret = "sk-test-never-serialize-this-sentinel";
@@ -334,6 +389,8 @@ test("builder page exposes only the scoped plain-text GUI", async () => {
   assert.match(html, /OpenAI-compatible/u);
   assert.match(html, /Recommended: a high-quality model/u);
   assert.match(html, /costs only cents/u);
+  assert.match(html, /fetch\(["']\/api\/estimate["']/u);
+  assert.match(html, /This text will cost about/u);
   assert.match(html, /BUILD MY OFFLINE COURSE/u);
   assert.doesNotMatch(html, /type=["']file["']/u);
   assert.match(html, /plain text only/u);
