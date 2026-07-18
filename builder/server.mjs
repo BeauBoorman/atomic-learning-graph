@@ -4,7 +4,7 @@ import { readFile, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createOpenAIAtomizer, redactSecret } from "./atomizer.mjs";
+import { createAtomizer, redactSecret } from "./atomizer.mjs";
 import { createCourseBuilder } from "./build-course.mjs";
 import { createCoursePackager } from "./package-course.mjs";
 
@@ -48,7 +48,7 @@ export function sanitizeBuildFailure(error, requestKey) {
 }
 
 export function createBuilderServer({
-  courseBuilder = createCourseBuilder({ atomizer: createOpenAIAtomizer(), packager: createCoursePackager() }),
+  courseBuilder = createCourseBuilder({ atomizerFactory: createAtomizer, packager: createCoursePackager() }),
   logger = console,
 } = {}) {
   const courses = new Map();
@@ -167,7 +167,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const address = server.address();
     const url = `http://${host}:${typeof address === "object" && address ? address.port : port}`;
     console.log(`Local course builder: ${url}`);
-    console.log("Your pasted text and API key stay on this computer; stop the server with Control-C.");
+    console.log("Your source and API key go only from this local server to your chosen provider and are not stored; stop with Control-C.");
     openBrowser(url);
   });
   let stopping = false;

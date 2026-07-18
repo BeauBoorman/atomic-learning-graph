@@ -20,12 +20,14 @@
       .card { background:#181a16e8; border:1px solid var(--line); border-radius:18px; box-shadow:0 24px 80px #0005; }
       form { padding:24px; }
       label { display:block; margin:0 0 8px; font-size:13px; font-weight:700; }
-      input, textarea { width:100%; border:1px solid var(--line); border-radius:10px; background:#0e0f0d; color:var(--ink); padding:12px 13px; font:inherit; outline:none; }
-      input:focus, textarea:focus { border-color:var(--lime); box-shadow:0 0 0 3px #c8ff4d22; }
+      input, select, textarea { width:100%; border:1px solid var(--line); border-radius:10px; background:#0e0f0d; color:var(--ink); padding:12px 13px; font:inherit; outline:none; }
+      input:focus, select:focus, textarea:focus { border-color:var(--lime); box-shadow:0 0 0 3px #c8ff4d22; }
       textarea { min-height:330px; resize:vertical; line-height:1.55; }
       .pair { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
       .field { margin-bottom:17px; }
       .hint, #estimate { color:var(--muted); font-size:12px; line-height:1.5; }
+      .recommendation { margin:-5px 0 17px; padding:11px 13px; color:var(--ink); background:#c8ff4d12; border:1px solid #c8ff4d38; border-radius:10px; font-size:12px; line-height:1.5; }
+      .recommendation strong { color:var(--lime); }
       #estimate { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:ui-monospace,monospace; }
       .consent { display:grid; grid-template-columns:18px 1fr; gap:10px; align-items:start; color:var(--muted); font-size:12px; line-height:1.5; margin:20px 0; }
       .consent input { width:16px; height:16px; margin-top:2px; accent-color:var(--lime); }
@@ -67,7 +69,7 @@
           <h1>Your words.<br />A course you can hold.</h1>
           <p class="lede">Paste source text you own. The model builds the map once; deterministic checks prove every atom has a real receipt. You get one offline HTML file.</p>
         </div>
-        <div class="local-badge">● LOCALHOST · NOTHING UPLOADED EXCEPT TO OPENAI</div>
+        <div class="local-badge">● LOCALHOST · ONLY YOUR CHOSEN PROVIDER RECEIVES THE SOURCE</div>
       </header>
       <div class="layout">
         <section class="card">
@@ -81,10 +83,30 @@
               <textarea id="source" minlength="300" maxlength="250000" placeholder="Paste plain text only — no PDF, links, or formatting." required></textarea>
               <div id="estimate"><span>0 characters</span><span>≈ 0 input tokens · final cost varies</span></div>
             </div>
+            <div class="pair">
+              <div class="field">
+                <label for="provider">Choose your model provider</label>
+                <select id="provider" required>
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="openai-compatible">OpenAI-compatible endpoint</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="model">Model</label>
+                <input id="model" maxlength="200" value="gpt-5.6-sol" spellcheck="false" autocomplete="off" required />
+              </div>
+            </div>
+            <div class="recommendation"><strong>Recommended: a high-quality model</strong> — this is educational content and it costs only cents. Better reasoning here is worth far more than shaving a few cents from a one-time build.</div>
+            <div class="field" id="base-url-field" hidden>
+              <label for="base-url">OpenAI-compatible base URL</label>
+              <input id="base-url" type="url" maxlength="500" placeholder="http://127.0.0.1:11434/v1" spellcheck="false" autocomplete="off" />
+              <div class="hint">The local Node server calls this endpoint's <code>/chat/completions</code> route. Local HTTP and remote HTTPS endpoints are supported.</div>
+            </div>
             <div class="field">
-              <label for="key">OpenAI API key</label>
+              <label for="key" id="key-label">OpenAI API key</label>
               <input id="key" type="password" minlength="12" placeholder="sk-…" spellcheck="false" autocomplete="off" required />
-              <div class="hint">Sent only to this local Node server, passed to the existing atomizer in memory, then discarded. It is never put in the course.</div>
+              <div class="hint" id="key-hint">Sent only to this local Node server and OpenAI during this build, held in memory, then discarded. It is never logged, written to disk, or put in the course.</div>
             </div>
             <label class="consent"><input id="owned" type="checkbox" required /><span>I own this pasted text and may embed it in the generated local course under CC0-1.0. This explicit affirmation is required by the existing fail-closed license gate.</span></label>
             <button id="build" type="submit">BUILD MY OFFLINE COURSE →</button>
@@ -103,12 +125,33 @@
       const form = document.querySelector("#build-form");
       const source = document.querySelector("#source");
       const estimate = document.querySelector("#estimate");
+      const provider = document.querySelector("#provider");
+      const model = document.querySelector("#model");
+      const baseUrl = document.querySelector("#base-url");
+      const baseUrlField = document.querySelector("#base-url-field");
       const key = document.querySelector("#key");
       const button = document.querySelector("#build");
       const timeline = document.querySelector("#timeline");
       const receipts = document.querySelector("#receipts");
       const state = document.querySelector("#state");
       const finish = document.querySelector("#finish");
+      const providerSettings = {
+        openai: { model: "gpt-5.6-sol", keyLabel: "OpenAI API key", keyPlaceholder: "sk-…", providerName: "OpenAI" },
+        anthropic: { model: "claude-opus-4-8", keyLabel: "Anthropic API key", keyPlaceholder: "sk-ant-…", providerName: "Anthropic" },
+        "openai-compatible": { model: "", keyLabel: "Endpoint API key", keyPlaceholder: "Your endpoint key", providerName: "your chosen endpoint" },
+      };
+
+      provider.addEventListener("change", () => {
+        const settings = providerSettings[provider.value];
+        model.value = settings.model;
+        model.placeholder = provider.value === "openai-compatible" ? "Your endpoint's high-quality model ID" : settings.model;
+        document.querySelector("#key-label").textContent = settings.keyLabel;
+        key.placeholder = settings.keyPlaceholder;
+        document.querySelector("#key-hint").textContent = `Sent only to this local Node server and ${settings.providerName} during this build, held in memory, then discarded. It is never logged, written to disk, or put in the course.`;
+        const compatible = provider.value === "openai-compatible";
+        baseUrlField.hidden = !compatible;
+        baseUrl.required = compatible;
+      });
 
       source.addEventListener("input", () => {
         const characters = source.value.length;
@@ -156,6 +199,9 @@
           title: document.querySelector("#title").value,
           author: document.querySelector("#author").value,
           text: source.value,
+          provider: provider.value,
+          model: model.value,
+          baseUrl: baseUrl.value,
           apiKey: key.value,
           ownedContentAccepted: document.querySelector("#owned").checked,
         };
