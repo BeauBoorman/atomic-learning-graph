@@ -193,6 +193,22 @@ low-pressure mode.
 **Why not now:** a client-side UI layer over the static artifact; additive, and the MVP ships the
 default flow first. No request-time AI is involved.
 
+## 14. Arbitrary user knowledge as input (vaults, LLM reports, research workflows)
+
+**What:** accept a user's own corpus — a shared Obsidian-style vault, an LLM-generated report, a
+researcher's working notes — and compile *their* library into one inspectable curriculum. This is the
+multi-source direction the dedup engine already anticipates ("your library → one curriculum").
+
+**Why not now:** two structural dependencies. (a) **Input parsing** — messy user markdown (math,
+tables, wikilinks, frontmatter) must be parsed **in-process** (e.g. `remark`/`markdown-it`, no external
+binary) to identify structure while preserving verbatim bytes for the receipt; a heavy external
+converter (Pandoc, Apex) would fight reproducibility and muddy byte-exact provenance, so the transform
+stays out of the trust path. (b) **Provenance semantics shift** — for a user's own text the receipt
+anchors to *their* source, not an external authority: the byte-exact invariant still holds, but
+"cited" now means "cited to your input," which must be stated plainly, never blurred into "cited to a
+trusted source." This is also the input class that makes the same-source doctrine guard and the
+math-mask chunker handling matter in practice, not just in theory.
+
 ---
 
 **Load-bearing guarantees that survive every roadmap item:** manifest-only corpus reading;
