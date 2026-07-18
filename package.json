@@ -19,6 +19,8 @@
     "verify:llms": "node --import tsx scripts/emit-llms.ts --verify",
     "emit:orgroam": "node --import tsx scripts/emit-orgroam.ts",
     "verify:orgroam": "node --import tsx scripts/emit-orgroam.ts --verify",
+    "emit:obsidian": "node --import tsx scripts/emit-obsidian.ts",
+    "verify:obsidian": "node --import tsx scripts/emit-obsidian.ts --verify",
     "verify:bundle": "node --import tsx scripts/verify-bundle.ts",
     "demo:tamper": "node --import tsx scripts/demo-tamper.ts",
     "gate": "bash scripts/gate.sh",
