@@ -12,10 +12,11 @@ import {
   writeAnkiArtifact,
 } from "./emit-anki";
 
-const HEADER_LINES = 4;
-
 function cardRows(artifact: string): string[] {
-  return artifact.trimEnd().split("\n").slice(HEADER_LINES);
+  return artifact
+    .trimEnd()
+    .split("\n")
+    .filter((line) => !line.startsWith("#"));
 }
 
 describe("Anki build artifact", () => {
@@ -60,7 +61,41 @@ describe("Anki build artifact", () => {
       expect(row).toContain(concept.summary);
       expect(row).toContain(concept.provenance.quotedText);
       expect(row).toContain(`Source ID: ${source.id}`);
+      expect(row).toContain(`Title: ${source.title}`);
+      expect(row).toContain(`Author: ${source.author}`);
+      expect(row).toContain(`License: ${source.license}`);
       if (source.url) expect(row).toContain(`URL: ${source.url}`);
+      expect(row).toContain(
+        `Adapted (translated to plain English; atomized into concept lessons) from ` +
+          `${source.title} by ${source.author}, ${source.license}.`,
+      );
+    }
+  });
+
+  it("emits every used source attribution in leading comment lines", () => {
+    const graph = loadGraph();
+    const emitted = emitAnkiArtifact(graph);
+    const firstCardOffset = emitted.indexOf(cardRows(emitted)[0]);
+    const usedSourceIds = new Set(
+      graph.concepts.map(({ provenance }) => provenance.sourceId),
+    );
+
+    for (const source of graph.sources.filter(({ id }) => usedSourceIds.has(id))) {
+      const notice =
+        `Adapted (translated to plain English; atomized into concept lessons) from ` +
+        `${source.title} by ${source.author}, ${source.license}.`;
+      for (const expected of [
+        `# Attribution source: ${source.id}`,
+        `# Title: ${source.title}`,
+        `# Author: ${source.author}`,
+        `# License: ${source.license}`,
+        `# URL: ${source.url ?? ""}`,
+        `# ${notice}`,
+      ]) {
+        const offset = emitted.indexOf(expected);
+        expect(offset).toBeGreaterThanOrEqual(0);
+        expect(offset).toBeLessThan(firstCardOffset);
+      }
     }
   });
 

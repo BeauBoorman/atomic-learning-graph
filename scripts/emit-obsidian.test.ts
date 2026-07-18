@@ -51,8 +51,11 @@ describe("Obsidian markdown vault", () => {
 id: "self-attention"
 title: "self-attention"
 source: "s1"
+source_title: "How LLMs work (primer)"
 url: "https://example.test/primer"
+author: "Fixture author"
 license: "CC-BY-SA-4.0"
+modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from How LLMs work (primer) by Fixture author, CC-BY-SA-4.0."
 tags:
   - "llm"
   - "transformers"
@@ -88,6 +91,30 @@ URL: https://example.test/primer
     expect(vectors).not.toContain("## Prerequisites");
     expect(vectors).not.toContain("## Related");
     expect(vectors).toContain("## Source");
+  });
+
+  it("attributes the source and identifies the adaptation in every note", () => {
+    const graph = loadGraph();
+    const notes = emitObsidianVault(graph);
+    const noteById = new Map(
+      notes.map(({ filename, bytes }) => [filename.slice(0, -3), bytes]),
+    );
+
+    for (const concept of graph.concepts) {
+      const source = graph.sources.find(({ id }) => id === concept.provenance.sourceId);
+      if (!source) throw new Error(`committed concept ${concept.id} lost its source`);
+      const note = noteById.get(concept.id);
+      expect(note).toBeDefined();
+      expect(note).toContain(`source_title: ${JSON.stringify(source.title)}`);
+      expect(note).toContain(`author: ${JSON.stringify(source.author)}`);
+      expect(note).toContain(`license: ${JSON.stringify(source.license)}`);
+      expect(note).toContain(
+        `modification_notice: ${JSON.stringify(
+          `Adapted (translated to plain English; atomized into concept lessons) from ` +
+            `${source.title} by ${source.author}, ${source.license}.`,
+        )}`,
+      );
+    }
   });
 
   it("includes every committed concept and every prerequisite edge", () => {
