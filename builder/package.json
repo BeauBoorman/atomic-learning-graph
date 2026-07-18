@@ -1,0 +1,9 @@
+{
+  "name": "atomic-learning-graph-local-builder",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --import tsx --test tests.mjs"
+  }
+}
