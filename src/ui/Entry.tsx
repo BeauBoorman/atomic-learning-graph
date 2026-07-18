@@ -1,5 +1,6 @@
 import type { ConceptId, LearningGraph, PassionId } from "../types";
 import { PASSION_IDS } from "../types";
+import { CostEstimatorCard } from "./CostEstimatorCard";
 import { prerequisitesForGoal, type Depth } from "./model";
 import { titleFor } from "./titles";
 
@@ -139,6 +140,8 @@ export function Entry({
 
         <button className="primary-button" type="submit">Start learning</button>
       </form>
+
+      <CostEstimatorCard />
     </main>
   );
 }

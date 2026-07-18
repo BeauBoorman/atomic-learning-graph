@@ -143,7 +143,8 @@ body {
 
 button,
 select,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -162,6 +163,7 @@ select {
 button:focus-visible,
 select:focus-visible,
 input:focus-visible,
+textarea:focus-visible,
 a:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
@@ -344,6 +346,110 @@ a {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
+}
+
+.cost-estimator-card {
+  margin-top: var(--s8);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.cost-estimator-card h2 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.14;
+}
+
+.cost-estimator-intro {
+  max-width: var(--measure);
+  margin: var(--s3) 0 var(--s5);
+  color: var(--muted);
+  font-size: var(--t-ui);
+}
+
+.cost-estimator-input {
+  display: block;
+  width: 100%;
+  min-height: 10rem;
+  margin-top: var(--s2);
+  padding: var(--s3);
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.cost-estimator-summary {
+  margin: var(--s5) 0 0;
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.cost-estimator-scope,
+.cost-estimator-offline {
+  margin: var(--s2) 0 0;
+  color: var(--muted);
+  font-size: var(--t-colophon);
+}
+
+.cost-estimator-table-wrap {
+  margin-top: var(--s5);
+  overflow-x: auto;
+}
+
+.cost-estimator-table {
+  width: 100%;
+  min-width: 610px;
+  border-collapse: collapse;
+  font-size: var(--t-colophon);
+  font-variant-numeric: tabular-nums;
+}
+
+.cost-estimator-table th,
+.cost-estimator-table td {
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--rule);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cost-estimator-table th:first-child,
+.cost-estimator-table td:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.cost-estimator-table th:last-child,
+.cost-estimator-table td:last-child {
+  padding-right: 0;
+}
+
+.cost-estimator-table thead th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.cost-estimator-table tbody th {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.cost-estimator-offline {
+  margin-top: var(--s4);
+  font-family: var(--font-mono);
 }
 
 .field-label,
