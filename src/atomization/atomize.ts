@@ -264,7 +264,26 @@ function boundedProduct(value: number, multiplier: number): number {
 }
 
 function rangeContaining(ranges: ProtectedChunkRange[], index: number): ProtectedChunkRange | undefined {
-  return ranges.find((range) => range.start <= index && index < range.end);
+  let low = 0;
+  let high = ranges.length;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (ranges[middle].start <= index) low = middle + 1;
+    else high = middle;
+  }
+  const candidate = ranges[low - 1];
+  return candidate && index < candidate.end ? candidate : undefined;
+}
+
+function firstRangeEndingAfter(ranges: ProtectedChunkRange[], index: number): number {
+  let low = 0;
+  let high = ranges.length;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (ranges[middle].end <= index) low = middle + 1;
+    else high = middle;
+  }
+  return low;
 }
 
 function isEscaped(text: string, index: number): boolean {
@@ -385,18 +404,21 @@ function mapScriptureCandidates(lines: SourceLineRange[]): ProtectedChunkRange[]
 function mathRangeAt(text: string, index: number, limit: number): ProtectedChunkRange | undefined {
   let openerLength = 0;
   let closer = "";
+  let inline = false;
   if (text.startsWith("$$", index) && !isEscaped(text, index)) {
     openerLength = 2;
     closer = "$$";
   } else if (text[index] === "$" && !isEscaped(text, index)) {
     openerLength = 1;
     closer = "$";
+    inline = true;
   } else if (text.startsWith("\\[", index)) {
     openerLength = 2;
     closer = "\\]";
   } else if (text.startsWith("\\(", index)) {
     openerLength = 2;
     closer = "\\)";
+    inline = true;
   } else {
     if (!text.startsWith("\\begin{", index)) return undefined;
     const begin = text.slice(index, Math.min(limit, index + 64)).match(/^\\begin\{([A-Za-z*]+)\}/);
@@ -413,8 +435,8 @@ function mathRangeAt(text: string, index: number, limit: number): ProtectedChunk
     start: index,
     end,
     kind: "math",
-    barrierBefore: true,
-    barrierAfter: true,
+    barrierBefore: !inline,
+    barrierAfter: !inline,
   };
 }
 
@@ -426,21 +448,23 @@ function mapProtectedChunkRanges(
   maxMaskSpan: number,
 ): ProtectedChunkRange[] {
   // SAFE: fenced code is mapped first. Its interior is skipped by every later detector.
-  const ranges = [...fencedRanges];
+  const admitted: ProtectedChunkRange[] = [];
   const tableByStart = new Map(mapPipeTableCandidates(lines).map((range) => [range.start, range]));
   const scriptureByStart = new Map(mapScriptureCandidates(lines).map((range) => [range.start, range]));
 
   // SAFE: one deterministic left-to-right pass; first admitted opener owns its entire range.
   let index = 0;
+  let fenceIndex = 0;
   while (index < text.length) {
-    const occupied = rangeContaining(ranges, index);
-    if (occupied) {
+    while (fenceIndex < fencedRanges.length && fencedRanges[fenceIndex].end <= index) {
+      fenceIndex += 1;
+    }
+    const occupied = fencedRanges[fenceIndex];
+    if (occupied && occupied.start <= index) {
       index = occupied.end;
       continue;
     }
-    const nextExisting = ranges
-      .filter((range) => range.start > index)
-      .reduce((nearest, range) => Math.min(nearest, range.start), text.length);
+    const nextExisting = occupied?.start ?? text.length;
     const hardLimit = nextBoundaryAfter(hardBoundaries, index, text.length);
     const limit = Math.min(hardLimit, nextExisting, index + maxMaskSpan);
     const math = mathRangeAt(text, index, limit);
@@ -450,11 +474,10 @@ function mapProtectedChunkRanges(
       index += 1;
       continue;
     }
-    ranges.push(candidate);
-    ranges.sort((left, right) => left.start - right.start);
+    admitted.push(candidate);
     index = candidate.end;
   }
-  return ranges;
+  return [...fencedRanges, ...admitted].sort((left, right) => left.start - right.start);
 }
 
 function trimChunkRange(text: string, range: ChunkRange): ChunkRange | undefined {
@@ -467,7 +490,15 @@ function trimChunkRange(text: string, range: ChunkRange): ChunkRange | undefined
 }
 
 function cutFallsInsideMask(cut: number, masks: ProtectedChunkRange[]): boolean {
-  return masks.some((mask) => mask.start < cut && cut < mask.end);
+  let low = 0;
+  let high = masks.length;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (masks[middle].start < cut) low = middle + 1;
+    else high = middle;
+  }
+  const candidate = masks[low - 1];
+  return candidate !== undefined && cut < candidate.end;
 }
 
 /**
@@ -488,7 +519,8 @@ class ChunkBalanceScanner {
 
   constructor(private readonly text: string, start: number, masks: ProtectedChunkRange[]) {
     this.cursor = start;
-    this.masks = [...masks].sort((left, right) => left.start - right.start);
+    this.masks = masks;
+    this.maskIndex = firstRangeEndingAfter(masks, start);
   }
 
   balancedAt(cut: number): boolean {
@@ -667,9 +699,14 @@ function recursivelySplitChunkRange(
 ): ChunkRange[] {
   const range = trimChunkRange(text, rawRange);
   if (!range) return [];
-  const containingMask = masks.find((mask) => mask.start <= range.start && range.end <= mask.end);
+  const candidateMask = rangeContaining(masks, range.start);
+  const containingMask = candidateMask && range.end <= candidateMask.end ? candidateMask : undefined;
   if (containingMask) {
-    const protectedRange = { ...range, barrierBefore: true, barrierAfter: true };
+    const protectedRange = {
+      ...range,
+      barrierBefore: containingMask.barrierBefore,
+      barrierAfter: containingMask.barrierAfter,
+    };
     if (range.end - range.start <= ceiling) return [protectedRange];
     // SAFE: atomicity yields only at the absolute ceiling; every degraded child is still a slice.
     return forceSliceRange(text, protectedRange, ceiling, ceiling, []);
