@@ -1,5 +1,6 @@
 # Atomic Learning — a compiler for inspectable curricula
 
+*Every sentence has a receipt. Every claim has a gate.*
 **Give it an open textbook chapter. It produces an offline learning path where every generated
 sentence can be challenged against its source.**
 
@@ -214,6 +215,16 @@ pnpm atomize:toy -- --manifest data/corpora/openstax-physics/sources.json
 001](docs/adr/001-commit-the-generated-graph.md). Display-layer editorial choices (such as
 sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside the pinned artifact.
 
+## Is it maintained?
+
+The honest answer is machine-checkable rather than promised. `pnpm gate` is the maintenance
+status: it re-verifies every claim in this README against the committed bytes — grounding,
+licences, pinned hashes, the shipped-bundle network scan — on any machine, with no API key. A
+checkout that has rotted goes red; a green gate means the guarantees hold *today*, not that they
+held when this paragraph was written. The build receipt in
+[`data/graph.run.json`](data/graph.run.json) records what was last compiled, by which model, at
+what cost.
+
 ## Architecture
 
 - `data/oer/`: pinned upstream Markdown, deterministically extracted source text, and the fail-closed source manifest.
@@ -242,6 +253,10 @@ Open educational resources are abundant but rarely tell a learner what must be u
 graph is a persistent, inspectable substrate. Once built, path routing is reproducible and auditable
 from the graph's content alone. Because the routing is a pure function over committed data, the same
 goal always yields the same route, on any machine, with the network unplugged.
+
+In the reader, the graph surfaces as the **evidence map** — an optional view in which every
+concept ties back to a cited source passage. The lesson is the message; the map is the
+validation layer you summon when you want to check one. Opening it never changes your course.
 
 ## What we are not claiming
 

@@ -596,9 +596,9 @@ export function GraphMap({
     <div className="graph-card">
       <div className="graph-toolbar">
         <div>
-          <span className="graph-view-label">{showFullMap ? "FULL MAP · OPTIONAL VIEW" : "YOUR GUIDED ROUTE"}</span>
+          <span className="graph-view-label">{showFullMap ? "EVIDENCE MAP · OPTIONAL VIEW" : "YOUR GUIDED ROUTE"}</span>
           <p>{showFullMap
-            ? `All ${graph.concepts.length} concepts are visible. This view does not change your course.`
+            ? `All ${graph.concepts.length} concepts, each tied to a cited source passage. This view does not change your course.`
             : `These ${initialPath.length} concepts lead to your goal.`}</p>
         </div>
         <button
@@ -607,7 +607,7 @@ export function GraphMap({
           onClick={() => setShowFullMap((current) => !current)}
           aria-pressed={showFullMap}
         >
-          {showFullMap ? "Return to my route" : `Open full map (${graph.concepts.length})`}
+          {showFullMap ? "Return to my route" : `Open evidence map (${graph.concepts.length})`}
         </button>
       </div>
       {/* THE KEY IS GATED ON THE DATA, NEVER ON THE VIEW. The dashed key was shown whenever the
@@ -632,7 +632,7 @@ export function GraphMap({
         className="graph-shell"
         role="group"
         aria-roledescription="interactive concept map"
-        aria-label={`${showFullMap ? "Full concept map" : "Guided learning route"}, ${visibleCount} concepts. Selected: ${selectedTitle}.`}
+        aria-label={`${showFullMap ? "Evidence map" : "Guided learning route"}, ${visibleCount} concepts. Selected: ${selectedTitle}.`}
         aria-describedby="graph-instructions graph-text-alternative"
         tabIndex={0}
         onKeyDown={handleKeyboard}
