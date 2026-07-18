@@ -6,11 +6,11 @@ url: "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e27
 license: "CC-BY-SA-4.0"
 tags:
   - "self-attention"
-  - "sequences"
+  - "sequence modeling"
   - "tokens"
 ---
 
-Self-attention lets every token attend to every other token in the same sequence.
+Self-attention lets every token attend to every other token when constructing token representations.
 
 ## Prerequisites
 

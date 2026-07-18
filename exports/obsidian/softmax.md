@@ -10,7 +10,7 @@ tags:
   - "softmax"
 ---
 
-Softmax transforms neural-network outputs into a valid probability distribution over discrete classes.
+Softmax transforms neural network outputs into a valid discrete probability distribution.
 
 ## Prerequisites
 

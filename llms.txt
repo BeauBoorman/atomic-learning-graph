@@ -4,13 +4,13 @@
 
 ## Concepts in prerequisite order
 
-- [Vectors](llms-full.txt#vectors): A vector is a fixed-length array whose elements are scalars.
-- [Dot Product](llms-full.txt#dot-product): The dot product combines two vectors by summing products of elements at corresponding positions.
-- [Matrix–Vector Products](llms-full.txt#matrix-vector-product): A matrix–vector product produces a vector whose elements are dot products between matrix rows and the input vector.
-- [Softmax](llms-full.txt#softmax): Softmax transforms neural-network outputs into a valid probability distribution over discrete classes.
-- [Queries, Keys, and Values](llms-full.txt#qkv): Attention derives weights from query–key compatibility and uses those weights to form a linear combination of values.
-- [Attention Pooling over Variable-Sized Data](llms-full.txt#attention-pooling): Attention pooling can operate over databases of arbitrary size without changing the pooling procedure.
-- [Self-Attention](llms-full.txt#self-attention): Self-attention lets every token attend to every other token in the same sequence.
-- [Positional Encoding](llms-full.txt#positional-encoding): Positional information is supplied as an additional token-associated input because self-attention alone does not preserve sequence order.
-- [Softmax Preserves Ordering](llms-full.txt#softmax-ordering): Softmax preserves the ordering of its inputs, so the largest input identifies the highest-probability class.
-- [Vector Norms](llms-full.txt#vector-norm): A vector norm measures the magnitude or size of a vector.
+- [Vectors](llms-full.txt#vectors): A vector is a fixed-length array whose elements are scalar values.
+- [Dot Product](llms-full.txt#dot-product): The dot product sums products of corresponding elements from two vectors.
+- [Matrix–Vector Product](llms-full.txt#matrix-vector-product): A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
+- [Softmax](llms-full.txt#softmax): Softmax transforms neural network outputs into a valid discrete probability distribution.
+- [Queries, Keys, and Values](llms-full.txt#qkv): An attention mechanism uses query–key compatibility to determine weights applied to values.
+- [Attention Pooling](llms-full.txt#attention-pooling): Attention pooling forms a linear combination of stored values.
+- [Self-Attention](llms-full.txt#self-attention): Self-attention lets every token attend to every other token when constructing token representations.
+- [Positional Encoding](llms-full.txt#positional-encoding): Positional encodings provide token-order information to a model as additional token-associated inputs.
+- [Softmax Preserves Ordering](llms-full.txt#softmax-ordering): Softmax preserves the ordering of its inputs, so the largest input also identifies the highest-probability class.
+- [Vector Norm](llms-full.txt#vector-norm): A vector norm measures the magnitude or size of a vector.

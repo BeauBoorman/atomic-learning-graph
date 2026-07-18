@@ -5,12 +5,12 @@ source: "d2l-self-attention"
 url: "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md"
 license: "CC-BY-SA-4.0"
 tags:
+  - "attention"
   - "positional encoding"
-  - "self-attention"
   - "sequence order"
 ---
 
-Positional information is supplied as an additional token-associated input because self-attention alone does not preserve sequence order.
+Positional encodings provide token-order information to a model as additional token-associated inputs.
 
 ## Prerequisites
 

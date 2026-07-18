@@ -11,7 +11,7 @@ tags:
   - "values"
 ---
 
-Attention derives weights from query–key compatibility and uses those weights to form a linear combination of values.
+An attention mechanism uses query–key compatibility to determine weights applied to values.
 
 ## Prerequisites
 

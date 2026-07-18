@@ -24,7 +24,7 @@ import {
   type TranslationRequestOptions,
 } from "./translate";
 
-export const RENDERING_PROMPT_VERSION = "renderings-v1-question-routes";
+export const RENDERING_PROMPT_VERSION = "renderings-v2-one-claim-per-step";
 export const RENDERINGS_PATH = resolve(OER_DIR, "..", "renderings.json");
 export const RENDERINGS_RUN_PATH = resolve(OER_DIR, "..", "renderings.run.json");
 
@@ -134,6 +134,7 @@ export interface RenderingRunMetadata {
   model: string;
   strictStructuredOutputs: boolean;
   responseIds: readonly string[];
+  omitResponseIds?: boolean;
 }
 
 export interface RenderingArtifactPaths {
@@ -166,7 +167,7 @@ export async function generateAndWriteRenderings(
     renderingPromptVersion: RENDERING_PROMPT_VERSION,
     strictStructuredOutputs: metadata.strictStructuredOutputs,
     renderingsSha256: sha256(renderingBytes),
-    responseIds: metadata.responseIds,
+    ...(metadata.omitResponseIds ? {} : { responseIds: metadata.responseIds }),
   };
   writeFileSync(paths.runLog, `${JSON.stringify(runLog, null, 2)}\n`);
 
@@ -175,12 +176,21 @@ export async function generateAndWriteRenderings(
   return set;
 }
 
-export async function main(args: readonly string[] = process.argv.slice(2)): Promise<void> {
-  if (args.length > 0) {
-    throw new Error(
-      `render accepts no flags; it generates, validates, reports, and writes one artifact in one paid run`,
-    );
+export interface RenderOptions {
+  omitResponseIds: boolean;
+}
+
+export function parseRenderArgs(args: readonly string[]): RenderOptions {
+  let omitResponseIds = false;
+  for (const arg of args) {
+    if (arg === "--no-response-ids") omitResponseIds = true;
+    else throw new Error(`unknown option: ${arg}`);
   }
+  return { omitResponseIds };
+}
+
+export async function main(args: readonly string[] = process.argv.slice(2)): Promise<void> {
+  const options = parseRenderArgs(args);
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is required for build-time rendering generation");
@@ -192,6 +202,7 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
     model: client.modelSnapshot || client.model,
     strictStructuredOutputs: client.strictSchema,
     responseIds: client.responseIds,
+    omitResponseIds: options.omitResponseIds,
   });
 }
 

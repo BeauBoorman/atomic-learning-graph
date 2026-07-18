@@ -7,9 +7,11 @@ import { fixtureGraph, QUOTES } from "../graph/fixture-graph";
 import { invalidRenderingCitations } from "../graph/invariants";
 import type { LearningGraph } from "../types";
 import {
+  RENDERING_PROMPT_VERSION,
   generateAndWriteRenderings,
   generateRenderings,
   main,
+  parseRenderArgs,
   type RenderingClient,
 } from "./render";
 import {
@@ -71,12 +73,18 @@ function oneConceptGraph(): LearningGraph {
 
 describe("build-time alternate renderings", () => {
   it("rejects the removed --dry flag before any paid client can be initialized", async () => {
-    await expect(main(["--dry"])).rejects.toThrow("render accepts no flags");
+    await expect(main(["--dry"])).rejects.toThrow(/unknown option.*--dry/iu);
+  });
+
+  it("keeps response IDs by default and accepts only the explicit omission flag", () => {
+    expect(parseRenderArgs([])).toEqual({ omitResponseIds: false });
+    expect(parseRenderArgs(["--no-response-ids"])).toEqual({ omitResponseIds: true });
+    expect(() => parseRenderArgs(["--omit-ids"])).toThrow(/unknown option/iu);
   });
 
   it("keeps the grounding contract byte-identical across question formats", () => {
-    const groundingContract = `2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. If you cannot ground a step in a verbatim span, DROP that step.
-3. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.`;
+    const groundingContract = `2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The quoted span MUST contain the specific load-bearing claim made by the step; a span that is merely topically related but does not state that claim is a FAILURE. If the step's claim is not fully supported inside one contiguous span, TRIM the step's wording to exactly what the span supports (prefer trimming over attaching a weak quote). If you cannot ground a step in a verbatim span, DROP that step.
+3. Do NOT add qualifications, causal links, temporal ordering (such as "earlier"), or necessity (such as "without it, X would be impossible") that the cited span does not state. PRESERVE the source's hedges, including words such as "often", "typically", "roughly", and "intuition". Faithfulness to the cited span beats fluency. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.`;
     const why = renderInstructions("why-it-exists");
     const how = renderInstructions("how-it-works");
 
@@ -86,6 +94,13 @@ describe("build-time alternate renderings", () => {
     expect(how).toContain("US grade 8–10");
     expect(why).toContain("Produce 2–4 ordered");
     expect(how).toContain("Produce 2–4 ordered");
+    for (const prompt of [why, how]) {
+      expect(prompt).toContain("exactly ONE load-bearing claim");
+      expect(prompt).toContain("two different source spans");
+      expect(prompt).toContain("SPLIT it into two steps");
+      expect(prompt).toContain("each with its own verbatim grounding quote");
+      expect(prompt).toContain("Never attach one quote to a step that makes two separate claims");
+    }
     expect(why).toContain("why does this concept exist");
     expect(how).toContain("what actually happens, step by step");
   });
@@ -149,6 +164,45 @@ describe("build-time alternate renderings", () => {
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  });
+
+  it("omits responseIds from the rendering run log without dropping other metadata", async () => {
+    const graph = oneConceptGraph();
+    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors));
+    const directory = mkdtempSync(join(tmpdir(), "atomic-renderings-private-"));
+    const renderingsPath = join(directory, "renderings.json");
+    const runLogPath = join(directory, "renderings.run.json");
+
+    try {
+      await generateAndWriteRenderings(
+        graph,
+        client,
+        {
+          model: "fake-model",
+          strictStructuredOutputs: true,
+          responseIds: ["fake-response-1", "fake-response-2"],
+          omitResponseIds: true,
+        },
+        { renderings: renderingsPath, runLog: runLogPath },
+        () => undefined,
+        () => undefined,
+      );
+
+      const run = JSON.parse(readFileSync(runLogPath, "utf8")) as Record<string, unknown>;
+      expect(run).toMatchObject({
+        model: "fake-model",
+        renderingPromptVersion: "renderings-v2-one-claim-per-step",
+        strictStructuredOutputs: true,
+      });
+      expect(run).toHaveProperty("renderingsSha256");
+      expect(run).not.toHaveProperty("responseIds");
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("versions the strengthened one-claim-per-step rendering contract", () => {
+    expect(RENDERING_PROMPT_VERSION).toBe("renderings-v2-one-claim-per-step");
   });
 
   it("drops an ungrounded step while keeping the remaining grounded rendering", async () => {

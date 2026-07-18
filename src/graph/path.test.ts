@@ -155,28 +155,13 @@ describe("getPath on the generated data/graph.json", () => {
   // The demo route, asserted against the REAL graph. This is the test that says the atomizer did
   // not just produce *a* valid graph — it produced *the* graph the demo walks.
   //
-  // ⚠ WHY SUBSEQUENCE AND NOT DEEP-EQUAL HERE. On the fixture, `getPath` is pinned to the exact
-  // 5-element golden path (above) — that assertion is unambiguous and ungameable. On the GENERATED
-  // graph, demanding exactly those 5 concepts and nothing else would demand that the atomizer emit
-  // a graph in which `self-attention` has exactly four ancestors. A real atomization of real OER
-  // will legitimately find more (embeddings, matrices, tokenization...), and a RICHER correct graph
-  // is not a defect — it is the product working. An exact-equality test here would go red on a good
-  // graph at 22:00 on Jul 18, and the reflex "fix" would be to hand-tune `data/graph.json`, which
-  // ADR 001 forbids and which would make the headline claim false.
-  //
-  // So the claim is: the five demo concepts must appear, IN THE GOLDEN ORDER, on the route the
-  // pathfinder actually returns. That still kills "demo-wrong": a graph that routes `softmax`
-  // before `dot-product`, or omits `qkv`, or never reaches the goal, FAILS. If the demo graph is
-  // ever deliberately locked to exactly five nodes, tighten this to `.toEqual([...GOLDEN_PATH])`.
-  it("routes through the golden path concepts, in the golden order", () => {
+  // The full product spine now fixes every concept and edge. The four non-goal branches are not
+  // ancestors of self-attention, so its derived route must be exactly the five-node demo path.
+  it("routes through exactly the golden path concepts, in order", () => {
     const g = loadGraph();
     const path = getPath(g, "self-attention");
 
-    expect(path.at(-1)).toBe("self-attention");
-    for (const id of GOLDEN_PATH) expect(path).toContain(id);
-
-    const positions = GOLDEN_PATH.map((id) => path.indexOf(id));
-    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    expect(path).toEqual([...GOLDEN_PATH]);
   });
 
   it("starts the learner at a concept with no prerequisites", () => {

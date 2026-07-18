@@ -1,13 +1,18 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import type { AtomizedConcept, Source } from "../types";
 import {
   loadSources,
   main,
   parseAtomizeArgs,
+  pinInventoryToSpine,
+  pinRelationshipsToSpine,
   selectToySource,
+  writeAtomizationRunLog,
 } from "./atomize";
+import { FULL_GRAPH_SPINE } from "./repair";
 
 const repoRoot = resolve(import.meta.dirname, "..", "..");
 
@@ -35,6 +40,40 @@ describe("atomizer input and output selection", () => {
     expect(
       parseAtomizeArgs(["--out-dir", ".artifacts/demo", "--atomicity-judge"]),
     ).toMatchObject({ atomicityJudge: true });
+  });
+
+  it("keeps response IDs by default and makes their omission explicit", () => {
+    expect(parseAtomizeArgs(["--out-dir", ".artifacts/demo"])).toMatchObject({
+      omitResponseIds: false,
+    });
+    expect(
+      parseAtomizeArgs(["--out-dir", ".artifacts/demo", "--no-response-ids"]),
+    ).toMatchObject({ omitResponseIds: true });
+  });
+
+  it("writes atomization run logs with response IDs by default and without them on opt-in", () => {
+    const directory = mkdtempSync(resolve(tmpdir(), "atomic-run-log-"));
+    const defaultPath = resolve(directory, "graph.default.run.json");
+    const omittedPath = resolve(directory, "graph.omitted.run.json");
+    const metadata = {
+      model: "fake-model",
+      graphSha256: "graph-sha",
+      manifestSha256: "manifest-sha",
+      promptVersion: "prompt-v3",
+      convergence: [{ attempt: 1, issues: [] }],
+    };
+
+    try {
+      writeAtomizationRunLog(defaultPath, metadata, ["resp_1", "resp_2"], false);
+      writeAtomizationRunLog(omittedPath, metadata, ["resp_1", "resp_2"], true);
+      const defaultRun = JSON.parse(readFileSync(defaultPath, "utf8")) as Record<string, unknown>;
+      const omittedRun = JSON.parse(readFileSync(omittedPath, "utf8")) as Record<string, unknown>;
+      expect(defaultRun).toEqual({ ...metadata, responseIds: ["resp_1", "resp_2"] });
+      expect(omittedRun).toEqual(metadata);
+      expect(omittedRun).not.toHaveProperty("responseIds");
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it("refuses an occupied --out-dir before initializing a model client", async () => {
@@ -66,5 +105,69 @@ describe("atomizer input and output selection", () => {
       text: "A body at rest tends to remain at rest.",
     };
     expect(selectToySource([source])).toEqual(source);
+  });
+});
+
+describe("full-graph spine", () => {
+  const sources: Source[] = [...new Set(FULL_GRAPH_SPINE.concepts.map(({ sourceId }) => sourceId))]
+    .map((sourceId) => ({
+      id: sourceId,
+      title: sourceId,
+      license: "CC-BY-SA-4.0",
+      author: "Test Author",
+      text: FULL_GRAPH_SPINE.concepts
+        .filter((concept) => concept.sourceId === sourceId)
+        .map(({ id }) => `${id} has a substantial grounded quote in its assigned source.`)
+        .join(" "),
+    }));
+
+  const proposed: AtomizedConcept[] = FULL_GRAPH_SPINE.concepts.map(({ id }) => ({
+    id,
+    title: id,
+    summary: `One generated summary for ${id}.`,
+    provenance: {
+      sourceId: "model-chose-the-wrong-source",
+      quotedText: `${id} has a substantial grounded quote in its assigned source.`,
+    },
+    tags: ["generated"],
+    prerequisites: [],
+    related: [],
+  }));
+
+  it("projects inventory onto exactly the ten pinned IDs and source assignments", () => {
+    const pinned = pinInventoryToSpine(
+      [
+        ...proposed,
+        {
+          ...proposed[0]!,
+          id: "model-discovered-drift",
+          title: "Model-discovered drift",
+        },
+      ],
+      sources,
+      FULL_GRAPH_SPINE,
+    );
+
+    expect(pinned.map(({ id, provenance }) => ({ id, sourceId: provenance.sourceId }))).toEqual(
+      FULL_GRAPH_SPINE.concepts,
+    );
+  });
+
+  it("projects relationship output onto exactly the nine pinned prerequisite edges", () => {
+    const inventory = pinInventoryToSpine(proposed, sources, FULL_GRAPH_SPINE);
+    const modelRelations = inventory.map((concept) => ({
+      ...concept,
+      prerequisites: concept.id === "vectors" ? ["positional-encoding"] : ["drift-edge"],
+      related: ["vectors"],
+    }));
+
+    const pinned = pinRelationshipsToSpine(inventory, modelRelations, FULL_GRAPH_SPINE);
+    const edges = pinned.flatMap((concept) =>
+      concept.prerequisites.map((from) => ({ from, to: concept.id, type: "prereq" as const })),
+    );
+
+    expect(edges).toHaveLength(9);
+    expect(edges).toEqual(expect.arrayContaining([...FULL_GRAPH_SPINE.prereqEdges]));
+    expect(pinned.every(({ related }) => related.length === 0)).toBe(true);
   });
 });

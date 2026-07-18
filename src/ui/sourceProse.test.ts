@@ -23,18 +23,18 @@ describe("sourceProse — the d2l corpus is markdown flattened to one line", () 
     // If this ever fails the sanitizer is solving a problem that no longer exists — the
     // extractor started keeping newlines, sentenceAround's "\n" boundary went live, and the
     // headings stopped welding onto passages at the source.
-    expect(steps.length).toBe(31);
+    expect(steps.length).toBe(27);
     for (const source of graph.sources) {
       expect(source.text.length).toBeGreaterThan(7000);
       expect([...source.text.matchAll(/\n/g)]).toHaveLength(1);
     }
   });
 
-  it("leaks markdown into 7 of 31 rendered passages before sanitizing", () => {
+  it("leaks markdown into 4 of 27 rendered passages before sanitizing", () => {
     const leaking = steps.filter(({ id, stepIndex }) =>
       LEAK.test(resolveCitation(graph, id, stepIndex).passage),
     );
-    expect(leaking).toHaveLength(7);
+    expect(leaking).toHaveLength(4);
   });
 
   it("leaks nothing into any of the 31 after sanitizing", () => {

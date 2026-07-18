@@ -12,6 +12,7 @@ import {
   writeRenderingsArtifact,
 } from "./artifacts";
 import {
+  FULL_GRAPH_SPINE,
   GOLDEN_PATH,
   GraphConvergenceError,
   GoldenGraphHalt,
@@ -23,6 +24,9 @@ import {
 } from "./repair";
 
 const clone = (graph: LearningGraph): LearningGraph => JSON.parse(JSON.stringify(graph));
+const committedGraph = JSON.parse(
+  readFileSync(join(import.meta.dirname, "..", "..", "data", "graph.json"), "utf8"),
+) as LearningGraph;
 
 const extraConcept = (id: string): Concept => ({
   id,
@@ -33,6 +37,78 @@ const extraConcept = (id: string): Concept => ({
     quotedText: "A vector is an ordered list of numbers.",
   },
   tags: ["test"],
+});
+
+describe("full product graph specification", () => {
+  it("pins all ten concept IDs, source assignments, nine prerequisite edges, and the goal", () => {
+    expect(FULL_GRAPH_SPINE).toEqual({
+      concepts: [
+        { id: "vectors", sourceId: "d2l-linear-algebra" },
+        { id: "vector-norm", sourceId: "d2l-linear-algebra" },
+        { id: "dot-product", sourceId: "d2l-linear-algebra" },
+        { id: "matrix-vector-product", sourceId: "d2l-linear-algebra" },
+        { id: "softmax", sourceId: "d2l-softmax-regression" },
+        { id: "softmax-ordering", sourceId: "d2l-softmax-regression" },
+        { id: "qkv", sourceId: "d2l-queries-keys-values" },
+        { id: "attention-pooling", sourceId: "d2l-queries-keys-values" },
+        { id: "self-attention", sourceId: "d2l-self-attention" },
+        { id: "positional-encoding", sourceId: "d2l-self-attention" },
+      ],
+      prereqEdges: [
+        { from: "vectors", to: "dot-product", type: "prereq" },
+        { from: "vectors", to: "vector-norm", type: "prereq" },
+        { from: "dot-product", to: "matrix-vector-product", type: "prereq" },
+        { from: "dot-product", to: "softmax", type: "prereq" },
+        { from: "softmax", to: "qkv", type: "prereq" },
+        { from: "softmax", to: "softmax-ordering", type: "prereq" },
+        { from: "qkv", to: "attention-pooling", type: "prereq" },
+        { from: "qkv", to: "self-attention", type: "prereq" },
+        { from: "self-attention", to: "positional-encoding", type: "prereq" },
+      ],
+      path: GOLDEN_PATH,
+      goalId: "self-attention",
+    });
+  });
+
+  it("treats any extra node or edge as structural drift", () => {
+    expect(
+      convergenceIssues(clone(committedGraph), {
+        minConcepts: 10,
+        structure: FULL_GRAPH_SPINE,
+      }),
+    ).toEqual([]);
+
+    const drifted = clone(committedGraph);
+    drifted.concepts.push(extraConcept("model-discovered-drift"));
+    drifted.edges.push({ from: "vectors", to: "softmax-ordering", type: "related" });
+
+    expect(convergenceIssues(drifted, { minConcepts: 10, structure: FULL_GRAPH_SPINE })).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "spine-node" }),
+        expect.objectContaining({ kind: "spine-edge" }),
+      ]),
+    );
+  });
+
+  it("treats a duplicate pinned edge as drift instead of accepting ten edge entries", () => {
+    const drifted = clone(committedGraph);
+    drifted.edges.push({ ...drifted.edges[0]! });
+
+    expect(convergenceIssues(drifted, { minConcepts: 10, structure: FULL_GRAPH_SPINE })).toContainEqual(
+      expect.objectContaining({ kind: "spine-edge" }),
+    );
+  });
+
+  it("protects branch nodes in the full spine, not only the five-node demo path", async () => {
+    const graph = clone(committedGraph);
+    const vectorNorm = graph.concepts.find(({ id }) => id === "vector-norm");
+    if (!vectorNorm) throw new Error("test setup: missing vector-norm");
+    vectorNorm.provenance.quotedText = "fabricated branch-node quote";
+
+    await expect(
+      convergeGraph(graph, { minConcepts: 10, structure: FULL_GRAPH_SPINE }),
+    ).rejects.toBeInstanceOf(GoldenGraphHalt);
+  });
 });
 
 describe("Gate-6 repair harness", () => {

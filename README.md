@@ -44,19 +44,21 @@ Every claim on this page is a property of the committed artifact, not a descript
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it. A single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 source sections (spanning three chapters), licence-checked before ingestion, with revision pins and licence evidence recorded in `data/oer/sources.json`. |
 
-The demo spine is deliberately specified, not independently discovered. The atomizer prompt gives the
-model five stable concept IDs, five source assignments across three chapters, and four direct
-prerequisite edges in order; code fixes `self-attention` as the goal. `pnpm verify:anchors` separately
-checks that five named corpus passages remain verbatim in the extracted sources. Those passages are
-not inserted into the graph as constants: the model proposes each concept quote, and code only snaps
-a whitespace-equivalent proposal to the stored source bytes. If a required quote fails grounding, a
+The product graph structure is deliberately specified, not independently discovered. A full-graph
+spine fixes all ten stable concept IDs, their source assignments, all nine prerequisite edges, and
+`self-attention` as the goal. The inventory prompt requests exactly that set, then code projects the
+grounded response onto it; the relationship prompt receives the exact edge set, then code replaces
+all returned relations with those nine edges. `pnpm verify:anchors` separately checks that five named
+corpus passages remain verbatim in the extracted sources. Those passages are not inserted into the
+graph as constants: the model proposes each concept quote, and code only snaps a
+whitespace-equivalent proposal to the stored source bytes. If a required quote fails grounding, a
 concept-specific regex narrows the stored-source excerpt for a separate model repair. The build
-refuses to write an artifact missing a pinned node, direct edge, ordered route, or goal path.
+refuses to write an artifact whose IDs, source assignments, edges, route, or goal differ from the
+full spine.
 
-In the committed graph, those pins account for 5 of 10 concepts and 4 of 9 prerequisite edges. The
-model proposed the other 5 concepts, the other 5 edges, all 10 concept-level quote selections, all
-31 lesson steps, and all 186 analogies. The graph and citations then face deterministic gates;
-analogies remain optional illustrations.
+The model still proposes the grounded content inside those ten slots: titles, summaries, tags, all
+ten concept-level quote selections, all lesson steps, and all analogies. The graph and citations then
+face deterministic gates; analogies remain optional illustrations.
 
 The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (17 core,
 14 deep) and **186 optional analogies** across 6 interests, plus the complete text of the four
@@ -75,9 +77,9 @@ language model, bounded at every step by deterministic checks it cannot talk its
 
 1. The pipeline licence-checks every corpus source before ingestion. It uses an exact-match SPDX
    allowlist and fails closed.
-2. The model extracts grounded concepts, proposes relationships between frozen concept IDs,
-   translates each converged concept into cited lesson steps, and pre-builds the optional analogies
-   as clearly labelled illustrations.
+2. The model fills the pinned concepts with grounded content, returns relations that code projects
+   onto the pinned edge set, translates each converged concept into cited lesson steps, and
+   pre-builds the optional analogies as clearly labelled illustrations.
 3. Bounded validate → repair → re-validate loops check graph structure, goal reachability,
    quote-primary provenance, lesson citations, and the readability floor.
 4. On convergence, `pnpm atomize` writes the sorted graph and a run log recording the response ID of
@@ -216,12 +218,10 @@ Honest limits, stated up front:
 - **The graph is small and the domain is narrow.** 10 concepts across four source sections (three chapters). The pitch is the
   substrate and the provenance, not coverage.
 - **This artifact is a prerequisite tree, not evidence of a relationship mesh.** The graph type
-  supports `prereq`, `method`, and `related`, and the relationship phase requires `related` on every
-  model-returned concept; this one-book, ten-concept run nevertheless landed 9 `prereq` edges, zero
-  `related` edges, and no concept with more than one incoming prerequisite. Its five-node demo spine
-  is explicitly pinned as a direct chain, but the prompt does not forbid other links. A broader
-  corpus and an unpinned run are the next experiment, not a promised outcome or new graph
-  architecture.
+  supports `prereq`, `method`, and `related`, but the pinned product run deliberately projects onto
+  9 `prereq` edges and zero other links. No concept has more than one incoming prerequisite. A
+  broader corpus and an explicit `--no-spine` run are the next relationship-mesh experiment, not a
+  promised outcome or new graph architecture.
 - **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
   alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 68 cited
   steps. Their citations and run-log hash are gated. On-demand renderings remain in

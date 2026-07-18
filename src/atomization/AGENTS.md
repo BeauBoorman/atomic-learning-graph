@@ -50,14 +50,11 @@ camera as proof of atomicity. Do not promote it to a gate. It is the seed for a 
 - Quote matching normalizes whitespace on both sides (collapse runs to one space, trim). A byte-exact
   `includes()` false-fails whenever the source's whitespace differs from the model's rendering — and
   that failure looks exactly like hallucination.
-- Use the stable slug IDs the demo path depends on: `vectors`, `dot-product`, `softmax`, `qkv`,
-  `self-attention`. **The atomizer prompt must REQUIRE these five chained by `prereq` edges in
-  exactly this order** — `vectors → dot-product → softmax → qkv → self-attention`, each consecutive
-  pair a grounded prereq edge — so `getPath(graph, "self-attention")` routes through them in order.
-  Reachability alone is not enough: `getPath` topo-sorts with a lexicographic tie-break, so the
-  ORDER is only pinned when the direct chain edges exist. A reachable-but-misordered graph passes all
-  6 hard invariants yet fails `path.test.ts` at Gate 7 with no repair path — so the golden ORDER is
-  part of the Gate-6 convergence condition, not a Gate-7 afterthought.
+- The product run uses `FULL_GRAPH_SPINE`: exactly ten stable IDs, ten fixed source assignments,
+  nine fixed prerequisite edges, and goal `self-attention`. Inventory and relationship prompts must
+  receive that complete spec, and code must project their responses onto it. The five-node demo path
+  remains `vectors → dot-product → softmax → qkv → self-attention`; no model-discovered ID or edge
+  may enter the pinned artifact. `--no-spine` is the explicit experimental escape hatch.
 
 ## Output contract
 
@@ -69,10 +66,10 @@ camera as proof of atomicity. Do not promote it to a gate. It is the seed for a 
   1. `hasCycle === false`, `danglingEdges === []`, `findOrphans === []`, `invalidProvenance === []`,
      `duplicateConceptIds === []`, `duplicateSourceIds === []`,
      `pathExists(g, "self-attention") === true`;
-  2. `getPath(g, "self-attention")` yields `vectors, dot-product, softmax, qkv, self-attention` as an
-     **ordered subsequence** (the golden ORDER — see the Model contract);
-  3. `g.concepts.length >= 6` (strictly more than the 5-node fixture — a maximally-pruned 5-node
-     graph FAILS `invariants.test.ts`'s "is not a copy of the fixture" test);
+  2. concept IDs, source assignments, prerequisite edges, and `goalId` exactly match
+     `FULL_GRAPH_SPINE`;
+  3. `getPath(g, "self-attention")` equals
+     `vectors, dot-product, softmax, qkv, self-attention`;
   4. no `Source.title === "How LLMs work (primer)"` (the fixture's source title);
   5. every `Source` carries its allowlisted `license` copied verbatim from its manifest entry, and
      every `Source.text` is the complete manifest `.txt`.
@@ -88,10 +85,10 @@ camera as proof of atomicity. Do not promote it to a gate. It is the seed for a 
 - **Never write the hand-built fixture (`../graph/fixture-graph.ts`) to `data/graph.json`**, and never
   hand-fix the generated file. If the graph is wrong, the ATOMIZER is wrong (ADR 001).
 - **The toy run (one source, ~3 concepts) is DRY-ONLY** — it proves pipeline mechanics and must NEVER
-  be written to `data/graph.json` (it fails the ≥6-concept floor and lacks the golden ids). Only the
+  be written to `data/graph.json` (it does not match the full graph spine). Only the
   full-corpus graph is committed.
 
-## Repair loop — golden-path edges are PROTECTED, no repair may drop them
+## Repair loop — the full graph spine is PROTECTED, no repair may alter it
 
 The bounded validate→repair→re-validate loop (`MAX_ATTEMPTS = 3`) feeds each invariant's typed output
 back as the repair instruction. Deterministic-first, LLM-second:
@@ -106,14 +103,13 @@ back as the repair instruction. Deterministic-first, LLM-second:
 - **Duplicates →** dedupe on normalized title/ID in a pre-pass before edge building; the runtime
   identifier-uniqueness invariant fails closed if a duplicate survives or appears during a merge.
 
-**PROTECTED set — no repair step (dangling, cycle, or subgraph-drop) may delete these edges:**
-`{vectors→dot-product, dot-product→softmax, softmax→qkv, qkv→self-attention}` and the five golden
-nodes. If any repair would require dropping a protected edge or node, or a golden node is
+**PROTECTED set — no repair step (dangling, cycle, or subgraph-drop) may delete any of the ten
+`FULL_GRAPH_SPINE` nodes or nine edges.** If any repair would require dropping a protected edge or node, or a pinned node is
 unrepairable (ungrounded provenance, unavoidable cycle through it), **HALT** and surface a
 build-failure report (which node/edge, which invariant, the offending span) for a human. Do not
-autonomously drop a golden node/edge, do not hand-edit `data/graph.json`, do not weaken an invariant.
-On non-convergence for a NON-golden subgraph: drop it and re-validate — subject to the ≥6-concept
-floor above. `isSingleConcept` warnings NEVER drive or fail this loop.
+autonomously drop a pinned node/edge, do not hand-edit `data/graph.json`, do not weaken an invariant.
+Only an explicit unpinned experiment may repair or drop model-discovered subgraphs.
+`isSingleConcept` warnings NEVER drive or fail this loop.
 
 ## Expect the model to produce a broken graph on the first run
 

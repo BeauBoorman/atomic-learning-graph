@@ -27,7 +27,7 @@ describe("generated graph run log", () => {
       promptVersion?: string;
       strictStructuredOutputs?: boolean;
     };
-    expect(run.promptVersion).toBe("atomizer-v2-translate-three-phase");
+    expect(run.promptVersion).toBe("atomizer-v4-full-spine-one-claim-steps");
     expect(run.strictStructuredOutputs).toBe(true);
   });
 });
