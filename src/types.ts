@@ -184,6 +184,17 @@ export interface AtomizedConcept {
   prerequisites: ConceptId[];
   /** Converted into `related` edges by the build step. */
   related: ConceptId[];
+  /**
+   * ADDITIVE, dedupe-only. When semantic dedup merges candidates, the non-surviving members'
+   * grounded (sourceId, quotedText) pairs are retained here as auditable evidence. Optional so
+   * every existing producer/consumer and invariant is untouched; nothing downstream reads it yet.
+   */
+  mergedEvidence?: Array<{
+    conceptId: ConceptId;
+    title: string;
+    sourceId: SourceId;
+    quotedText: string;
+  }>;
 }
 
 export type NodeProgress = "exploring" | "got-it" | "stuck";

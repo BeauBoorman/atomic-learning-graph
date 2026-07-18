@@ -25,6 +25,7 @@ import {
 } from "./artifacts";
 import { ANALOGY_PROMPT_VERSION, generateAnalogies } from "./analogy";
 import { ResponsesClient, isObject } from "./client";
+import { dedupeCandidates } from "./dedupe";
 import { groundedQuote } from "./grounding";
 import { buildRunCostReceipt } from "./run-receipt";
 import {
@@ -62,7 +63,7 @@ const atomizedConceptSchema: JsonObject = {
   additionalProperties: false,
 };
 
-const inventorySchema: JsonObject = {
+const pinnedInventorySchema: JsonObject = {
   type: "object",
   properties: {
     concepts: {
@@ -76,7 +77,42 @@ const inventorySchema: JsonObject = {
   additionalProperties: false,
 };
 
-const relationshipSchema: JsonObject = inventorySchema;
+const relationshipSchema: JsonObject = pinnedInventorySchema;
+
+const inventorySchema: JsonObject = {
+  type: "object",
+  properties: {
+    concepts: {
+      type: "array",
+      minItems: 0,
+      maxItems: 6,
+      items: atomizedConceptSchema,
+    },
+  },
+  required: ["concepts"],
+  additionalProperties: false,
+};
+
+const edgeListSchema: JsonObject = {
+  type: "object",
+  properties: {
+    edges: {
+      type: "array",
+      maxItems: 400,
+      items: {
+        type: "object",
+        properties: {
+          from: { type: "string" },
+          to: { type: "string" },
+        },
+        required: ["from", "to"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["edges"],
+  additionalProperties: false,
+};
 
 const quoteRepairSchema: JsonObject = {
   type: "object",
@@ -144,9 +180,10 @@ function dedupeConcepts(concepts: AtomizedConcept[]): AtomizedConcept[] {
   for (const concept of concepts) {
     const id = concept.id.trim().toLowerCase();
     const title = concept.title.trim().toLowerCase().replace(/\s+/g, " ");
-    if (seenIds.has(id) || seenTitles.has(title)) continue;
+    const titleKey = JSON.stringify([concept.provenance.sourceId, title]);
+    if (seenIds.has(id) || seenTitles.has(titleKey)) continue;
     seenIds.add(id);
-    seenTitles.add(title);
+    seenTitles.add(titleKey);
     out.push({ ...concept, id });
   }
   return out;
@@ -157,6 +194,588 @@ function sourcePassages(sourceText: string): string[] {
     .split(/(?<=[.!?])\s+(?=[#A-Z0-9])/u)
     .map((passage) => passage.trim())
     .filter(Boolean);
+}
+
+type ProtectedChunkKind = "fence" | "math" | "table" | "scripture";
+
+interface ChunkRange {
+  start: number;
+  end: number;
+  barrierBefore: boolean;
+  barrierAfter: boolean;
+}
+
+interface ProtectedChunkRange extends ChunkRange {
+  kind: ProtectedChunkKind;
+}
+
+interface SourceLineRange {
+  start: number;
+  contentEnd: number;
+  end: number;
+  content: string;
+}
+
+const CHUNK_OVERSIZE_MULTIPLE = 4;
+const CHUNK_BOUNDARY_EPSILON = 1;
+
+function sourceLineRanges(text: string): SourceLineRange[] {
+  const lines: SourceLineRange[] = [];
+  let start = 0;
+  while (start < text.length) {
+    const newline = text.indexOf("\n", start);
+    const contentEnd = newline === -1 ? text.length : newline;
+    const end = newline === -1 ? text.length : newline + 1;
+    lines.push({ start, contentEnd, end, content: text.slice(start, contentEnd) });
+    start = end;
+  }
+  return lines;
+}
+
+function hardBoundaryIndexes(text: string, lines: SourceLineRange[]): number[] {
+  const boundaries: number[] = [];
+  for (const line of lines) {
+    if (/^(?:#\s+\S|(?:book|chapter)(?:\s+|:))/i.test(line.content.trimStart())) {
+      boundaries.push(line.start);
+    }
+  }
+  if (boundaries[0] !== 0) boundaries.unshift(0);
+  if (boundaries[boundaries.length - 1] !== text.length) boundaries.push(text.length);
+  return boundaries;
+}
+
+function nextBoundaryAfter(boundaries: number[], index: number, fallback: number): number {
+  for (const boundary of boundaries) {
+    if (boundary > index) return boundary;
+  }
+  return fallback;
+}
+
+function boundedProduct(value: number, multiplier: number): number {
+  return value > Math.floor(Number.MAX_SAFE_INTEGER / multiplier)
+    ? Number.MAX_SAFE_INTEGER
+    : value * multiplier;
+}
+
+function rangeContaining(ranges: ProtectedChunkRange[], index: number): ProtectedChunkRange | undefined {
+  return ranges.find((range) => range.start <= index && index < range.end);
+}
+
+function isEscaped(text: string, index: number): boolean {
+  let slashes = 0;
+  for (let cursor = index - 1; cursor >= 0 && text[cursor] === "\\"; cursor -= 1) slashes += 1;
+  return slashes % 2 === 1;
+}
+
+function findLiteralCloser(
+  text: string,
+  token: string,
+  start: number,
+  limit: number,
+): number | undefined {
+  let cursor = text.indexOf(token, start);
+  while (cursor !== -1 && cursor + token.length <= limit) {
+    if (!isEscaped(text, cursor)) return cursor + token.length;
+    cursor = text.indexOf(token, cursor + token.length);
+  }
+  return undefined;
+}
+
+function mapFencedCodeRanges(
+  text: string,
+  lines: SourceLineRange[],
+  hardBoundaries: number[],
+  maxMaskSpan: number,
+): ProtectedChunkRange[] {
+  const ranges: ProtectedChunkRange[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const opener = line.content.match(/^ {0,3}(`{3,}|~{3,})/);
+    if (!opener) continue;
+    const marker = opener[1];
+    const hardLimit = nextBoundaryAfter(hardBoundaries, line.start, text.length);
+    const scanLimit = Math.min(hardLimit, line.start + maxMaskSpan);
+    let closerIndex: number | undefined;
+    for (let candidate = index + 1; candidate < lines.length; candidate += 1) {
+      const closer = lines[candidate];
+      if (closer.start >= scanLimit || closer.contentEnd > scanLimit) break;
+      const trimmed = closer.content.trimStart();
+      const closingRun = trimmed.match(/^(`+|~+)/)?.[1];
+      if (
+        closingRun &&
+        closingRun[0] === marker[0] &&
+        closingRun.length >= marker.length &&
+        trimmed.slice(closingRun.length).trim().length === 0
+      ) {
+        closerIndex = candidate;
+        break;
+      }
+    }
+    // SAFE / DISARMED: an unterminated opener owns no bytes and cannot mask to EOF.
+    if (closerIndex === undefined) continue;
+    const closer = lines[closerIndex];
+    ranges.push({
+      start: line.start,
+      end: closer.contentEnd,
+      kind: "fence",
+      barrierBefore: true,
+      barrierAfter: true,
+    });
+    index = closerIndex;
+  }
+  return ranges;
+}
+
+function mapPipeTableCandidates(lines: SourceLineRange[]): ProtectedChunkRange[] {
+  const ranges: ProtectedChunkRange[] = [];
+  let index = 0;
+  while (index < lines.length) {
+    if (!lines[index].content.includes("|")) {
+      index += 1;
+      continue;
+    }
+    const start = index;
+    let hasSeparator = false;
+    while (index < lines.length && lines[index].content.includes("|")) {
+      if (/^\s*\|?[\s:|-]+\|[\s:|-]*\|?\s*$/.test(lines[index].content)) hasSeparator = true;
+      index += 1;
+    }
+    if (hasSeparator && index - start >= 2) {
+      ranges.push({
+        start: lines[start].start,
+        end: lines[index - 1].contentEnd,
+        kind: "table",
+        barrierBefore: true,
+        barrierAfter: true,
+      });
+    }
+  }
+  return ranges;
+}
+
+function mapScriptureCandidates(lines: SourceLineRange[]): ProtectedChunkRange[] {
+  const ranges: ProtectedChunkRange[] = [];
+  let index = 0;
+  while (index < lines.length) {
+    if (!/^\s*\d+:\d+(?:[-–]\d+)?\s+\S/.test(lines[index].content)) {
+      index += 1;
+      continue;
+    }
+    const start = index;
+    while (index < lines.length && /^\s*\d+:\d+(?:[-–]\d+)?\s+\S/.test(lines[index].content)) {
+      index += 1;
+    }
+    if (index - start >= 2) {
+      ranges.push({
+        start: lines[start].start,
+        end: lines[index - 1].contentEnd,
+        kind: "scripture",
+        barrierBefore: true,
+        barrierAfter: true,
+      });
+    }
+  }
+  return ranges;
+}
+
+function mathRangeAt(text: string, index: number, limit: number): ProtectedChunkRange | undefined {
+  let openerLength = 0;
+  let closer = "";
+  if (text.startsWith("$$", index) && !isEscaped(text, index)) {
+    openerLength = 2;
+    closer = "$$";
+  } else if (text[index] === "$" && !isEscaped(text, index)) {
+    openerLength = 1;
+    closer = "$";
+  } else if (text.startsWith("\\[", index)) {
+    openerLength = 2;
+    closer = "\\]";
+  } else if (text.startsWith("\\(", index)) {
+    openerLength = 2;
+    closer = "\\)";
+  } else {
+    if (!text.startsWith("\\begin{", index)) return undefined;
+    const begin = text.slice(index, Math.min(limit, index + 64)).match(/^\\begin\{([A-Za-z*]+)\}/);
+    if (!begin) return undefined;
+    openerLength = begin[0].length;
+    closer = `\\end{${begin[1]}}`;
+  }
+
+  const end = findLiteralCloser(text, closer, index + openerLength, limit);
+  // SAFE / DISARMED: no closer before the HARD/cap limit means literal prose, not a mask.
+  if (end === undefined) return undefined;
+  if (closer === "$" && text.slice(index + openerLength, end - 1).includes("\n\n")) return undefined;
+  return {
+    start: index,
+    end,
+    kind: "math",
+    barrierBefore: true,
+    barrierAfter: true,
+  };
+}
+
+function mapProtectedChunkRanges(
+  text: string,
+  size: number,
+  lines: SourceLineRange[],
+  hardBoundaries: number[],
+): ProtectedChunkRange[] {
+  const maxMaskSpan = Math.max(65536, boundedProduct(size, CHUNK_OVERSIZE_MULTIPLE * 4));
+  // SAFE: fenced code is mapped first. Its interior is skipped by every later detector.
+  const ranges = mapFencedCodeRanges(text, lines, hardBoundaries, maxMaskSpan);
+  const tableByStart = new Map(mapPipeTableCandidates(lines).map((range) => [range.start, range]));
+  const scriptureByStart = new Map(mapScriptureCandidates(lines).map((range) => [range.start, range]));
+
+  // SAFE: one deterministic left-to-right pass; first admitted opener owns its entire range.
+  let index = 0;
+  while (index < text.length) {
+    const occupied = rangeContaining(ranges, index);
+    if (occupied) {
+      index = occupied.end;
+      continue;
+    }
+    const nextExisting = ranges
+      .filter((range) => range.start > index)
+      .reduce((nearest, range) => Math.min(nearest, range.start), text.length);
+    const hardLimit = nextBoundaryAfter(hardBoundaries, index, text.length);
+    const limit = Math.min(hardLimit, nextExisting, index + maxMaskSpan);
+    const math = mathRangeAt(text, index, limit);
+    const structural = tableByStart.get(index) ?? scriptureByStart.get(index);
+    const candidate = math ?? (structural && structural.end <= limit ? structural : undefined);
+    if (!candidate) {
+      index += 1;
+      continue;
+    }
+    ranges.push(candidate);
+    ranges.sort((left, right) => left.start - right.start);
+    index = candidate.end;
+  }
+  return ranges;
+}
+
+function trimChunkRange(text: string, range: ChunkRange): ChunkRange | undefined {
+  let start = range.start;
+  let end = range.end;
+  while (start < end && /\s/u.test(text[start])) start += 1;
+  while (end > start && /\s/u.test(text[end - 1])) end -= 1;
+  if (start >= end) return undefined;
+  return { ...range, start, end };
+}
+
+function cutFallsInsideMask(cut: number, masks: ProtectedChunkRange[]): boolean {
+  return masks.some((mask) => mask.start < cut && cut < mask.end);
+}
+
+function balancedAtCut(text: string, start: number, cut: number, masks: ProtectedChunkRange[]): boolean {
+  const counts = { curly: 0, square: 0, round: 0 };
+  let cursor = start;
+  while (cursor < cut) {
+    const mask = rangeContaining(masks, cursor);
+    if (mask) {
+      cursor = Math.min(mask.end, cut);
+      continue;
+    }
+    const character = text[cursor];
+    if (character === "{") counts.curly += 1;
+    else if (character === "}") counts.curly -= 1;
+    else if (character === "[") counts.square += 1;
+    else if (character === "]") counts.square -= 1;
+    else if (character === "(") counts.round += 1;
+    else if (character === ")") counts.round -= 1;
+    cursor += 1;
+  }
+  return counts.curly === 0 && counts.square === 0 && counts.round === 0;
+}
+
+function protectedBoundaries(start: number, end: number, masks: ProtectedChunkRange[]): number[] {
+  return masks.flatMap((mask) => [mask.start, mask.end]).filter((cut) => start < cut && cut < end);
+}
+
+function headingBoundaries(text: string, start: number, end: number): number[] {
+  const cuts: number[] = [];
+  const pattern = /^#{2,6}\s+\S/gmu;
+  pattern.lastIndex = start;
+  let match = pattern.exec(text);
+  while (match && match.index < end) {
+    cuts.push(match.index);
+    match = pattern.exec(text);
+  }
+  return cuts;
+}
+
+function paragraphBoundaries(text: string, start: number, end: number): number[] {
+  const cuts: number[] = [];
+  const pattern = /\n[\t \r]*\n[\s]*/gu;
+  pattern.lastIndex = start;
+  let match = pattern.exec(text);
+  while (match && match.index < end) {
+    cuts.push(match.index + match[0].length);
+    match = pattern.exec(text);
+  }
+  return cuts;
+}
+
+function listBoundaries(text: string, start: number, end: number, size: number): number[] {
+  const cuts: number[] = [];
+  const pattern = /^\s*(?:[-+*]|\d+[.)])\s+\S/gmu;
+  pattern.lastIndex = start;
+  let match = pattern.exec(text);
+  while (match && match.index < end) {
+    const cut = match.index + (match[0].match(/^\s*/u)?.[0].length ?? 0);
+    const stem = text.slice(start, cut).trimEnd();
+    if (!(cuts.length === 0 && stem.endsWith(":") && end - start <= size)) cuts.push(cut);
+    match = pattern.exec(text);
+  }
+  return cuts;
+}
+
+function sentenceBoundarySuppressed(text: string, punctuationIndex: number): boolean {
+  const prefix = text.slice(Math.max(0, punctuationIndex - 32), punctuationIndex + 1);
+  if (
+    /\b(?:Fig|Eq|Eqs|Sec|Ch|Dr|Mr|Mrs|Ms|Prof|Sr|Jr|St|No|Nos|Vol|pp?|vs|mg|mcg|mL|hr|min)\.$/i
+      .test(prefix)
+  ) return true;
+  if (
+    /(?:\be\.g|\bi\.e|\bet al|\bq\.d|\bb\.i\.d|\bt\.i\.d|\bq\.i\.d)\.$/i.test(prefix)
+  ) return true;
+  if (/(?:^|\s)[A-Z]\.$/.test(prefix)) return true;
+  // Decimal and diagnostic-code dots never become candidates because their lookahead is not
+  // whitespace; this guard therefore need not rewrite or parse those tokens.
+  return false;
+}
+
+function sentenceBoundaries(text: string, start: number, end: number): number[] {
+  const cuts: number[] = [];
+  for (let index = start; index < end - 1; index += 1) {
+    if (!".!?".includes(text[index]) || sentenceBoundarySuppressed(text, index)) continue;
+    let lookahead = index + 1;
+    while (lookahead < end && /\s/u.test(text[lookahead])) lookahead += 1;
+    if (lookahead === index + 1 || lookahead >= end) continue;
+    if (!/[\p{L}\p{N}\p{S}(#]/u.test(text[lookahead])) continue;
+    cuts.push(lookahead);
+  }
+  return cuts;
+}
+
+function acceptedChunkBoundaries(
+  text: string,
+  start: number,
+  end: number,
+  candidates: number[],
+  masks: ProtectedChunkRange[],
+): number[] {
+  const unique = [...new Set(candidates)].sort((left, right) => left - right);
+  // SAFE: suppression and the balance guard only remove candidate cut indexes; content is inert.
+  return unique.filter((cut) =>
+    cut > start + CHUNK_BOUNDARY_EPSILON &&
+    cut < end - CHUNK_BOUNDARY_EPSILON &&
+    !cutFallsInsideMask(cut, masks) &&
+    balancedAtCut(text, start, cut, masks),
+  );
+}
+
+function forceSliceRange(
+  text: string,
+  range: ChunkRange,
+  target: number,
+  ceiling: number,
+  masks: ProtectedChunkRange[],
+): ChunkRange[] {
+  const pieces: ChunkRange[] = [];
+  let start = range.start;
+  while (range.end - start > ceiling) {
+    const outwardLimit = Math.min(range.end, start + ceiling);
+    let cut = Math.min(outwardLimit, start + target);
+    const mask = rangeContaining(masks, cut);
+    if (mask && mask.end <= outwardLimit) cut = mask.end;
+    while (cut < outwardLimit && (!balancedAtCut(text, start, cut, masks) || cutFallsInsideMask(cut, masks))) {
+      cut += 1;
+    }
+    if (cut <= start + CHUNK_BOUNDARY_EPSILON || cut >= range.end) cut = outwardLimit;
+    pieces.push({ start, end: cut, barrierBefore: false, barrierAfter: false });
+    start = cut;
+  }
+  while (range.end - start > target) {
+    const outwardLimit = Math.min(range.end, start + ceiling);
+    let cut = Math.min(outwardLimit, start + target);
+    const mask = rangeContaining(masks, cut);
+    if (mask && mask.end <= outwardLimit) cut = mask.end;
+    while (cut < outwardLimit && (!balancedAtCut(text, start, cut, masks) || cutFallsInsideMask(cut, masks))) {
+      cut += 1;
+    }
+    if (cut <= start + CHUNK_BOUNDARY_EPSILON || cut >= range.end) break;
+    pieces.push({ start, end: cut, barrierBefore: false, barrierAfter: false });
+    start = cut;
+  }
+  pieces.push({ ...range, start });
+  return pieces.map((piece) => trimChunkRange(text, piece)).filter((piece): piece is ChunkRange => piece !== undefined);
+}
+
+function recursivelySplitChunkRange(
+  text: string,
+  rawRange: ChunkRange,
+  size: number,
+  ceiling: number,
+  masks: ProtectedChunkRange[],
+  level = 0,
+): ChunkRange[] {
+  const range = trimChunkRange(text, rawRange);
+  if (!range) return [];
+  const containingMask = masks.find((mask) => mask.start <= range.start && range.end <= mask.end);
+  if (containingMask) {
+    const protectedRange = { ...range, barrierBefore: true, barrierAfter: true };
+    if (range.end - range.start <= ceiling) return [protectedRange];
+    // SAFE: atomicity yields only at the absolute ceiling; every degraded child is still a slice.
+    return forceSliceRange(text, protectedRange, ceiling, ceiling, []);
+  }
+  if (range.end - range.start <= size) return [range];
+
+  const boundaryFinders = [
+    (): number[] => protectedBoundaries(range.start, range.end, masks),
+    (): number[] => headingBoundaries(text, range.start, range.end),
+    (): number[] => paragraphBoundaries(text, range.start, range.end),
+    (): number[] => listBoundaries(text, range.start, range.end, size),
+    (): number[] => sentenceBoundaries(text, range.start, range.end),
+  ];
+  for (let currentLevel = level; currentLevel < boundaryFinders.length; currentLevel += 1) {
+    const cuts = acceptedChunkBoundaries(
+      text,
+      range.start,
+      range.end,
+      boundaryFinders[currentLevel](),
+      masks,
+    );
+    if (cuts.length === 0) continue;
+    const edges = [range.start, ...cuts, range.end];
+    return edges.flatMap((edge, index) => {
+      if (index === edges.length - 1) return [];
+      return recursivelySplitChunkRange(
+        text,
+        { start: edge, end: edges[index + 1], barrierBefore: false, barrierAfter: false },
+        size,
+        ceiling,
+        masks,
+        currentLevel + 1,
+      );
+    });
+  }
+
+  // Preserve the original contract for one indivisible top-level prose passage: semantic units
+  // may exceed the target size. Descendants created by the hierarchy still reach the strict,
+  // progressing hard-slice fallback below, as do inputs containing multiple legacy passages.
+  if (level === 0 && sourcePassages(text.slice(range.start, range.end)).length === 1) return [range];
+
+  // SAFE: terminal fallback advances strictly and only locates slice boundaries.
+  return forceSliceRange(text, range, size, ceiling, masks);
+}
+
+function packChunkRanges(text: string, ranges: ChunkRange[], size: number): ChunkRange[] {
+  const packed: ChunkRange[] = [];
+  // SAFE: cohesion is an offset extension only. The size budget wins for ordinary prose/list
+  // units; only a genuinely protected range may remain oversize, and it already obeys the ceiling.
+  for (const range of ranges) {
+    const previous = packed[packed.length - 1];
+    if (
+      previous &&
+      !previous.barrierAfter &&
+      !range.barrierBefore &&
+      range.end - previous.start <= size
+    ) {
+      previous.end = range.end;
+      previous.barrierAfter = range.barrierAfter;
+    } else {
+      packed.push({ ...range });
+    }
+  }
+  return packed.map((range) => trimChunkRange(text, range)).filter((range): range is ChunkRange => range !== undefined);
+}
+
+function structuredChunkSourceText(text: string, size: number): string[] {
+  const lines = sourceLineRanges(text);
+  const hardBoundaries = hardBoundaryIndexes(text, lines);
+  const masks = mapProtectedChunkRanges(text, size, lines, hardBoundaries);
+  const ceiling = boundedProduct(size, CHUNK_OVERSIZE_MULTIPLE);
+  const chunks: string[] = [];
+
+  // SAFE: HARD boundaries partition first and are never re-packed across.
+  for (let index = 0; index < hardBoundaries.length - 1; index += 1) {
+    const ranges = recursivelySplitChunkRange(
+      text,
+      {
+        start: hardBoundaries[index],
+        end: hardBoundaries[index + 1],
+        barrierBefore: false,
+        barrierAfter: false,
+      },
+      size,
+      ceiling,
+      masks,
+    );
+    for (const range of packChunkRanges(text, ranges, size)) {
+      // SAFE: the only emitted bytes are a leading/trailing-whitespace-trimmed source slice.
+      chunks.push(text.slice(range.start, range.end));
+    }
+  }
+  return chunks.length > 0 ? chunks : [text];
+}
+
+function legacyChunkSourceText(text: string, size: number): string[] {
+  const passages = sourcePassages(text);
+  if (passages.length === 0) return [text];
+
+  const chunks: string[] = [];
+  let current: string[] = [];
+  let currentLength = 0;
+  const flush = (): void => {
+    if (current.length === 0) return;
+    chunks.push(current.join("\n\n"));
+    current = [];
+    currentLength = 0;
+  };
+
+  for (const passage of passages) {
+    const separatorLength = current.length > 0 ? 2 : 0;
+    if (current.length > 0 && currentLength + separatorLength + passage.length > size) flush();
+    if (passage.length > size) {
+      flush();
+      chunks.push(passage);
+      continue;
+    }
+    current.push(passage);
+    currentLength += (current.length > 1 ? 2 : 0) + passage.length;
+  }
+  flush();
+  return chunks;
+}
+
+export function chunkSourceText(text: string, size = 12000): string[] {
+  if (!Number.isSafeInteger(size) || size <= 0) {
+    throw new Error("chunk size must be a positive safe integer");
+  }
+  // A string[] has no diagnostics/tag channel. Context hints, polarity flags, and delimiter or
+  // oversize labels therefore remain extractor-layer work; boundaries are the only signal here.
+  return structuredChunkSourceText(text, size);
+}
+
+export interface PlannedSourceChunk {
+  sourceId: string;
+  title: string;
+  index: number;
+  total: number;
+  text: string;
+}
+
+export function planChunks(sources: Source[]): PlannedSourceChunk[] {
+  return sources.flatMap((source) => {
+    const chunks = chunkSourceText(source.text);
+    return chunks.map((text, index) => ({
+      sourceId: source.id,
+      title: source.title,
+      index,
+      total: chunks.length,
+      text,
+    }));
+  });
 }
 
 function selectExcerpt(source: Source): string {
@@ -249,6 +868,133 @@ function groundInventory(concepts: AtomizedConcept[], sources: Source[], require
   const missing = requiredIds.filter((id) => !grounded.some((concept) => concept.id === id));
   if (missing.length > 0) throw new Error(`inventory omitted required IDs: ${missing.join(", ")}`);
   return grounded;
+}
+
+export async function discoverInventory(
+  client: ResponsesClient,
+  sources: Source[],
+): Promise<AtomizedConcept[]> {
+  const instructions =
+    "Discover the one-concept lesson nodes genuinely present in one openly licensed source passage. " +
+    "Return up to 6 concepts; emit fewer when the passage holds fewer real ideas and never pad. " +
+    "Every quotedText must be copied verbatim from the passage. Use the supplied source ID, choose stable kebab-case IDs, " +
+    "and leave prerequisites and related as empty arrays.";
+  const candidates: AtomizedConcept[] = [];
+
+  for (const chunk of planChunks(sources)) {
+    const input = `SOURCE_ID=${chunk.sourceId}\nTITLE=${chunk.title}\nCHUNK=${chunk.index + 1}/${chunk.total}\n<<<\n${chunk.text}\n>>>`;
+    try {
+      const raw = await client.request(
+        instructions,
+        input,
+        inventorySchema,
+        "concept_inventory",
+      );
+      const discovered = parseConcepts(raw).map((concept) => ({
+        ...concept,
+        provenance: { ...concept.provenance, sourceId: chunk.sourceId },
+        prerequisites: [],
+        related: [],
+      }));
+      candidates.push(...discovered);
+    } catch (error) {
+      console.warn(
+        `Inventory chunk ${chunk.index + 1}/${chunk.total} for ${chunk.sourceId} failed; skipping: ${String(error)}`,
+      );
+    }
+  }
+
+  const grounded = groundInventory(candidates, sources, []);
+  return await dedupeCandidates(grounded, client);
+}
+
+function wouldCreatePrerequisiteCycle(
+  adjacency: Map<string, Set<string>>,
+  from: string,
+  to: string,
+): boolean {
+  const seen = new Set<string>();
+  const pending = [to];
+  while (pending.length > 0) {
+    const id = pending.pop() as string;
+    if (id === from) return true;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    pending.push(...(adjacency.get(id) ?? []));
+  }
+  return false;
+}
+
+export async function discoverRelationships(
+  client: ResponsesClient,
+  inventory: AtomizedConcept[],
+): Promise<AtomizedConcept[]> {
+  const concepts = inventory.map((concept) => ({
+    ...concept,
+    prerequisites: [...concept.prerequisites],
+    related: [...concept.related],
+  }));
+  const compactInventory = concepts.map(({ id, title, summary }) => ({ id, title, summary }));
+  const instructions =
+    "Infer a prerequisite DAG over the complete frozen concept inventory. Return only directed edges " +
+    "where from must be learned before to. Use only listed IDs, never emit self-loops, and never mint an ID.";
+
+  let raw: JsonObject;
+  try {
+    raw = await client.request(
+      instructions,
+      `Frozen concept inventory:\n${JSON.stringify(compactInventory)}`,
+      edgeListSchema,
+      "concept_relationship_edges",
+    );
+  } catch (error) {
+    console.warn(`Relationship discovery failed; continuing without discovered edges: ${String(error)}`);
+    return concepts;
+  }
+
+  if (!Array.isArray(raw.edges)) {
+    console.warn("Relationship discovery returned no edge array; continuing without discovered edges.");
+    return concepts;
+  }
+
+  const byId = new Map(concepts.map((concept) => [concept.id, concept]));
+  const adjacency = new Map<string, Set<string>>();
+  for (const concept of concepts) {
+    for (const prerequisite of concept.prerequisites) {
+      if (!byId.has(prerequisite) || prerequisite === concept.id) continue;
+      const next = adjacency.get(prerequisite) ?? new Set<string>();
+      next.add(concept.id);
+      adjacency.set(prerequisite, next);
+    }
+  }
+
+  for (const [index, edge] of raw.edges.entries()) {
+    if (!isObject(edge) || typeof edge.from !== "string" || typeof edge.to !== "string") {
+      console.warn(`Relationship edge ${index + 1} was malformed; dropping it.`);
+      continue;
+    }
+    const from = edge.from;
+    const to = edge.to;
+    if (!byId.has(from) || !byId.has(to)) {
+      console.warn(`Relationship edge ${from} -> ${to} names an unknown concept; dropping it.`);
+      continue;
+    }
+    if (from === to) {
+      console.warn(`Relationship edge ${from} -> ${to} is a self-loop; dropping it.`);
+      continue;
+    }
+    if (wouldCreatePrerequisiteCycle(adjacency, from, to)) {
+      console.warn(`Relationship edge ${from} -> ${to} would create a cycle; dropping it.`);
+      continue;
+    }
+
+    const target = byId.get(to)!;
+    if (!target.prerequisites.includes(from)) target.prerequisites.push(from);
+    const next = adjacency.get(from) ?? new Set<string>();
+    next.add(to);
+    adjacency.set(from, next);
+  }
+  return concepts;
 }
 
 /** Deterministically retain the full product inventory and force every pinned source assignment. */
@@ -402,7 +1148,7 @@ ${sourcePrompt(sources)}`;
   let lastError: unknown;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      const raw = await client.request(instructions, input, inventorySchema, "concept_inventory");
+      const raw = await client.request(instructions, input, pinnedInventorySchema, "concept_inventory");
       const proposed = parseConcepts(raw);
       for (const requiredId of requiredIds) {
         const concept = proposed.find((candidate) => candidate.id.trim().toLowerCase() === requiredId);
@@ -622,8 +1368,12 @@ export async function main(args: readonly string[] = process.argv.slice(2)): Pro
   const structure = options.noSpine ? undefined : FULL_GRAPH_SPINE;
   const spine = structure?.path ?? [];
   const requiredIds = structure?.concepts.map(({ id }) => id) ?? [];
-  const inventory = await inventoryPhase(client, sources, requiredIds, false, structure);
-  const atomized = await relationshipPhase(client, inventory, spine, structure);
+  const inventory = structure
+    ? await inventoryPhase(client, sources, requiredIds, false, structure)
+    : await discoverInventory(client, sources);
+  const atomized = structure
+    ? await relationshipPhase(client, inventory, spine, structure)
+    : await discoverRelationships(client, inventory);
   const goalId = options.noSpine ? selectUnpinnedGoal(atomized) : FULL_GRAPH_SPINE.goalId;
   const initialGraph = buildGraph(atomized, sources, goalId, options.noSpine);
   const expectedSources: ExpectedSource[] = sources.map((source) => ({ ...source }));
