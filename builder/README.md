@@ -1,38 +1,78 @@
-# Local course builder
+# Local BYOK teacher-builder
 
-This is a loopback-only GUI around the repository's existing atomizer. It is deliberately outside
-the main reader build and outside the shipped-bundle scan boundary.
+The teacher-builder turns source text you own into a self-contained, one-file course. It runs on
+your computer, sends the text only to the model provider you choose during the build, and produces
+an HTML file that can be opened locally or shared with learners. The builder is separate from the
+repository's prebuilt reader.
 
-## Start it
+## Prerequisites and installation
+
+- Node.js 22 or newer
+- macOS, Linux, or Windows
+- An API key for one of the supported model providers
+
+After cloning or downloading this repository, install its dependencies once from the repository
+root. Node.js 22 includes Corepack; if `pnpm` is not already available, enable it first.
+
+```sh
+corepack enable
+pnpm install
+```
+
+## Start the builder
 
 From the repository root:
 
 ```sh
-pnpm --dir builder start
+cd builder && node server.mjs
 ```
 
-The default browser opens `http://127.0.0.1:4179`. Paste plain text you own, add a title and author,
-choose OpenAI, Anthropic, or an OpenAI-compatible endpoint, enter that provider's model and API key,
-affirm the CC0 owned-content statement, and choose **BUILD MY OFFLINE COURSE**. Keep the terminal
-window open while it builds. The finished course opens in a new browser tab; **SAVE THE ONE FILE**
-downloads the same self-contained HTML. Use a high-quality model: the material is educational and a
-one-time build costs only cents.
+The terminal prints a local URL, normally `http://127.0.0.1:4179`, and usually opens it in your
+default browser. Keep the terminal running while you build and view the course. Stop the builder
+with **Control-C**.
 
-The API key is passed to the existing `src/atomization/atomize.ts` process only through its
-environment. It is never placed on a command line, logged, or written to disk. All provider calls
-remain server-side. OpenAI uses the existing Responses path; Anthropic requests are adapted to the
-Messages API with plain Node `fetch`; compatible endpoints use their `/chat/completions` route at
-the selected base URL. Source, manifest, generated graph, and course output live in a system
-temporary directory and are removed when the builder server stops. The one-file course contains the
-pasted source by design.
+## Build a course
 
-## Offline test
+No command-line knowledge is needed after the builder starts:
+
+1. Open the localhost URL printed in the terminal.
+2. Paste text that you own and are allowed to embed in the generated course.
+3. Choose a provider and model, then paste your own provider API key.
+4. Complete the title, author, and owned-content confirmation.
+5. Click **BUILD MY OFFLINE COURSE**.
+6. When the build finishes, click **OPEN COURSE** or **SAVE THE ONE FILE** to download the
+   self-contained HTML course.
+
+A build makes model API calls billed by your chosen provider.
+
+## Supported providers
+
+- OpenAI
+- Anthropic
+- Any OpenAI-compatible endpoint: enter its base URL, model ID, and API key. The endpoint must
+  provide an OpenAI-compatible `/chat/completions` route.
+
+Provider requests are made by the local Node server, never by browser code. Your API key is held
+server-side in memory only for the current build, then discarded. It is never logged, written to
+disk, placed on a command line, or embedded in the generated course.
+
+## Supported platforms
+
+The local builder supports macOS, Linux, and Windows with Node.js 22 or newer. It uses the same
+localhost interface and run command on each platform.
+
+## Test access
+
+There is no hosted instance or shared test account to request. Reviewers run the builder locally
+and bring their own provider API key (BYOK); no project-owned key is required.
+
+To exercise the builder without a provider key or network call, run its offline test from the
+repository root:
 
 ```sh
 pnpm --dir builder test
 ```
 
-This uses `src/graph/fixture-graph.ts` through a mocked atomizer seam. It makes no model or network
-call, builds the real reader against that fixture in a temporary output directory, verifies the
-single-file artifact, and asserts provider-specific sentinel API keys appear in neither captured
-output nor any temporary file.
+The test uses the repository's labelled fixture graph through a mocked atomizer seam. It builds the
+real one-file reader in a temporary directory and verifies that provider-specific sentinel keys are
+not exposed in output or temporary files.
