@@ -1,6 +1,7 @@
 import { useEffect, useId, useReducer, useRef, type RefObject } from "react";
 import type { ResolvedPassage } from "./model";
 import { sourceProse } from "./sourceProse";
+import { MathText } from "./MathText";
 
 const licenseUrls: Record<string, string> = {
   "CC-BY-4.0": "https://creativecommons.org/licenses/by/4.0/",
@@ -48,16 +49,16 @@ export function Passage({ passage, quote }: { passage: string; quote: string }) 
   const prose = sourceProse(passage);
   const cited = sourceProse(quote);
   const at = prose.indexOf(cited);
-  if (at < 0) return <>{prose}</>;
+  if (at < 0) return <MathText text={prose} />;
   return (
     <>
-      {prose.slice(0, at)}
+      <MathText text={prose.slice(0, at)} />
       <mark>
         <span className="sr-only">Begin words copied from the source: </span>
-        {cited}
+        <MathText text={cited} />
         <span className="sr-only"> End copied words.</span>
       </mark>
-      {prose.slice(at + cited.length)}
+      <MathText text={prose.slice(at + cited.length)} />
     </>
   );
 }

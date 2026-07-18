@@ -34,7 +34,10 @@ const javascriptResourceElement = new RegExp(
   "iu",
 );
 const cssImport = new RegExp(["@im", "port\\s"].join(""), "iu");
-const cssUrl = new RegExp(["\\bur", "l\\s*\\("].join(""), "iu");
+// url( with anything but an inline data: URI. Inlined data is the single-file mechanism for
+// KaTeX fonts: it references no second file and can start no network load, which is the
+// property this gate exists to hold. Everything else url() can name stays a violation.
+const cssUrl = new RegExp(["\\bur", "l\\s*\\(\\s*[\"'\\u0060]?\\s*(?!data:)"].join(""), "iu");
 
 function artifactEntries(directory: string, parent = ""): string[] {
   return readdirSync(resolve(directory, parent), { withFileTypes: true }).flatMap((entry) => {

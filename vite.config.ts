@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { katexWoff2Only, inlineFontAssets } from "./scripts/vite-plugin-katex-woff2";
 import { loadGraph } from "./src/graph/load";
 import { loadRenderings } from "./src/graph/load";
 import { loadCourseReceipt } from "./src/graph/load";
@@ -17,11 +18,12 @@ export default defineConfig({
   // white. If this app is ever moved to a user page or a custom domain (i.e. served from
   // the root), set this back to "/".
   base: "/atomic-learning-graph/",
-  plugins: [react()],
+  plugins: [react(), katexWoff2Only()],
   build: {
     // This single-chunk app has nothing to module-preload. Omitting Vite's
     // compatibility polyfill also keeps `fetch` out of the browser bundle.
     modulePreload: { polyfill: false },
+    assetsInlineLimit: inlineFontAssets,
   },
   define: {
     __LEARNING_GRAPH__: JSON.stringify(graph),

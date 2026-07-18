@@ -61,8 +61,11 @@ const remoteCssUrl = new RegExp(
   `url\\(\\s*${quote}?\\s*${remotePrefix}`,
   "iu",
 );
+// Anchored to url() targets: a base64 data: payload legitimately contains "//" (the alphabet
+// includes "/"), so scanning the whole src value false-positives on inlined fonts. A remote font
+// must appear as a url() target, and that position is what this matches.
 const remoteFontFaceSource = new RegExp(
-  `@font-face\\b[^}]*\\bsrc\\s*:[^}]*${remotePrefix}`,
+  `@font-face\\b[^}]*\\bsrc\\s*:[^}]*\\burl\\(\\s*${quote}?\\s*${remotePrefix}`,
   "isu",
 );
 

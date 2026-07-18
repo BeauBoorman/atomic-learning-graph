@@ -22,7 +22,9 @@ export function verifyCourse(directory) {
   if (/<\s*(?:base|link|script|img|iframe|audio|video|source|track|embed|input|object)\b[^>]*\b(?:href|src|srcset|poster|data)\s*=/iu.test(html)) {
     problems.push("contains a resource-loading HTML reference");
   }
-  if (/@import\s|\burl\s*\(/iu.test(html)) problems.push("contains a CSS resource reference");
+  // data: URIs are inline bytes (KaTeX fonts), not a resource reference; all other url() forms
+  // and every @import remain violations.
+  if (/@import\s|\burl\s*\(\s*["'`]?\s*(?!data:)/iu.test(html)) problems.push("contains a CSS resource reference");
   for (const parts of [["fet", "ch("], ["XML", "HttpRequest"], ["Web", "Socket"], ["Event", "Source"], ["send", "Beacon"], ["open", "ai"]]) {
     if (html.toLowerCase().includes(parts.join("").toLowerCase())) problems.push(`contains ${parts.join("")} network client`);
   }
