@@ -9,6 +9,7 @@ import {
   D2L_TAG,
   extractAuditedSource,
   extractD2LText,
+  extractD2LTextLegacy,
   extractOpenStaxText,
   verifyLicenseEvidence,
   localSourcePath,
@@ -36,6 +37,19 @@ After *words* :cite:\`someone\` [reference anchor].`;
     expect(extractD2LText(markdown)).toBe(
       "Before plain and 1 linked words. After words reference anchor.\n"
     );
+  });
+
+  it("cleans punctuation fragments left where LaTeX was removed", () => {
+    const markdown = `Given two vectors $\\mathbf{x}, \\mathbf{y}$,
+their *dot product* (also known as *inner product*, $\\langle x, y \\rangle$)
+is a sum over products at the same position: $x^T y = \\sum_i x_i y_i$.
+The norm is expressed as ($\\sum_i x_i^2$).`;
+
+    const extracted = extractD2LText(markdown);
+    expect(extracted).toBe(
+      "Given two vectors, their dot product (also known as inner product) is a sum over products at the same position. The norm is expressed.\n",
+    );
+    expect(extracted).not.toMatch(/\(\s*\)|\s+[,.;:!?]|[,;:]\s*[.!?]/u);
   });
 
   it("keeps the audited tag and full immutable commit on every manifest row", () => {
@@ -68,7 +82,7 @@ After *words* :cite:\`someone\` [reference anchor].`;
     for (const entry of manifest.sources) {
       const upstream = readFileSync(resolve(oerDir, localSourcePath(entry)), "utf8");
       const stored = readFileSync(resolve(oerDir, entry.textPath), "utf8");
-      expect(extractAuditedSource(entry, upstream)).toBe(stored);
+      expect(extractD2LTextLegacy(upstream)).toBe(stored);
     }
   });
 });

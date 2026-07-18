@@ -35,14 +35,47 @@ describe("unpinned source chunking", () => {
     expect(chunks.join("\n\n")).toBe(passages.join("\n\n"));
   });
 
-  it("ships one oversized passage whole instead of splitting it", () => {
-    const oversized = `${"Long sentence material ".repeat(8).trim()}.`;
+  it("ships one modestly oversized passage whole when it remains under the hard ceiling", () => {
+    const oversized = `${"Long sentence material ".repeat(5).trim()}.`;
     expect(chunkSourceText(oversized, 40)).toEqual([oversized]);
+  });
+
+  it("bounds an indivisible top-level passage at the four-times hard ceiling", () => {
+    const chunks = chunkSourceText("x".repeat(100_000), 100);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(Math.max(...chunks.map((chunk) => chunk.length))).toBeLessThanOrEqual(400);
+    expect(chunks.join("")).toBe("x".repeat(100_000));
+  });
+
+  it("recognizes sentence boundaries followed by closing quotation marks", () => {
+    const text = "“Sentence one.” “Sentence two.” ".repeat(1_000).trim();
+    const chunks = chunkSourceText(text, 100);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(Math.max(...chunks.map((chunk) => chunk.length))).toBeLessThanOrEqual(400);
+    expect(chunks.every((chunk) => text.includes(chunk))).toBe(true);
   });
 
   it("returns one chunk for empty and short input", () => {
     expect(chunkSourceText("")).toEqual([""]);
     expect(chunkSourceText("One short passage.")).toEqual(["One short passage."]);
+  });
+
+  it("chunks a large single-blob multi-sentence source in near-linear time", () => {
+    // Regression: the balance guard used to rescan the whole undivided range per candidate cut,
+    // making dense no-paragraph text quadratic (~2.4s at 200KB, minutes at 1.5MB). 600KB must now
+    // chunk well inside the bound; under the quadratic scan this same input takes >20s.
+    const sentence =
+      "The quick study of dense prose (with a parenthetical aside) continues without a paragraph break. ";
+    const blob = sentence.repeat(Math.ceil(600_000 / sentence.length)).trim();
+    const startedAt = performance.now();
+    const chunks = chunkSourceText(blob);
+    const elapsedMs = performance.now() - startedAt;
+
+    expect(chunks.length).toBeGreaterThan(20);
+    expect(chunks.every((chunk) => blob.includes(chunk))).toBe(true);
+    expect(elapsedMs).toBeLessThan(5_000);
   });
 
   it("plans every chunk from every source in manifest order", () => {
@@ -158,6 +191,13 @@ describe("unpinned source chunking", () => {
       .toBe(false);
   });
 
+  it("does not treat a heading-like line inside fenced code as a hard boundary", () => {
+    const fence = "```python\n# comment inside code\nprint(42)\n```";
+    const text = `Before.\n\n${fence}\n\nAfter.`;
+
+    expect(chunkSourceText(text, 1_000)).toEqual([text]);
+  });
+
   it("suppresses abbreviation, initial, decimal, and diagnostic-code false boundaries", () => {
     const first = "See Fig. 2 and Dr. A. Smith et al. 2020.";
     const second = "New sentence uses p < 0.05 and code F32.1.";
@@ -216,6 +256,19 @@ describe("unpinned source chunking", () => {
     expect(chunks.length).toBeGreaterThan(1);
     expect(Math.max(...chunks.map((chunk) => chunk.length))).toBeLessThanOrEqual(80);
     expect(chunks.every((chunk) => text.includes(chunk))).toBe(true);
+  });
+
+  it("never cuts between UTF-16 surrogate halves when hard-slicing prose", () => {
+    for (const [text, size] of [
+      [`${"a".repeat(9)}😀${"b".repeat(30)}`, 10],
+      ["😀".repeat(3), 1],
+    ] as const) {
+      const chunks = chunkSourceText(text, size);
+      expect(chunks.join("")).toBe(text);
+      expect(Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)))).toEqual(Buffer.from(text));
+      expect(chunks.every((chunk) => !/[\uD800-\uDBFF]$/u.test(chunk))).toBe(true);
+      expect(chunks.every((chunk) => !/^[\uDC00-\uDFFF]/u.test(chunk))).toBe(true);
+    }
   });
 
   it("rejects edge-only boundaries and terminates without empty chunks", () => {
@@ -314,6 +367,111 @@ describe("unpinned inventory title dedupe", () => {
     } finally {
       log.mockRestore();
     }
+  });
+
+  it("preserves the same stable ID from different sources until the semantic judge", async () => {
+    const sources: Source[] = [
+      {
+        id: "islam-source",
+        title: "Islam source",
+        license: "CC0-1.0",
+        author: "Test",
+        text: "Muslims perform ritual prayer at prescribed times each day as a central act of worship.",
+      },
+      {
+        id: "christian-source",
+        title: "Christian source",
+        license: "CC0-1.0",
+        author: "Test",
+        text: "Christians offer prayer through Jesus using words and patterns taught within their tradition.",
+      },
+    ];
+    const request = vi.fn().mockImplementation(
+      async (_instructions: string, input: string, _schema: unknown, schemaName: string) => {
+        if (schemaName === "concept_inventory") {
+          const islam = input.includes("SOURCE_ID=islam-source");
+          return {
+            concepts: [{
+              id: "prayer",
+              title: islam ? "Prayer in Islam" : "Prayer in Christianity",
+              summary: islam ? "Islamic ritual prayer." : "Christian prayer practice.",
+              provenance: { sourceId: "ignored", quotedText: islam ? sources[0].text : sources[1].text },
+              tags: [islam ? "islam" : "christianity"],
+              prerequisites: [],
+              related: [],
+            }],
+          };
+        }
+        if (schemaName === "dedupe_pair_sweep") return { pairs: [{ a: 0, b: 1 }] };
+        return {
+          groups: [
+            { indices: [0], reason: "Islamic treatment" },
+            { indices: [1], reason: "Christian treatment" },
+          ],
+        };
+      },
+    );
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    try {
+      const discovered = await discoverInventory(
+        { request } as unknown as ResponsesClient,
+        sources,
+      );
+      expect(discovered).toHaveLength(2);
+      expect(discovered.map(({ provenance }) => provenance.sourceId).sort()).toEqual([
+        "christian-source",
+        "islam-source",
+      ]);
+      expect(request).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.any(Object),
+        "dedupe_partition",
+      );
+    } finally {
+      log.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  it("grounds candidates before same-source title dedupe so an invalid first candidate cannot shadow a valid one", async () => {
+    const source: Source = {
+      id: "lesson",
+      title: "Lesson",
+      license: "CC0-1.0",
+      author: "Test",
+      text: "Self attention combines information from tokens in a substantial grounded source sentence.",
+    };
+    const request = vi.fn().mockResolvedValue({
+      concepts: [
+        {
+          id: "bad",
+          title: "Self attention",
+          summary: "Invalid candidate.",
+          provenance: { sourceId: "lesson", quotedText: "This quote is absent." },
+          tags: [],
+          prerequisites: [],
+          related: [],
+        },
+        {
+          id: "good",
+          title: "Self attention",
+          summary: "Grounded candidate.",
+          provenance: { sourceId: "lesson", quotedText: source.text },
+          tags: [],
+          prerequisites: [],
+          related: [],
+        },
+      ],
+    });
+
+    const discovered = await discoverInventory(
+      { request } as unknown as ResponsesClient,
+      [source],
+    );
+    expect(discovered.map(({ id }) => id)).toEqual(["good"]);
   });
 });
 

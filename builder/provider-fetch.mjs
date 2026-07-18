@@ -99,7 +99,7 @@ export function normalizeCompatibleBaseUrl(value) {
   return url.href;
 }
 
-async function anthropicResponse({ body, headers, model, fetchImpl }) {
+async function anthropicResponse({ body, headers, model, fetchImpl, signal }) {
   const secret = readBearerSecret(headers);
   const format = structuredFormat(body);
   const requestBody = {
@@ -117,6 +117,7 @@ async function anthropicResponse({ body, headers, model, fetchImpl }) {
       "x-api-key": secret,
     },
     body: JSON.stringify(requestBody),
+    signal,
   });
   if (!response.ok) return redactedFailure(response, secret);
   const raw = await response.json();
@@ -126,7 +127,7 @@ async function anthropicResponse({ body, headers, model, fetchImpl }) {
   return jsonResponse(responseEnvelope({ id: raw.id, model: raw.model ?? model, text, usage }));
 }
 
-async function compatibleResponse({ body, headers, model, baseUrl, fetchImpl }) {
+async function compatibleResponse({ body, headers, model, baseUrl, fetchImpl, signal }) {
   const secret = readBearerSecret(headers);
   const format = structuredFormat(body);
   const requestHeaders = {
@@ -156,6 +157,7 @@ async function compatibleResponse({ body, headers, model, baseUrl, fetchImpl }) 
     method: "POST",
     headers: requestHeaders,
     body: JSON.stringify(requestBody),
+    signal,
   });
   if (!response.ok) return redactedFailure(response, secret);
   const raw = await response.json();
@@ -187,8 +189,8 @@ export function createProviderFetch({ provider, model, baseUrl, fetchImpl = glob
     const body = parseEngineRequest(init);
     const headers = init.headers ?? {};
     return provider === "anthropic"
-      ? anthropicResponse({ body, headers, model, fetchImpl })
-      : compatibleResponse({ body, headers, model, baseUrl: compatibleBaseUrl, fetchImpl });
+      ? anthropicResponse({ body, headers, model, fetchImpl, signal: init.signal })
+      : compatibleResponse({ body, headers, model, baseUrl: compatibleBaseUrl, fetchImpl, signal: init.signal });
   };
 }
 

@@ -157,8 +157,7 @@ function removeDirectiveBlocks(markdown: string): string {
   return kept.join("\n");
 }
 
-/** The exact §5.1 Markdown-to-ground-truth extraction transform. */
-export function extractD2LText(markdown: string): string {
+function extractD2LTextVersion(markdown: string, cleanMathPunctuation: boolean): string {
   let text = removeDirectiveBlocks(markdown);
 
   text = text.replace(/\$\$[\s\S]*?\$\$/gu, " ");
@@ -174,8 +173,31 @@ export function extractD2LText(markdown: string): string {
   text = text.replace(/!?\[([^\]]*)\]\([^)]*\)/gu, "$1");
   text = text.replace(/\[([^\]]*)\]/gu, "$1");
   text = text.replace(/\*\*|\*|`|~~/gu, "");
+  if (cleanMathPunctuation) {
+    // Removing formulae must not leave citation-shaped prose with empty parentheses or punctuation
+    // fragments such as "vectors ,", "inner product, )", or "position: .". The deterministic
+    // cleanup deletes punctuation and empty syntax; it never invents replacement source prose.
+    text = text.replace(/\(\s*\)/gu, " ");
+    text = text.replace(/,\s*\)/gu, ")");
+    text = text.replace(/\b(?:as|where|via)\s+(?=[.!?])/giu, "");
+    text = text.replace(/[,;:]\s*(?=[.!?])/gu, "");
+    text = text.replace(/\s+([,.;!?])/gu, "$1");
+    text = text.replace(/([,;])(?:\s*\1)+/gu, "$1");
+    text = text.replace(/,\s*(?:and|or)\s*(?=[.)])/giu, "");
+    text = text.replace(/\(\s*e\.g\.\s*\)/giu, " ");
+  }
 
   return `${text.replace(/\s+/gu, " ").trim()}\n`;
+}
+
+/** Forward extraction transform for the next authorized corpus + graph re-pin. */
+export function extractD2LText(markdown: string): string {
+  return extractD2LTextVersion(markdown, true);
+}
+
+/** Receipt compatibility only: verifies the corpus bytes used by the currently committed graph. */
+export function extractD2LTextLegacy(markdown: string): string {
+  return extractD2LTextVersion(markdown, false);
 }
 
 async function checkedFetch(url: string): Promise<Response> {

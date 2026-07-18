@@ -77,7 +77,7 @@ function makeConcept(overrides: {
 }
 
 describe("dedupeCandidates on the world-religions north star", () => {
-  it("merges same-idea candidates and NEVER collapses doctrine pairs", async () => {
+  it("merges same-idea candidates while doctrine pairs remain instructed, guarded, and regression-tested", async () => {
     silence();
     const { client } = oracleClient();
     const merged = await dedupeCandidates(northStarCandidates, client);
@@ -202,7 +202,7 @@ describe("doctrine collapse regressions (adversarially found, deterministic path
     ],
   ];
 
-  it("never merges doctrine pairs without a client (no deterministic merge path exists)", async () => {
+  it("does not merge doctrine pairs without a client (no deterministic merge path exists)", async () => {
     const { warn } = silence();
     for (const pair of cases) {
       const merged = await dedupeCandidates([...pair]);
@@ -218,6 +218,62 @@ describe("doctrine collapse regressions (adversarially found, deterministic path
       expect(merged).toHaveLength(2);
     }
     expect(doctrineSource.id).toBe("theology-survey");
+  });
+
+  it("refuses a cross-source doctrine merge proposed by a lying judge", async () => {
+    const { warn } = silence();
+    const pair = [northStarCandidates[2], northStarCandidates[7]];
+    const request = vi.fn().mockImplementation(
+      async (_instructions: string, _input: string, _schema, schemaName: string) =>
+        schemaName === "dedupe_pair_sweep"
+          ? { pairs: [{ a: 0, b: 1 }] }
+          : { groups: [{ indices: [0, 1], reason: "both are fasting" }] },
+    );
+
+    const merged = await dedupeCandidates(
+      pair,
+      { request } as unknown as ResponsesClient,
+    );
+
+    expect(merged).toHaveLength(2);
+    expect(titles(merged)).toEqual(titles(pair));
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/cross-source merge guard/i));
+  });
+
+  it("refuses a SAME-source doctrine merge proposed by a lying judge", async () => {
+    // A combined-religions chapter is one source holding both doctrines; same-source is NOT safe.
+    const { warn } = silence();
+    const prayerIslam = makeConcept({
+      id: "prayer-in-islam",
+      title: "Prayer in Islam",
+      summary: "Muslims perform salat five times daily facing Mecca.",
+      sourceId: "world-religions",
+      quotedText: "Muslims perform the ritual prayer of salat five times each day while facing Mecca.",
+      tags: ["islam", "prayer"],
+    });
+    const prayerChristianity = makeConcept({
+      id: "prayer-in-christianity",
+      title: "Prayer in Christianity",
+      summary: "Christians pray following the model Jesus taught.",
+      sourceId: "world-religions",
+      quotedText: "Christians pray to God following the words that Jesus taught in the Lord's Prayer.",
+      tags: ["christianity", "prayer"],
+    });
+    const request = vi.fn().mockImplementation(
+      async (_instructions: string, _input: string, _schema, schemaName: string) =>
+        schemaName === "dedupe_pair_sweep"
+          ? { pairs: [{ a: 0, b: 1 }] }
+          : { groups: [{ indices: [0, 1], reason: "both are prayer" }] },
+    );
+
+    const merged = await dedupeCandidates(
+      [prayerIslam, prayerChristianity],
+      { request } as unknown as ResponsesClient,
+    );
+
+    expect(merged).toHaveLength(2);
+    expect(titles(merged)).toEqual(["Prayer in Islam", "Prayer in Christianity"]);
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/same-source merge guard/i));
   });
 });
 
@@ -336,6 +392,65 @@ describe("degraded and adversarial model behavior", () => {
     const merged = await dedupeCandidates(clash);
     expect(new Set(merged.map((concept) => concept.id)).size).toBe(2);
     expect(warn).toHaveBeenCalledWith(expect.stringMatching(/duplicate input id/i));
+  });
+
+  it("reserves existing suffixes while repairing duplicate input ids", async () => {
+    const { warn } = silence();
+    const clash = [
+      { ...northStarCandidates[3], id: "x" },
+      { ...northStarCandidates[8], id: "x-2" },
+      { ...northStarCandidates[9], id: "x" },
+    ];
+
+    const merged = await dedupeCandidates(clash);
+    expect(merged.map(({ id }) => id)).toEqual(["x", "x-2", "x-3"]);
+    expect(new Set(merged.map(({ id }) => id)).size).toBe(3);
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/duplicate input id/i));
+  });
+
+  it("uses pair-covering windows so distant true duplicates in a large cluster still meet", async () => {
+    silence();
+    const sharedQuote =
+      "A shared source paragraph contains enough grounded words to nominate every candidate for review.";
+    const candidates = [
+      "Axiom form",
+      ...Array.from({ length: 11 }, (_, index) => `Middle ${String(index + 1).padStart(2, "0")}`),
+      "Zeta restatement",
+    ].map((title, index) => makeConcept({
+      id: `candidate-${index}`,
+      title,
+      summary: index === 0 || index === 12
+        ? "The same vector norm definition."
+        : `Distinct concept ${index}.`,
+      sourceId: "one-source",
+      quotedText: sharedQuote,
+    }));
+    const request = vi.fn().mockImplementation(
+      async (_instructions: string, input: string, _schema, schemaName: string) => {
+        if (schemaName === "dedupe_pair_sweep") return { pairs: [] };
+        const payload = JSON.parse(input.slice(input.indexOf("\n") + 1)) as Array<{
+          index: number;
+          summary: string;
+        }>;
+        const duplicateIndices = payload
+          .filter(({ summary }) => summary === "The same vector norm definition.")
+          .map(({ index }) => index);
+        const duplicateSet = new Set(duplicateIndices);
+        const groups = [
+          ...(duplicateIndices.length > 0 ? [{ indices: duplicateIndices, reason: "same definition" }] : []),
+          ...payload
+            .filter(({ index }) => !duplicateSet.has(index))
+            .map(({ index }) => ({ indices: [index], reason: "distinct" })),
+        ];
+        return { groups };
+      },
+    );
+
+    const merged = await dedupeCandidates(
+      candidates,
+      { request } as unknown as ResponsesClient,
+    );
+    expect(merged.filter(({ summary }) => summary === "The same vector norm definition.")).toHaveLength(1);
   });
 });
 
