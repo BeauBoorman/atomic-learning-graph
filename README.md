@@ -97,14 +97,20 @@ Each negative test names the cheating implementation it kills. A `() => []` stub
 golden path, a substring shortcut, and a first-match source lookup each have a test built to catch
 them. That adversarial suite fenced Codex with executable constraints it could not talk past.
 
-Codex was the coding agent that wrote this repository in a phase-gated RED→GREEN run. The committed
+One model, `gpt-5.6-sol`, did two jobs here.
+
+As Codex, the coding agent, it wrote this repository in a phase-gated RED→GREEN run. The committed
 [`docs/kickoff-prompt.md`](docs/kickoff-prompt.md) is the collaboration record: it fixed the
 acceptance gates, resumed Codex phase by phase, and forbade weakening tests or hand-writing the
 graph.
 
-GPT-5.6 (`gpt-5.6-sol`) has a different role. It is the build-time atomizer inside the product. It
-produces candidate concepts, relationships, lessons, and analogies for deterministic validation. It
-never runs when a learner reads; the browser receives only committed artifacts.
+The same model is the build-time atomizer inside the product. It produces candidate concepts,
+relationships, lessons, and analogies for deterministic validation. That role never runs when a
+learner reads; the browser receives only committed artifacts.
+
+So `gpt-5.6-sol` both built the machine and is the intelligence the machine calls at build time, and
+in both roles the same discipline holds: it proposes, and gates that it cannot talk past decide what
+ships.
 
 ## Run it
 
