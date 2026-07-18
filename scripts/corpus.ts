@@ -157,15 +157,59 @@ function removeDirectiveBlocks(markdown: string): string {
   return kept.join("\n");
 }
 
-function extractD2LTextVersion(markdown: string, cleanMathPunctuation: boolean): string {
+function maskD2LMath(text: string): { masked: string; restore: (value: string) => string } {
+  const spans: string[] = [];
+  let masked = "";
+  let cursor = 0;
+
+  const escapedAt = (index: number): boolean => {
+    let slashes = 0;
+    for (let scan = index - 1; scan >= 0 && text[scan] === "\\"; scan -= 1) slashes += 1;
+    return slashes % 2 === 1;
+  };
+
+  while (cursor < text.length) {
+    if (text[cursor] !== "$" || escapedAt(cursor)) {
+      masked += text[cursor];
+      cursor += 1;
+      continue;
+    }
+    const delimiter = text.startsWith("$$", cursor) ? "$$" : "$";
+    let end = text.indexOf(delimiter, cursor + delimiter.length);
+    while (end !== -1 && escapedAt(end)) end = text.indexOf(delimiter, end + delimiter.length);
+    if (end === -1) {
+      masked += text[cursor];
+      cursor += 1;
+      continue;
+    }
+    end += delimiter.length;
+    const spanIndex = spans.push(text.slice(cursor, end)) - 1;
+    masked += `\uE000ALG_MATH_${spanIndex}\uE001`;
+    cursor = end;
+  }
+
+  return {
+    masked,
+    restore: (value) => value.replace(
+      /\uE000ALG_MATH_(\d+)\uE001/gu,
+      (_placeholder, index: string) => spans[Number(index)] ?? "",
+    ),
+  };
+}
+
+function extractD2LTextVersion(markdown: string, preserveMath: boolean): string {
   let text = removeDirectiveBlocks(markdown);
 
-  text = text.replace(/\$\$[\s\S]*?\$\$/gu, " ");
-  text = text.replace(/\$([^$]*?)\$/gu, (_match, inner: string) => {
-    const trimmed = inner.trim();
-    // A lone prose token such as `$1$` is preserved while its math markup is removed.
-    return /^[\p{L}\p{N}]+$/u.test(trimmed) ? trimmed : " ";
-  });
+  const math = preserveMath ? maskD2LMath(text) : undefined;
+  if (math) text = math.masked;
+  else {
+    text = text.replace(/\$\$[\s\S]*?\$\$/gu, " ");
+    text = text.replace(/\$([^$]*?)\$/gu, (_match, inner: string) => {
+      const trimmed = inner.trim();
+      // Legacy pin compatibility: `$1$` became `1`, while formulae were removed.
+      return /^[\p{L}\p{N}]+$/u.test(trimmed) ? trimmed : " ";
+    });
+  }
   text = text.replace(
     /:(?:cite|citet|label|eqlabel|eqref|width|numref):(?:`[^`]*`|[^\s]*)/gu,
     " "
@@ -173,21 +217,8 @@ function extractD2LTextVersion(markdown: string, cleanMathPunctuation: boolean):
   text = text.replace(/!?\[([^\]]*)\]\([^)]*\)/gu, "$1");
   text = text.replace(/\[([^\]]*)\]/gu, "$1");
   text = text.replace(/\*\*|\*|`|~~/gu, "");
-  if (cleanMathPunctuation) {
-    // Removing formulae must not leave citation-shaped prose with empty parentheses or punctuation
-    // fragments such as "vectors ,", "inner product, )", or "position: .". The deterministic
-    // cleanup deletes punctuation and empty syntax; it never invents replacement source prose.
-    text = text.replace(/\(\s*\)/gu, " ");
-    text = text.replace(/,\s*\)/gu, ")");
-    text = text.replace(/\b(?:as|where|via)\s+(?=[.!?])/giu, "");
-    text = text.replace(/[,;:]\s*(?=[.!?])/gu, "");
-    text = text.replace(/\s+([,.;!?])/gu, "$1");
-    text = text.replace(/([,;])(?:\s*\1)+/gu, "$1");
-    text = text.replace(/,\s*(?:and|or)\s*(?=[.)])/giu, "");
-    text = text.replace(/\(\s*e\.g\.\s*\)/giu, " ");
-  }
-
-  return `${text.replace(/\s+/gu, " ").trim()}\n`;
+  const collapsed = text.replace(/\s+/gu, " ").trim();
+  return `${math ? math.restore(collapsed) : collapsed}\n`;
 }
 
 /** Forward extraction transform for the next authorized corpus + graph re-pin. */

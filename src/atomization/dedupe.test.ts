@@ -137,7 +137,7 @@ describe("dedupeCandidates on the world-religions north star", () => {
   });
 
   it("merges the sweep-dependent salat pair even with no tags and a terse summary", async () => {
-    silence();
+    const { log } = silence();
     // Adversarially-found case: with tags stripped and a short summary, string nomination misses
     // this pair; only the model sweep can nominate it. Under the oracle it must merge.
     const bare = [
@@ -153,6 +153,10 @@ describe("dedupeCandidates on the world-religions north star", () => {
     ];
     const merged = await dedupeCandidates(bare, oracleClient().client);
     expect(merged).toHaveLength(1);
+    const proposalLog = log.mock.calls.flat().join("\n");
+    expect(proposalLog).toContain("fixture oracle");
+    expect(proposalLog).toContain(bare[0].id);
+    expect(proposalLog).toContain(bare[1].id);
   });
 });
 
@@ -221,7 +225,7 @@ describe("doctrine collapse regressions (adversarially found, deterministic path
   });
 
   it("refuses a cross-source doctrine merge proposed by a lying judge", async () => {
-    const { warn } = silence();
+    const { warn, log } = silence();
     const pair = [northStarCandidates[2], northStarCandidates[7]];
     const request = vi.fn().mockImplementation(
       async (_instructions: string, _input: string, _schema, schemaName: string) =>
@@ -238,6 +242,10 @@ describe("doctrine collapse regressions (adversarially found, deterministic path
     expect(merged).toHaveLength(2);
     expect(titles(merged)).toEqual(titles(pair));
     expect(warn).toHaveBeenCalledWith(expect.stringMatching(/cross-source merge guard/i));
+    const proposalLog = log.mock.calls.flat().join("\n");
+    expect(proposalLog).toContain("both are fasting");
+    expect(proposalLog).toContain(pair[0].id);
+    expect(proposalLog).toContain(pair[1].id);
   });
 
   it("refuses a SAME-source doctrine merge proposed by a lying judge", async () => {

@@ -78,6 +78,40 @@ describe("unpinned source chunking", () => {
     expect(elapsedMs).toBeLessThan(5_000);
   });
 
+  it("scales near-linearly as thousands of inline-math masks are added", () => {
+    const measure = (count: number): number => {
+      const text = Array.from(
+        { length: count },
+        (_, index) => `Term $x_{${index}}$ contributes to the running explanation.`,
+      ).join(" ");
+      const startedAt = performance.now();
+      chunkSourceText(text, 1_200);
+      return performance.now() - startedAt;
+    };
+
+    const smallMs = measure(1_000);
+    const largeMs = measure(4_000);
+
+    // Four times the masks should stay near four times the work. The former repeated linear scans
+    // and per-mask sorting grow roughly quadratically and exceed this deliberately generous band.
+    expect(largeMs).toBeLessThan(smallMs * 8 + 100);
+    expect(largeMs).toBeLessThan(5_000);
+  });
+
+  it("packs math-dense inline prose into few size-scale chunks instead of mask fragments", () => {
+    const size = 600;
+    const text = Array.from(
+      { length: 1_000 },
+      (_, index) => `Feature $x_{${index}}$ contributes one measured value to this explanation.`,
+    ).join(" ");
+    const chunks = chunkSourceText(text, size);
+    const sizeScale = Math.ceil(text.length / size);
+
+    expect(chunks.length).toBeLessThanOrEqual(sizeScale * 2);
+    expect(chunks.every((chunk) => text.includes(chunk))).toBe(true);
+    expect(chunks.every((chunk) => (chunk.match(/\$/gu)?.length ?? 0) % 2 === 0)).toBe(true);
+  });
+
   it("plans every chunk from every source in manifest order", () => {
     const sources: Source[] = [
       {

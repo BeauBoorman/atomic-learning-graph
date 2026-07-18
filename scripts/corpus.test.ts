@@ -16,12 +16,13 @@ import {
   type AuditedSourceEntry,
 } from "./corpus";
 import { verifyGoldenAnchors } from "./verify-anchors";
+import { invalidProvenance } from "../src/graph/invariants";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const oerDir = resolve(repoRoot, "data", "oer");
 
 describe("the pinned d2l extraction transform", () => {
-  it("removes executable, directive, math, role, and markup syntax deterministically", () => {
+  it("removes executable, directive, role, and markup syntax while preserving inline math verbatim", () => {
     const markdown = `Before **plain** $x + y$ and $1$ [linked words](https://example.test).
 
 \`\`\`{.python}
@@ -35,11 +36,11 @@ print("must disappear")
 After *words* :cite:\`someone\` [reference anchor].`;
 
     expect(extractD2LText(markdown)).toBe(
-      "Before plain and 1 linked words. After words reference anchor.\n"
+      "Before plain $x + y$ and $1$ linked words. After words reference anchor.\n"
     );
   });
 
-  it("cleans punctuation fragments left where LaTeX was removed", () => {
+  it("preserves formula punctuation because LaTeX is no longer stripped", () => {
     const markdown = `Given two vectors $\\mathbf{x}, \\mathbf{y}$,
 their *dot product* (also known as *inner product*, $\\langle x, y \\rangle$)
 is a sum over products at the same position: $x^T y = \\sum_i x_i y_i$.
@@ -47,9 +48,45 @@ The norm is expressed as ($\\sum_i x_i^2$).`;
 
     const extracted = extractD2LText(markdown);
     expect(extracted).toBe(
-      "Given two vectors, their dot product (also known as inner product) is a sum over products at the same position. The norm is expressed.\n",
+      "Given two vectors $\\mathbf{x}, \\mathbf{y}$, their dot product (also known as inner product, $\\langle x, y \\rangle$) is a sum over products at the same position: $x^T y = \\sum_i x_i y_i$. The norm is expressed as ($\\sum_i x_i^2$).\n",
     );
-    expect(extracted).not.toMatch(/\(\s*\)|\s+[,.;:!?]|[,;:]\s*[.!?]/u);
+  });
+
+  it("preserves display and inline LaTeX bytes through markdown cleanup", () => {
+    const display = "$$\n\\begin{aligned}\ns_i &= q^T k_i \\\\\np_i &= \\operatorname{softmax}(s_i)\n\\end{aligned}\n$$";
+    const inline = "$p_i = \\frac{e^{s_i}}{\\sum_j e^{s_j}}$";
+    const extracted = extractD2LText(`Before **math** ${display}\nAfter ${inline} exactly.`);
+
+    expect(extracted).toContain(display);
+    expect(extracted).toContain(inline);
+    expect(Buffer.from(extracted).includes(Buffer.from(display))).toBe(true);
+    expect(Buffer.from(extracted).includes(Buffer.from(inline))).toBe(true);
+  });
+
+  it("keeps a LaTeX-bearing quotedText byte-exact and valid under the provenance invariant", () => {
+    const quotedText = "The attention score $s_i = q^T k_i$ ranks each candidate key for selection.";
+    const sourceText = extractD2LText(`## Scores\n\n${quotedText}`);
+    const graph = {
+      sources: [{
+        id: "math-source",
+        title: "Math source",
+        license: "CC0-1.0",
+        author: "Test",
+        text: sourceText,
+      }],
+      concepts: [{
+        id: "attention-score",
+        title: "Attention score",
+        summary: "A score ranks candidate keys.",
+        provenance: { sourceId: "math-source", quotedText },
+        tags: [],
+      }],
+      edges: [],
+      goalId: "attention-score",
+    };
+
+    expect(Buffer.from(sourceText).includes(Buffer.from(quotedText))).toBe(true);
+    expect(invalidProvenance(graph)).toEqual([]);
   });
 
   it("keeps the audited tag and full immutable commit on every manifest row", () => {
