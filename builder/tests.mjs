@@ -13,6 +13,7 @@ import { createProviderFetch } from "./provider-fetch.mjs";
 import { createBuilderServer, sanitizeBuildFailure } from "./server.mjs";
 import { verifyCourse } from "./verify-course.mjs";
 import { estimateAtomizationCosts } from "../src/cost/estimator.ts";
+import { ResponsesClient } from "../src/atomization/client.ts";
 import { fixtureGraph, SOURCE_TEXT } from "../src/graph/fixture-graph.ts";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -215,6 +216,13 @@ test("Anthropic Messages adapter sends structured output server-side and redacts
   assert.equal(requests[0].init.headers.authorization, undefined);
   assert.deepEqual(requests[0].body.output_config.format, { type: "json_schema", schema: { type: "object" } });
   assert.equal(converted.output[0].content[0].text, "{\"ok\":true}");
+  assert.deepEqual(converted.usage, {
+    input_tokens: 0,
+    output_tokens: 0,
+    total_tokens: 0,
+    estimated: true,
+    estimate_reason: "provider-usage-unavailable",
+  });
 
   const failed = await providerFetch("https://api.openai.com/v1/responses", { method: "POST", headers, body: JSON.stringify(request) });
   assert.equal(JSON.stringify(await failed.json()).includes(secret), false, "Anthropic errors must redact the key");
@@ -252,9 +260,107 @@ test("OpenAI-compatible adapter uses the chosen base URL and redacts provider er
   assert.equal(requests[0].body.model, "trusted-model");
   assert.equal(requests[0].body.response_format.json_schema.name, "probe");
   assert.equal(converted.output[0].content[0].text, "{\"ok\":true}");
+  assert.deepEqual(converted.usage, {
+    input_tokens: 0,
+    output_tokens: 0,
+    total_tokens: 0,
+    estimated: true,
+    estimate_reason: "provider-usage-unavailable",
+  });
 
   const failed = await providerFetch("https://api.openai.com/v1/responses", { method: "POST", headers, body: JSON.stringify(request) });
   assert.equal(JSON.stringify(await failed.json()).includes(secret), false, "compatible-endpoint errors must redact the key");
+});
+
+for (const fixture of [
+  {
+    provider: "anthropic",
+    model: "claude-opus-4-8",
+    inputTokens: 17,
+    outputTokens: 5,
+    response: {
+      id: "msg_usage_fixture",
+      model: "claude-opus-4-8",
+      content: [{ type: "text", text: "{\"ok\":true}" }],
+      usage: { input_tokens: 17, output_tokens: 5 },
+    },
+  },
+  {
+    provider: "openai-compatible",
+    model: "trusted-model",
+    baseUrl: "http://127.0.0.1:11434/v1",
+    inputTokens: 19,
+    outputTokens: 7,
+    response: {
+      id: "chatcmpl_usage_fixture",
+      model: "trusted-model",
+      choices: [{ message: { role: "assistant", content: "{\"ok\":true}" } }],
+      usage: { prompt_tokens: 19, completion_tokens: 7, total_tokens: 26 },
+    },
+  },
+]) {
+  test(`${fixture.provider} response completes through real usage accounting`, { concurrency: false }, async () => {
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = createProviderFetch({
+        provider: fixture.provider,
+        model: fixture.model,
+        baseUrl: fixture.baseUrl,
+        fetchImpl: async () => Response.json(fixture.response),
+      });
+      const client = new ResponsesClient("provider-test-key");
+      client.model = fixture.model;
+
+      const result = await client.request(
+        "Return the object.",
+        "Set ok true.",
+        { type: "object" },
+        "provider_usage_probe",
+      );
+
+      assert.deepEqual(result, { ok: true });
+      assert.deepEqual(client.usageTokens, {
+        input: fixture.inputTokens,
+        output: fixture.outputTokens,
+        total: fixture.inputTokens + fixture.outputTokens,
+      });
+      assert.ok(client.usageTokens.total > 0, "provider usage must survive the adapter as a real billed total");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+}
+
+test("provider response without usage degrades through accounting with an explicit zero estimate", { concurrency: false }, async () => {
+  const originalFetch = globalThis.fetch;
+  const providerFetch = createProviderFetch({
+    provider: "anthropic",
+    model: "claude-opus-4-8",
+    fetchImpl: async () => Response.json({
+      id: "msg_missing_usage_fixture",
+      model: "claude-opus-4-8",
+      content: [{ type: "text", text: "{\"ok\":true}" }],
+    }),
+  });
+  try {
+    globalThis.fetch = async (...args) => {
+      const response = await providerFetch(...args);
+      const converted = await response.clone().json();
+      assert.equal(converted.usage.estimated, true);
+      assert.equal(converted.usage.estimate_reason, "provider-usage-unavailable");
+      return response;
+    };
+    const client = new ResponsesClient("provider-test-key");
+    client.model = "claude-opus-4-8";
+
+    assert.deepEqual(
+      await client.request("Return the object.", "Set ok true.", { type: "object" }, "missing_usage_probe"),
+      { ok: true },
+    );
+    assert.deepEqual(client.usageTokens, { input: 0, output: 0, total: 0 });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("provider input validation fails closed on unknown providers and unsafe endpoint configuration", () => {

@@ -11,10 +11,34 @@ function readBearerSecret(headers) {
   return authorization.replace(/^Bearer\s+/iu, "");
 }
 
-function responseEnvelope({ id, model, text }) {
+function billedTokenCount(value) {
+  return Number.isSafeInteger(value) && value >= 0 ? value : undefined;
+}
+
+function responseUsage(inputValue, outputValue) {
+  const inputTokens = billedTokenCount(inputValue);
+  const outputTokens = billedTokenCount(outputValue);
+  if (inputTokens === undefined || outputTokens === undefined) {
+    return {
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+      estimated: true,
+      estimate_reason: "provider-usage-unavailable",
+    };
+  }
+  return {
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+    total_tokens: inputTokens + outputTokens,
+  };
+}
+
+function responseEnvelope({ id, model, text, usage }) {
   return {
     id,
     model,
+    usage,
     output: [{
       type: "message",
       role: "assistant",
@@ -98,7 +122,8 @@ async function anthropicResponse({ body, headers, model, fetchImpl }) {
   const raw = await response.json();
   const text = raw?.content?.find((item) => item?.type === "text" && typeof item.text === "string")?.text;
   if (typeof text !== "string") throw new Error("Anthropic response contains no text content");
-  return jsonResponse(responseEnvelope({ id: raw.id, model: raw.model ?? model, text }));
+  const usage = responseUsage(raw?.usage?.input_tokens, raw?.usage?.output_tokens);
+  return jsonResponse(responseEnvelope({ id: raw.id, model: raw.model ?? model, text, usage }));
 }
 
 async function compatibleResponse({ body, headers, model, baseUrl, fetchImpl }) {
@@ -136,7 +161,11 @@ async function compatibleResponse({ body, headers, model, baseUrl, fetchImpl }) 
   const raw = await response.json();
   const text = raw?.choices?.[0]?.message?.content;
   if (typeof text !== "string") throw new Error("OpenAI-compatible response contains no message content");
-  return jsonResponse(responseEnvelope({ id: raw.id, model: raw.model ?? model, text }));
+  const usage = responseUsage(
+    raw?.usage?.prompt_tokens ?? raw?.usage?.input_tokens,
+    raw?.usage?.completion_tokens ?? raw?.usage?.output_tokens,
+  );
+  return jsonResponse(responseEnvelope({ id: raw.id, model: raw.model ?? model, text, usage }));
 }
 
 /** Adapt the existing engine's server-side Responses calls without changing the offline reader. */
