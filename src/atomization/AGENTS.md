@@ -56,17 +56,18 @@ camera as proof of atomicity. Do not promote it to a gate. It is the seed for a 
   pair a grounded prereq edge — so `getPath(graph, "self-attention")` routes through them in order.
   Reachability alone is not enough: `getPath` topo-sorts with a lexicographic tie-break, so the
   ORDER is only pinned when the direct chain edges exist. A reachable-but-misordered graph passes all
-  5 hard invariants yet fails `path.test.ts` at Gate 7 with no repair path — so the golden ORDER is
+  6 hard invariants yet fails `path.test.ts` at Gate 7 with no repair path — so the golden ORDER is
   part of the Gate-6 convergence condition, not a Gate-7 afterthought.
 
 ## Output contract
 
 - Write `<explicit --out-dir>/graph.json` **only after** the full Gate-6 convergence check passes.
   Replacing the committed demo requires `--out-dir data --overwrite-existing`. Convergence is
-  the **5 hard invariants PLUS the checks the generated-graph test block asserts** — reuse
+  the **6 hard invariants PLUS the checks the generated-graph test block asserts** — reuse
   `../graph/invariants.ts`; do not reimplement, do not ship a graph that fails them. The convergence
   set is:
   1. `hasCycle === false`, `danglingEdges === []`, `findOrphans === []`, `invalidProvenance === []`,
+     `duplicateConceptIds === []`, `duplicateSourceIds === []`,
      `pathExists(g, "self-attention") === true`;
   2. `getPath(g, "self-attention")` yields `vectors, dot-product, softmax, qkv, self-attention` as an
      **ordered subsequence** (the golden ORDER — see the Model contract);
@@ -102,7 +103,8 @@ back as the repair instruction. Deterministic-first, LLM-second:
 - **Orphan →** one scoped LLM call adding a prereq edge using ONLY the frozen ID set; still orphan
   after → drop the node.
 - **Provenance failure →** regenerate that node under the extractive constraint, or drop it.
-- **Duplicates →** dedupe on normalized title/ID in a pre-pass before edge building.
+- **Duplicates →** dedupe on normalized title/ID in a pre-pass before edge building; the runtime
+  identifier-uniqueness invariant fails closed if a duplicate survives or appears during a merge.
 
 **PROTECTED set — no repair step (dangling, cycle, or subgraph-drop) may delete these edges:**
 `{vectors→dot-product, dot-product→softmax, softmax→qkv, qkv→self-attention}` and the five golden

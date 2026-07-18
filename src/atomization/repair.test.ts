@@ -36,6 +36,25 @@ const extraConcept = (id: string): Concept => ({
 });
 
 describe("Gate-6 repair harness", () => {
+  it("rejects duplicate concept and source IDs as typed convergence issues", async () => {
+    const graph = clone(fixtureGraph);
+    graph.concepts.push(clone(fixtureGraph).concepts[2]);
+    graph.sources.push({ ...graph.sources[0] });
+
+    expect(convergenceIssues(graph, { minConcepts: 5 })).toContainEqual(
+      expect.objectContaining({
+        kind: "duplicate-id",
+        conceptIds: ["softmax"],
+        sourceIds: ["s1"],
+      }),
+    );
+    const duplicateConceptOnly = clone(fixtureGraph);
+    duplicateConceptOnly.concepts.push(clone(fixtureGraph).concepts[2]);
+    await expect(convergeGraph(duplicateConceptOnly, { minConcepts: 5 })).rejects.toBeInstanceOf(
+      GraphConvergenceError,
+    );
+  });
+
   it("drops a broken non-golden subgraph without dropping protected golden nodes or edges", async () => {
     const graph = clone(fixtureGraph);
     graph.concepts.push(extraConcept("junk"));

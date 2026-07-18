@@ -1,7 +1,9 @@
-import type { Concept, ConceptId, Edge, LearningGraph, LessonStep, Source } from "../types";
+import type { Concept, ConceptId, Edge, LearningGraph, LessonStep, Source, SourceId } from "../types";
 import { getPath } from "../graph/path";
 import {
   danglingEdges,
+  duplicateConceptIds,
+  duplicateSourceIds,
   findOrphans,
   hasCycle,
   invalidLessonCitations,
@@ -44,6 +46,7 @@ export class GraphConvergenceError extends Error {
 export type ConvergenceIssueKind =
   | "cycle"
   | "dangling"
+  | "duplicate-id"
   | "orphan"
   | "provenance"
   | "lesson-citation"
@@ -59,6 +62,7 @@ export interface ConvergenceIssue {
   kind: ConvergenceIssueKind;
   message: string;
   conceptIds?: ConceptId[];
+  sourceIds?: SourceId[];
   edges?: Edge[];
   lessonCitationIssues?: LessonCitationIssue[];
 }
@@ -264,6 +268,19 @@ export function convergenceIssues(
   const dangling = danglingEdges(graph);
   if (dangling.length > 0) {
     issues.push({ kind: "dangling", edges: dangling, message: `${dangling.length} dangling edges` });
+  }
+  const duplicateConcepts = duplicateConceptIds(graph);
+  const duplicateSources = duplicateSourceIds(graph);
+  if (duplicateConcepts.length > 0 || duplicateSources.length > 0) {
+    issues.push({
+      kind: "duplicate-id",
+      conceptIds: duplicateConcepts,
+      sourceIds: duplicateSources,
+      message: [
+        duplicateConcepts.length > 0 ? `concept IDs: ${duplicateConcepts.join(", ")}` : "",
+        duplicateSources.length > 0 ? `source IDs: ${duplicateSources.join(", ")}` : "",
+      ].filter(Boolean).join("; "),
+    });
   }
   if (hasCycle(graph)) {
     const cycle = findCycleEdges(graph);

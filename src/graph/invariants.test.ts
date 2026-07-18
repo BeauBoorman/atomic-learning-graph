@@ -22,6 +22,8 @@ import {
   hasCycle,
   findOrphans,
   danglingEdges,
+  duplicateConceptIds,
+  duplicateSourceIds,
   pathExists,
   invalidProvenance,
   invalidLessonCitations,
@@ -46,30 +48,84 @@ describe("invariant functions (fixture)", () => {
     for (const c of fixture.concepts) expect(isSingleConcept(c)).toBe(true);
   });
 
-  it("2. no orphan nodes (roots exempt)", () => {
+  it("1. no orphan nodes (roots exempt)", () => {
     expect(findOrphans(fixture)).toEqual([]);
   });
 
-  it("3. prerequisite graph is a DAG (no cycles)", () => {
+  it("2. prerequisite graph is a DAG (no cycles)", () => {
     expect(hasCycle(fixture)).toBe(false);
   });
 
-  it("4. the golden goal is reachable from a root", () => {
+  it("3. the golden goal is reachable from a root", () => {
     expect(pathExists(fixture, fixture.goalId)).toBe(true);
   });
 
-  it("5. all provenance is valid (every quote really occurs in its source)", () => {
+  it("4. all provenance is valid (every quote really occurs in its source)", () => {
     expect(invalidProvenance(fixture)).toEqual([]);
   });
 
-  it("6. no dangling edges", () => {
+  it("5. no dangling edges", () => {
     expect(danglingEdges(fixture)).toEqual([]);
+  });
+
+  it("6. concept and source IDs are unique", () => {
+    expect(duplicateConceptIds(fixture)).toEqual([]);
+    expect(duplicateSourceIds(fixture)).toEqual([]);
   });
 });
 
 // ---------------------------------------------------------------------------------------------
 // ADVERSARIAL — each test names the cheating implementation it exists to kill.
 // ---------------------------------------------------------------------------------------------
+
+describe("identifier uniqueness — teeth", () => {
+  // KILLS: relying on Set/Map lookups elsewhere to imply uniqueness. This duplicate is fully
+  // self-consistent and reuses connected edges, so every pre-existing structural proof stays green.
+  it("rejects a clean duplicate concept ID that passes the previous five hard invariants", () => {
+    const duplicateConcept: LearningGraph = {
+      ...fixture,
+      concepts: [
+        ...fixture.concepts,
+        structuredClone(fixture.concepts.find((concept) => concept.id === "softmax")!),
+      ],
+    };
+
+    expect(hasCycle(duplicateConcept)).toBe(false);
+    expect(findOrphans(duplicateConcept)).toEqual([]);
+    expect(danglingEdges(duplicateConcept)).toEqual([]);
+    expect(pathExists(duplicateConcept, duplicateConcept.goalId)).toBe(true);
+    expect(invalidProvenance(duplicateConcept)).toEqual([]);
+    expect(duplicateConceptIds(duplicateConcept)).toEqual(["softmax"]);
+  });
+
+  // A cited duplicate source is already rejected as ambiguous by invalidProvenance. This case uses
+  // an uncited ID to pin the broader structural rule: graph.sources itself must be uniquely keyed.
+  it("rejects duplicate source IDs even when no concept cites the ambiguous ID", () => {
+    const duplicateSource: LearningGraph = {
+      ...fixture,
+      sources: [
+        ...fixture.sources,
+        {
+          id: "unused-source",
+          title: "Unused source one",
+          license: "CC-BY-4.0",
+          author: "Fixture author",
+          text: "One source contains enough meaningful words to remain structurally well formed.",
+        },
+        {
+          id: "unused-source",
+          title: "Unused source two",
+          license: "CC-BY-4.0",
+          author: "Fixture author",
+          text: "Another source contains enough meaningful words to remain structurally well formed.",
+        },
+      ],
+    };
+
+    expect(invalidProvenance(duplicateSource)).toEqual([]);
+    expect(duplicateSourceIds(duplicateSource)).toEqual(["unused-source"]);
+  });
+});
 
 describe("isSingleConcept — teeth", () => {
   // KILLS: `() => true`. Every fixture summary is "single concept: X", so without a negative case
@@ -659,6 +715,8 @@ describe("generated data/graph.json", () => {
     const g = loadGraph();
     expect(hasCycle(g)).toBe(false);
     expect(danglingEdges(g)).toEqual([]);
+    expect(duplicateConceptIds(g)).toEqual([]);
+    expect(duplicateSourceIds(g)).toEqual([]);
   });
 
   it("has no orphans and valid provenance on every node", () => {

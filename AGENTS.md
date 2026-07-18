@@ -21,9 +21,10 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
   would then prove nothing.
 - **Provenance is quote-primary.** Validate `sourceId` + normalized `quotedText`. Offsets are HINTS
   and are NEVER validated — do not reintroduce an offset check; a test pins this.
-- **`isSingleConcept` is ADVISORY, not a gate (SETTLED 2026-07-15).** There are **5 hard
+- **`isSingleConcept` is ADVISORY, not a gate (SETTLED 2026-07-15).** There are **6 hard
   deterministic proof-invariants** (`hasCycle`, `findOrphans`, `danglingEdges`, `pathExists`,
-  `invalidProvenance`) **plus `isSingleConcept` as a build-time advisory enumeration reporter.**
+  `invalidProvenance`, identifier uniqueness via `duplicateConceptIds` / `duplicateSourceIds`)
+  **plus `isSingleConcept` as a build-time advisory enumeration reporter.**
   `isSingleConcept` and `reportAtomicityWarnings` must **never fail the build, never gate a phase,
   never gate the repair loop, and never appear in the hard-invariant fail set.** Never present the
   atomicity reporter on camera as proof of atomicity, and never promote it to a gate to make a demo

@@ -172,7 +172,7 @@ sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside th
 - `src/atomization/atomize.ts` — three-phase inventory, relationship, and cited-translation build.
 - `src/atomization/translate.ts` — strict lesson schema, anchored excerpts, quote repair, and floors.
 - `src/atomization/analogy.ts` — optional build-time analogies for the fixed interest set.
-- `src/graph/invariants.ts` — the five hard deterministic proof invariants.
+- `src/graph/invariants.ts` — the six hard deterministic proof invariants.
 - `src/graph/atomicity-report.ts` — an advisory-only concept atomicity reporter; never a gate.
 - `src/graph/path.ts` — deterministic prerequisite-ancestor walk with a stable tie-break.
 - `src/graph/load.ts` — fail-closed loader for the committed graph.

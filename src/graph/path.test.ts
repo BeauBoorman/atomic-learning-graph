@@ -45,6 +45,30 @@ describe("getPath — the ordered deterministic walk (fixture)", () => {
     }
   });
 
+  // KILLS: using concept/edge array order (or the wrong comparator) when Kahn's ready-set has
+  // multiple valid next nodes. The chain fixture never exercises this branch: its ready-set is
+  // always size one. Both independent roots below are ready immediately, so content-level
+  // determinism requires the lexicographically smaller ID regardless of serialized array order.
+  it("breaks ready-set ties lexicographically and is independent of input array order", () => {
+    const tied: LearningGraph = {
+      concepts: [concept("zebra"), concept("goal"), concept("alpha")],
+      edges: [
+        { from: "zebra", to: "goal", type: "prereq" },
+        { from: "alpha", to: "goal", type: "prereq" },
+      ],
+      sources: fixture.sources,
+      goalId: "goal",
+    };
+    const shuffled: LearningGraph = {
+      ...tied,
+      concepts: [...tied.concepts].reverse(),
+      edges: [...tied.edges].reverse(),
+    };
+
+    expect(getPath(tied, "goal")).toEqual(["alpha", "zebra", "goal"]);
+    expect(getPath(shuffled, "goal")).toEqual(getPath(tied, "goal"));
+  });
+
   // KILLS: returning every concept in the graph. The path is the goal's ancestor closure — a
   // concept the goal does not depend on is not on the route to it, however interesting it is.
   it("excludes concepts the goal does not depend on", () => {

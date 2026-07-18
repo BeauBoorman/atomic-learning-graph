@@ -2,9 +2,9 @@
 // `invariants.test.ts`; change the implementation when a test fails, never weaken the contract.
 //
 // HARD proof-invariants (fail-closed gates) + 1 ADVISORY reporter:
-//   HARD: no orphans (roots exempt) · prereq graph is a DAG · goal reachable from a root ·
-//         concept provenance valid · lesson-step citations valid · alternate-rendering citations
-//         valid · no dangling edges
+//   HARD: unique concept/source IDs · no orphans (roots exempt) · prereq graph is a DAG · goal
+//         reachable from a root · concept provenance valid · lesson-step citations valid ·
+//         alternate-rendering citations valid · no dangling edges
 //   ADVISORY (never gates the build): isSingleConcept — an enumeration detector, demoted 2026-07-15.
 //     See ROADMAP.md and the isSingleConcept docstring below.
 //
@@ -47,6 +47,7 @@ import type {
   LearningGraph,
   RenderingSet,
   Source,
+  SourceId,
 } from "../types";
 
 export interface LessonCitationIssue {
@@ -315,6 +316,39 @@ export function findOrphans(graph: LearningGraph): ConceptId[] {
   return graph.concepts.filter((concept) => !connected.has(concept.id)).map((concept) => concept.id);
 }
 
+function duplicateIds<T extends string>(ids: readonly T[]): T[] {
+  const seen = new Set<T>();
+  const duplicates = new Set<T>();
+  for (const id of ids) {
+    if (seen.has(id)) duplicates.add(id);
+    else seen.add(id);
+  }
+  return [...duplicates].sort((left, right) => left.localeCompare(right));
+}
+
+/**
+ * Concept IDs that resolve to more than one node, returned once each in lexicographic order.
+ *
+ * Every graph consumer treats a ConceptId as a unique key: `getPath`, edge resolution, rendering
+ * lookup, and UI selection all collapse concepts through sets/maps/find. A duplicate can therefore
+ * satisfy the other structural invariants while making `id -> concept` ambiguous. This runtime
+ * proof is deliberately separate from TypeScript's bare string alias: branding a string cannot
+ * prove uniqueness in parsed or merged graph data.
+ */
+export function duplicateConceptIds(graph: LearningGraph): ConceptId[] {
+  return duplicateIds(graph.concepts.map((concept) => concept.id));
+}
+
+/**
+ * Source IDs that resolve to more than one embedded document, returned once each in lexicographic
+ * order. `invalidProvenance` already rejects a concept that cites an ambiguous ID; this structural
+ * check also rejects ambiguous source keys that happen to be uncited. The manifest blocks the same
+ * condition at ingestion, while this invariant protects parsed and merged graph artifacts.
+ */
+export function duplicateSourceIds(graph: LearningGraph): SourceId[] {
+  return duplicateIds(graph.sources.map((source) => source.id));
+}
+
 /**
  * Edges whose `from` or `to` does not resolve to a concept in the graph.
  *
@@ -427,7 +461,7 @@ export function invalidProvenance(graph: LearningGraph): ConceptId[] {
 }
 
 /**
- * ✅ SETTLED (Beau, 2026-07-15) — KEPT but DEMOTED. This is NOT one of the 5 hard proof-invariants.
+ * ✅ SETTLED (Beau, 2026-07-15) — KEPT but DEMOTED. This is NOT one of the 6 hard proof-invariants.
  * It is a build-time ADVISORY enumeration reporter: it NEVER fails the build, NEVER gates a phase or
  * the repair loop, and is NEVER presented on camera as proof of atomicity. It stays in code, stays
  * under test, and is the SEED for a future embedding-/LLM-judge atomicity scorer. Nothing is deleted.
