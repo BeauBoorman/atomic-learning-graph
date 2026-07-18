@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ConceptId, LearningGraph, PassionId, RenderingSet } from "../types";
+import type { ConceptId, CourseReceipt, LearningGraph, PassionId, RenderingSet } from "../types";
 import { PASSION_IDS } from "../types";
 import { CompletionPage } from "./CompletionPage";
 import { Entry } from "./Entry";
 import { LessonPage } from "./LessonPage";
+import { ReceiptCard } from "./ReceiptCard";
 import { MapToggle } from "./MapToggle";
 import { StepIndicator } from "./StepIndicator";
 import {
@@ -23,6 +24,7 @@ import { titleFor } from "./titles";
 interface AppProps {
   graph: LearningGraph;
   renderings?: RenderingSet;
+  receipt?: CourseReceipt;
 }
 
 type Theme = "light" | "dark";
@@ -356,7 +358,7 @@ export function restartCourseState(
   return { key, pages: [] };
 }
 
-export function App({ graph, renderings = { renderings: [] } }: AppProps) {
+export function App({ graph, renderings = { renderings: [] }, receipt }: AppProps) {
   const [started, setStarted] = useState(false);
   const [goalId, setGoalId] = useState<ConceptId>(graph.goalId);
   const [depth, setDepth] = useState<Depth>("quick");
@@ -574,21 +576,24 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
           onRestart={startOver}
         />
       ) : (
-        <Entry
-          graph={graph}
-          goalId={goalId}
-          depth={depth}
-          known={declaredKnown}
-          passion={passion}
-          onGoalChange={updateGoal}
-          onDepthChange={updateDepth}
-          onKnownChange={setDeclaredKnown}
-          onPassionChange={setPassion}
-          onStart={() => {
-            setStarted(true);
-            setAnnouncement("Your first lesson is ready.");
-          }}
-        />
+        <>
+          <Entry
+            graph={graph}
+            goalId={goalId}
+            depth={depth}
+            known={declaredKnown}
+            passion={passion}
+            onGoalChange={updateGoal}
+            onDepthChange={updateDepth}
+            onKnownChange={setDeclaredKnown}
+            onPassionChange={setPassion}
+            onStart={() => {
+              setStarted(true);
+              setAnnouncement("Your first lesson is ready.");
+            }}
+          />
+          {receipt && <ReceiptCard receipt={receipt} />}
+        </>
       )}
 
       <p className="sr-only" aria-live="polite">{announcement}</p>

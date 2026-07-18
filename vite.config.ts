@@ -2,11 +2,13 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { loadGraph } from "./src/graph/load";
 import { loadRenderings } from "./src/graph/load";
+import { loadCourseReceipt } from "./src/graph/load";
 
-// The graph and optional renderings are loaded once, while the static app is built. The browser
-// receives the validated artifacts as data; it never fetches them and never calls a model.
+// The graph, optional renderings, and build receipt are loaded once, while the static app is built.
+// The browser receives the validated artifacts as data; it never fetches them and never calls a model.
 const graph = loadGraph();
 const renderings = loadRenderings();
+const receipt = loadCourseReceipt();
 
 export default defineConfig({
   // Load-bearing for the public demo. A GitHub Pages PROJECT page serves this app from
@@ -24,5 +26,6 @@ export default defineConfig({
   define: {
     __LEARNING_GRAPH__: JSON.stringify(graph),
     __RENDERINGS__: JSON.stringify(renderings),
+    __COURSE_RECEIPT__: JSON.stringify(receipt),
   },
 });

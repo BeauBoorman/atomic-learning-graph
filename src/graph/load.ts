@@ -5,11 +5,24 @@
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import type { LearningGraph, Rendering, RenderingSet } from "../types";
+import type { CourseReceipt, LearningGraph, Rendering, RenderingSet } from "../types";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const GRAPH_PATH = resolve(repoRoot, "data", "graph.json");
 export const RENDERINGS_PATH = resolve(repoRoot, "data", "renderings.json");
+export const COURSE_RECEIPT_PATH = resolve(repoRoot, "data", "course.receipt.json");
+
+/**
+ * Load the committed build receipt for inlining into the browser. Fail-closed: the receipt is a
+ * gated artifact emitted by `pnpm emit:receipt`, and a missing one is a build error, not an empty
+ * default that would ship a course with no provenance.
+ */
+export function loadCourseReceipt(path: string = COURSE_RECEIPT_PATH): CourseReceipt {
+  if (!existsSync(path)) {
+    throw new Error(`no course receipt at ${path} — run \`pnpm emit:receipt\` first`);
+  }
+  return JSON.parse(readFileSync(path, "utf8")) as CourseReceipt;
+}
 
 /**
  * Load `data/graph.json`. Throws if the atomizer has not run yet — a missing

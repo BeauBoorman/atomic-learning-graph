@@ -193,3 +193,38 @@ export interface LearnerState {
   known: ConceptId[];
   progress: Record<ConceptId, NodeProgress>;
 }
+
+/**
+ * The build receipt: the compiler's consolidated provenance, cost, and verification facts. Emitted
+ * deterministically by `scripts/emit-receipt.ts` from the gated artifacts, committed as
+ * data/course.receipt.json, and inlined into the browser so the receipt renders with no request.
+ */
+export interface CourseReceipt {
+  receiptVersion: number;
+  sourceCorpus: {
+    work: string;
+    authors: string;
+    sections: number;
+    license: string;
+    revisionTag: string;
+    commit: string;
+  };
+  structure: {
+    provenance: string;
+    concepts: number;
+    prerequisiteEdges: number;
+    citedLessonSteps: number;
+  };
+  generation: {
+    lessonProse: string;
+    promptVersion: string;
+    runtimeModelCalls: number;
+  };
+  verification: {
+    sourceQuotes: string;
+    graphHash: string;
+    manifestHash: string;
+    semanticReview: { kind: string; advisoryOnly: boolean; warnings: number };
+  };
+  cost: { usd: number; perConcept: number; tokens: number };
+}

@@ -1,11 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { loadGraph, loadRenderings } from "./src/graph/load";
+import { loadGraph, loadRenderings, loadCourseReceipt } from "./src/graph/load";
 
 // Additive, file://-safe build target. The public Pages build remains owned exclusively by
 // vite.config.ts, including its load-bearing /atomic-learning-graph/ base.
 const graph = loadGraph();
 const renderings = loadRenderings();
+const receipt = loadCourseReceipt();
 
 export default defineConfig({
   base: "./",
@@ -18,5 +19,6 @@ export default defineConfig({
   define: {
     __LEARNING_GRAPH__: JSON.stringify(graph),
     __RENDERINGS__: JSON.stringify(renderings),
+    __COURSE_RECEIPT__: JSON.stringify(receipt),
   },
 });

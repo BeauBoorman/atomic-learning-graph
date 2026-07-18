@@ -1506,3 +1506,113 @@ footer {
     transition: none;
   }
 }
+
+/* The build receipt — the in-app signature artifact, shown on the entry screen so a learner or a
+   judge sees how the course was compiled before reading a word. Static inlined data, no request. */
+.receipt-card {
+  max-width: var(--measure);
+  margin: 3rem auto 0;
+  padding: 1.75rem 1.75rem 1.5rem;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.receipt-title {
+  font-family: var(--font-ui);
+  font-size: var(--t-title);
+  margin: 0 0 0.4rem;
+  color: var(--ink);
+}
+
+.receipt-lede {
+  font-size: var(--t-ui);
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+  max-width: 54ch;
+  line-height: 1.5;
+}
+
+.receipt-rows {
+  margin: 0 0 1.5rem;
+  display: grid;
+}
+
+.receipt-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) 1fr;
+  gap: 0.4rem 1.25rem;
+  align-items: baseline;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.receipt-row:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.receipt-row dt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.receipt-tier {
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.receipt-label {
+  font-size: var(--t-ui);
+  color: var(--ink);
+}
+
+.receipt-row dd {
+  margin: 0;
+  font-size: var(--t-ui);
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.receipt-facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.receipt-facts li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: var(--t-ui);
+  color: var(--ink);
+}
+
+.receipt-fact-key {
+  color: var(--muted);
+}
+
+.receipt-facts code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+.receipt-headline {
+  margin-top: 0.4rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.receipt-headline strong {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  color: var(--ink);
+  line-height: 1;
+}
