@@ -60,6 +60,7 @@ run "llms artifacts match committed graph-derived bytes" pnpm verify:llms
 run "org-roam artifact matches committed graph-derived bytes" pnpm verify:orgroam
 run "Anki deck matches committed graph-derived bytes" pnpm verify:anki
 run "Obsidian vault matches committed graph-derived bytes" pnpm verify:obsidian
+run "practice exam matches committed graph-derived bytes" pnpm verify:exam
 run "course receipt matches committed artifacts" pnpm verify:receipt
 
 # It has to actually build.
