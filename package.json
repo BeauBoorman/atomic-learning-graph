@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:single": "vite build --config vite.single.config.ts && node --import tsx scripts/inline-single.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -22,6 +23,7 @@
     "emit:obsidian": "node --import tsx scripts/emit-obsidian.ts",
     "verify:obsidian": "node --import tsx scripts/emit-obsidian.ts --verify",
     "verify:bundle": "node --import tsx scripts/verify-bundle.ts",
+    "verify:single": "node --import tsx scripts/verify-single.ts",
     "demo:tamper": "node --import tsx scripts/demo-tamper.ts",
     "gate": "bash scripts/gate.sh",
     "atomize": "tsx src/atomization/atomize.ts",

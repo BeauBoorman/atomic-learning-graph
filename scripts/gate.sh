@@ -67,6 +67,10 @@ run "build" pnpm build
 # chunks Vite creates. This is deliberately a hard, post-build stage; gate9 remains the fast twin.
 run "shipped bundle has no network/model client or remote asset" pnpm verify:bundle
 
+# Additive hand-a-human packaging target. This rebuilds into dist-single/ with a relative base,
+# inlines the emitted CSS and JavaScript, then proves index.html is the only remaining artifact.
+run "standalone HTML is one self-contained offline file" pnpm verify:single
+
 printf '\n'
 if [ "$fail_count" -eq 0 ]; then
   printf 'ACCEPTANCE GATE PASSED\n'
