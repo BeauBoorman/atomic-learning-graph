@@ -279,9 +279,9 @@ Honest limits, stated up front:
 
 - **Readability is advisory, not solved.** `READABILITY_HARD_FLOOR` is US grade **16** and only
   *throws* above that; grade **10** is an advisory that warns without blocking. The committed
-  [`data/atomicity-report.json`](data/atomicity-report.json) records the real result: **5 of 10
+  [`data/atomicity-report.json`](data/atomicity-report.json) records the real result: **3 of 10
   concepts carry a low-confidence advisory**, and the default goal (`self-attention`) is estimated at
-  grade **11.55** (the worst is `softmax` at 14.25). The floor is a build gate against runaway prose, not a promise of grade-8 English.
+  grade **10.38** (the worst is `positional-encoding` at 11.08). The floor is a build gate against runaway prose, not a promise of grade-8 English.
   Tightening it is a re-translation, not a config change.
 - **The graph is small and the domain is narrow.** 10 concepts across four source sections (three chapters). The pitch is the
   substrate and the provenance, not coverage.
