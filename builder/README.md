@@ -7,8 +7,8 @@ repository's prebuilt reader.
 
 ## Prerequisites and installation
 
-- Node.js 22 or newer
-- macOS, Linux, or Windows
+- Node.js 22.18 or newer (the server imports TypeScript directly and needs built-in type stripping)
+- macOS or Linux (Windows is untested; use WSL)
 - An API key for one of the supported model providers
 
 After cloning or downloading this repository, install its dependencies once from the repository
@@ -58,8 +58,10 @@ disk, placed on a command line, or embedded in the generated course.
 
 ## Supported platforms
 
-The local builder supports macOS, Linux, and Windows with Node.js 22 or newer. It uses the same
-localhost interface and run command on each platform.
+The local builder is developed and tested on macOS and is expected to work on Linux, with
+Node.js 22.18 or newer. Native Windows is untested — the build step shells out to `pnpm`, which
+Windows resolves differently — so on Windows use WSL. The localhost interface and run command are
+the same wherever it runs.
 
 ## Test access
 

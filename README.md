@@ -111,6 +111,13 @@ Each negative test names the cheating implementation it kills. A `() => []` stub
 golden path, a substring shortcut, and a first-match source lookup each have a test built to catch
 them. That adversarial suite fenced Codex with executable constraints it could not talk past.
 
+**A safety property, and it is not circular.** No fabricated citation passes the gates: five tamper
+scenarios — empty-graph stub, hard-coded golden path, substring-faked citation, first-match source
+lookup, hand-edited graph.json — are all rejected (5 / 5), and every lesson sentence is checked
+byte-for-byte against the real source. Unlike a live-AI tutor whose grader is validated on a gold
+set its own model family authored, this proof rests on deterministic checks against a real CC-BY-SA
+source — there is no model judging itself at read time.
+
 One model, `gpt-5.6-sol`, did two jobs here.
 
 As Codex, the coding agent, it wrote this repository in a phase-gated RED→GREEN run. The committed
@@ -136,10 +143,18 @@ guarantees travel — not the headline.
   cost, and the graph's sha256 (`016dd241…`) that `src/atomization/graph-run.test.ts` recomputes. It
   distinguishes the human-specified structure from the model-generated prose, and records that the
   browser makes zero model calls.
-- **Five exports, attribution-clean.** The one graph emits an `llms.txt` manifest, an
-  [org-roam graph](atomic-learning-graph.org), an [Obsidian vault](exports/obsidian/), and an
-  [Anki deck](atomic-learning-graph-anki.tsv) — each carrying CC-BY-SA attribution and a modification
-  notice. `pnpm verify:llms|orgroam|obsidian|anki` gate them against the committed graph.
+- **Six exports, attribution-clean.** The one graph emits an `llms.txt` manifest, an
+  [org-roam graph](atomic-learning-graph.org), an [Obsidian vault](exports/obsidian/), an
+  [Anki deck](atomic-learning-graph-anki.tsv), and a
+  [grounded practice exam](atomic-learning-graph-exam.md) — the most education-shaped artifact:
+  every answer in its key carries the verbatim source passage that grounds it. Each export carries
+  CC-BY-SA attribution and a modification notice. `pnpm verify:llms|orgroam|obsidian|anki|exam`
+  gate them against the committed graph.
+
+**Retention is a handoff, not a rebuild.** This project compiles the inspectable artifact; long-term
+spaced review rides on Anki’s proven scheduler via the gated Anki export. We do not reimplement a
+forgetting-curve engine — we hand clean, cited cards to one that is already trusted.
+
 - **A single-file offline reader.** `pnpm build:single` emits one `dist-single/index.html` you can
   double-click: no server, no network. `pnpm verify:single` gates it.
 - **Bring your own text and key.** `builder/` compiles a course from any pasted open text with your
