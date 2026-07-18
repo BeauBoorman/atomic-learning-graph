@@ -1,4 +1,5 @@
 import type { JsonObject, TranslationRequestOptions } from "./translate";
+import type { RunUsageTokens } from "./run-receipt";
 
 export const MODEL_CANDIDATES = [process.env.OPENAI_MODEL ?? "gpt-5.6-sol"];
 
@@ -20,8 +21,31 @@ export function outputText(response: JsonObject): string {
   throw new Error("OpenAI response contains no output_text content");
 }
 
+function billedTokenCount(value: unknown, field: string): number {
+  if (!Number.isSafeInteger(value) || (value as number) < 0) {
+    throw new Error(`OpenAI response usage.${field} must be a non-negative integer`);
+  }
+  return value as number;
+}
+
+function responseUsage(response: JsonObject): RunUsageTokens {
+  if (!isObject(response.usage)) {
+    throw new Error("OpenAI response contains no usage object");
+  }
+  const input = billedTokenCount(response.usage.input_tokens, "input_tokens");
+  const output = billedTokenCount(response.usage.output_tokens, "output_tokens");
+  const total = billedTokenCount(response.usage.total_tokens, "total_tokens");
+  if (total !== input + output) {
+    throw new Error(
+      `OpenAI response usage.total_tokens (${total}) does not equal input_tokens + output_tokens (${input + output})`,
+    );
+  }
+  return { input, output, total };
+}
+
 export class ResponsesClient {
   readonly responseIds: string[] = [];
+  readonly usageTokens: RunUsageTokens = { input: 0, output: 0, total: 0 };
   model = "";
   modelSnapshot = "";
   strictSchema = false;
@@ -100,6 +124,10 @@ export class ResponsesClient {
       };
     }
     const response = await this.api("/responses", { method: "POST", body: JSON.stringify(body) });
+    const usage = responseUsage(response);
+    this.usageTokens.input += usage.input;
+    this.usageTokens.output += usage.output;
+    this.usageTokens.total += usage.total;
     if (typeof response.id === "string") this.responseIds.push(response.id);
     if (typeof response.model === "string") this.modelSnapshot = response.model;
     const text = outputText(response);
