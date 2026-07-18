@@ -58,6 +58,7 @@ run "corpus integrity (licence allowlist + stored text)" pnpm verify:corpus
 run "golden anchors (quoted text still resolves)" pnpm verify:anchors
 run "llms artifacts match committed graph-derived bytes" pnpm verify:llms
 run "org-roam artifact matches committed graph-derived bytes" pnpm verify:orgroam
+run "Anki deck matches committed graph-derived bytes" pnpm verify:anki
 run "Obsidian vault matches committed graph-derived bytes" pnpm verify:obsidian
 
 # It has to actually build.
