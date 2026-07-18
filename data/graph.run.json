@@ -4,7 +4,7 @@
   "promptVersion": "atomizer-v2-translate-three-phase",
   "analogyPromptVersion": "atomizer-v2-analogies-six-passions",
   "strictStructuredOutputs": true,
-  "manifestSha256": "f001e14587941340f4b61ec2fb0f6f0cd4833cd6335ea3d89e16ef525d6cd7cb",
+  "manifestSha256": "80ef258c91a097a25c386a16552158d286a0e9149f9897dd64b84020f622c308",
   "graphSha256": "2753a5a98481ab94d683f042db80fc07e1cf1f57819c2bcb78aa606a70d0c72a",
   "responseIds": [
     "resp_0e0eebc02d32aea4006a587fe9ded48190b5aaa7c4e51ae65d",
