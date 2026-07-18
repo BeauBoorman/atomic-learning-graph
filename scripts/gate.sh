@@ -56,6 +56,7 @@ run "tests (incl. adversarial, vs committed data/graph.json)" pnpm test
 # Provenance + licence integrity of the committed corpus.
 run "corpus integrity (licence allowlist + stored text)" pnpm verify:corpus
 run "golden anchors (quoted text still resolves)" pnpm verify:anchors
+run "llms artifacts match committed graph-derived bytes" pnpm verify:llms
 
 # It has to actually build.
 run "build" pnpm build

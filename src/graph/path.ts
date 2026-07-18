@@ -16,6 +16,46 @@
 import type { ConceptId, LearningGraph } from "../types";
 
 /**
+ * Topologically order an explicit concept set with the same stable tie-break used by `getPath`.
+ * Build-time emitters use this for the whole graph; `getPath` uses it for the goal's prerequisite
+ * closure. Keeping Kahn's algorithm here prevents two supposedly deterministic orders drifting.
+ */
+export function topologicalConceptOrder(
+  graph: LearningGraph,
+  conceptIds: Iterable<ConceptId> = graph.concepts.map(({ id }) => id),
+): ConceptId[] {
+  const included = new Set(conceptIds);
+  const indegree = new Map<ConceptId, number>([...included].map((id) => [id, 0]));
+  const outgoing = new Map<ConceptId, ConceptId[]>();
+  for (const edge of graph.edges) {
+    if (edge.type !== "prereq" || !included.has(edge.from) || !included.has(edge.to)) continue;
+    indegree.set(edge.to, (indegree.get(edge.to) ?? 0) + 1);
+    const next = outgoing.get(edge.from) ?? [];
+    next.push(edge.to);
+    outgoing.set(edge.from, next);
+  }
+
+  const ready = [...included].filter((id) => indegree.get(id) === 0).sort();
+  const ordered: ConceptId[] = [];
+  while (ready.length > 0) {
+    const id = ready.shift() as ConceptId;
+    ordered.push(id);
+    for (const next of [...(outgoing.get(id) ?? [])].sort()) {
+      const remaining = (indegree.get(next) ?? 0) - 1;
+      indegree.set(next, remaining);
+      if (remaining === 0) {
+        ready.push(next);
+        ready.sort();
+      }
+    }
+  }
+  if (ordered.length !== included.size) {
+    throw new Error("cannot topologically order concepts through a prerequisite cycle");
+  }
+  return ordered;
+}
+
+/**
  * The ordered sequence of concepts a learner must understand to reach `goalId`, ending WITH the
  * goal. A deterministic walk over the prerequisite DAG — never a model call. This is the claim:
  * "reasoning over the graph is deterministic and auditable."
@@ -65,31 +105,10 @@ export function getPath(
   };
   collect(goalId);
 
-  const indegree = new Map<ConceptId, number>([...closure].map((id) => [id, 0]));
-  const outgoing = new Map<ConceptId, ConceptId[]>();
-  for (const edge of graph.edges) {
-    if (edge.type !== "prereq" || !closure.has(edge.from) || !closure.has(edge.to)) continue;
-    indegree.set(edge.to, (indegree.get(edge.to) ?? 0) + 1);
-    const next = outgoing.get(edge.from) ?? [];
-    next.push(edge.to);
-    outgoing.set(edge.from, next);
-  }
-
-  const ready = [...closure].filter((id) => indegree.get(id) === 0).sort();
-  const ordered: ConceptId[] = [];
-  while (ready.length > 0) {
-    const id = ready.shift() as ConceptId;
-    ordered.push(id);
-    for (const next of [...(outgoing.get(id) ?? [])].sort()) {
-      const remaining = (indegree.get(next) ?? 0) - 1;
-      indegree.set(next, remaining);
-      if (remaining === 0) {
-        ready.push(next);
-        ready.sort();
-      }
-    }
-  }
-  if (ordered.length !== closure.size) {
+  let ordered: ConceptId[];
+  try {
+    ordered = topologicalConceptOrder(graph, closure);
+  } catch {
     throw new Error(`cannot build a learning path through a prerequisite cycle ending at ${goalId}`);
   }
 
