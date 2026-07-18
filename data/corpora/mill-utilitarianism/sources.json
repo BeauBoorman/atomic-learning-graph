@@ -1,0 +1,27 @@
+{
+  "sources": [
+    {
+      "id": "mill-utilitarianism-what-utilitarianism-is",
+      "title": "John Stuart Mill — Utilitarianism, Chapter II: What Utilitarianism Is",
+      "url": "https://github.com/GITenberg/Utilitarianism_11224/blob/7417ae902febaa7fb3c1c1c83e5ea0d33bef0529/11224.txt",
+      "license": "public-domain",
+      "textPath": "mill-utilitarianism.txt",
+      "sha256": "c184bad5b7ea903b405c91e1ccbbc3a8e210cf211833ea5179e8a34fc968d3df",
+      "sourceSha256": "60cca4238579c449588eeb09ee3b296b7bbc6d41022331fa45ea89bd7c04cc71",
+      "author": "John Stuart Mill",
+      "revision": {
+        "repo": "https://github.com/GITenberg/Utilitarianism_11224",
+        "tag": "commit-7417ae9",
+        "commit": "7417ae902febaa7fb3c1c1c83e5ea0d33bef0529",
+        "sourceFile": "11224.txt"
+      },
+      "licenseEvidence": {
+        "url": "https://github.com/GITenberg/Utilitarianism_11224/blob/7417ae902febaa7fb3c1c1c83e5ea0d33bef0529/README.rst",
+        "statement": "This book is in the Public Domain, see the LICENSE file for details.",
+        "licenseName": "Public Domain"
+      },
+      "modifications": "Extracted the contiguous Chapter II bytes from the pinned plain-text edition, from the Chapter II heading through the final Chapter II footnote and stopping before the Chapter III heading; CRLF line endings were normalized to LF, with no prose changes.",
+      "licenseDeed": "https://creativecommons.org/publicdomain/mark/1.0/"
+    }
+  ]
+}
