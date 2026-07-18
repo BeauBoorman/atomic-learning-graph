@@ -1,19 +1,44 @@
+import { Children, isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureGraph } from "../graph/fixture-graph";
 import type { RenderingSet } from "../types";
-import { App, courseKey, CourseScreen, restartCourseState } from "./App";
+import {
+  App,
+  courseKey,
+  CourseScreen,
+  loadSelfExplanations,
+  restartCourseState,
+  saveSelfExplanation,
+  selfExplanationCourseKey,
+  selfExplanationStorageKey,
+} from "./App";
 import { Entry } from "./Entry";
 import { GraphMap } from "./GraphMap";
+import { SelfExplanation } from "./LessonPage";
 import {
   coursePageKey,
+  courseSelfExplanationPrompts,
   coveredConcepts,
   deriveProgress,
+  selfExplanationPromptId,
   selfExplanationPrompt,
 } from "./model";
 import { titleFor } from "./titles";
 
 describe("Phase 5 learning flow", () => {
+  function memoryStorage(initial: [string, string][] = []): Storage {
+    const stored = new Map(initial);
+    return {
+      get length() { return stored.size; },
+      clear: () => stored.clear(),
+      getItem: (key) => stored.get(key) ?? null,
+      key: (index) => [...stored.keys()][index] ?? null,
+      removeItem: (key) => { stored.delete(key); },
+      setItem: (key, value) => { stored.set(key, value); },
+    };
+  }
+
   it("offers another route only when the current concept has one", () => {
     const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
     const concept = fixtureGraph.concepts.find((candidate) => candidate.id === "vectors");
@@ -134,25 +159,96 @@ describe("Phase 5 learning flow", () => {
     expect(courseKey("softmax", "quick", [])).toContain("course.v4");
   });
 
-  it("starts the active course over without touching any other stored preference or course", () => {
+  it("persists a self-explanation on change and blur, then prefills it on return", () => {
+    const storage = memoryStorage();
+    const courseNotesKey = selfExplanationCourseKey(fixtureGraph.goalId, "quick", []);
+    const promptId = selfExplanationPromptId("dot-product", "vectors");
+    const persist = (answer: string) => (
+      saveSelfExplanation(courseNotesKey, promptId, answer, storage)
+    );
+    const prompt = "Why does this idea need the one before it?";
+    const element = SelfExplanation({ question: prompt, answer: "", onAnswerChange: persist });
+    const textarea = Children.toArray(element?.props.children).find(
+      (child) => isValidElement(child) && child.type === "textarea",
+    ) as ReactElement<{
+      onBlur: (event: { currentTarget: { value: string } }) => void;
+      onChange: (event: { currentTarget: { value: string } }) => void;
+    }>;
+
+    textarea.props.onChange({ currentTarget: { value: "It supplies stable positions." } });
+    expect(storage.getItem(selfExplanationStorageKey(courseNotesKey, promptId)))
+      .toBe("It supplies stable positions.");
+    textarea.props.onBlur({ currentTarget: { value: "It supplies the values to compare." } });
+
+    const returned = loadSelfExplanations(courseNotesKey, storage);
+    const progress = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      ["vectors:0"],
+    );
+    const html = renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        goalId={fixtureGraph.goalId}
+        covered={["vectors"]}
+        theme="light"
+        progress={progress}
+        selfExplanations={returned}
+        onSelfExplanationChange={() => undefined}
+        onNext={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(returned[promptId]).toBe("It supplies the values to compare.");
+    expect(html).toContain(">It supplies the values to compare.</textarea>");
+  });
+
+  it("scopes self-explanations to the exact course", () => {
+    const storage = memoryStorage();
+    const courseA = selfExplanationCourseKey("self-attention", "quick", []);
+    const courseB = selfExplanationCourseKey("softmax", "quick", []);
+    const promptId = selfExplanationPromptId("dot-product", "vectors");
+
+    saveSelfExplanation(courseA, promptId, "Only course A owns this.", storage);
+
+    expect(selfExplanationStorageKey(courseA, promptId)).toBe(
+      "atomic-learning-graph.selfexpl.v1:self-attention:quick:%5B%5D:dot-product:vectors",
+    );
+    expect(selfExplanationStorageKey(courseA, promptId)).not.toBe(
+      selfExplanationStorageKey(courseB, promptId),
+    );
+    expect(courseA).not.toBe(selfExplanationCourseKey("self-attention", "thorough", []));
+    expect(courseA).not.toBe(selfExplanationCourseKey("self-attention", "quick", ["vectors"]));
+    expect(loadSelfExplanations(courseA, storage)[promptId]).toBe("Only course A owns this.");
+    expect(loadSelfExplanations(courseB, storage)[promptId]).toBeUndefined();
+  });
+
+  it("starts the active course over without touching another course's notes or any preference", () => {
     const activeKey = courseKey(fixtureGraph.goalId, "quick", []);
     const otherCourseKey = courseKey("softmax", "thorough", ["vectors"]);
-    const stored = new Map([
+    const activeNotesKey = selfExplanationCourseKey(fixtureGraph.goalId, "quick", []);
+    const otherNotesKey = selfExplanationCourseKey("softmax", "thorough", ["vectors"]);
+    const promptId = selfExplanationPromptId("dot-product", "vectors");
+    const storage = memoryStorage([
       [activeKey, JSON.stringify(["vectors:0", "dot-product:0"])],
       [otherCourseKey, JSON.stringify(["vectors:0"])],
+      [selfExplanationStorageKey(activeNotesKey, promptId), "Active note"],
+      [selfExplanationStorageKey(otherNotesKey, promptId), "Other course note"],
       ["atomic-learning-graph.theme.v1", "dark"],
       ["atomic-learning-graph.passion.v1", "music"],
     ]);
-    const storage = {
-      removeItem: (key: string) => stored.delete(key),
-    };
 
-    const restarted = restartCourseState(activeKey, storage);
+    const restarted = restartCourseState(activeKey, activeNotesKey, storage);
     expect(restarted).toEqual({ key: activeKey, pages: [] });
-    expect(stored.has(activeKey)).toBe(false);
-    expect(stored.get(otherCourseKey)).toBe(JSON.stringify(["vectors:0"]));
-    expect(stored.get("atomic-learning-graph.theme.v1")).toBe("dark");
-    expect(stored.get("atomic-learning-graph.passion.v1")).toBe("music");
+    expect(storage.getItem(activeKey)).toBeNull();
+    expect(storage.getItem(selfExplanationStorageKey(activeNotesKey, promptId))).toBeNull();
+    expect(storage.getItem(otherCourseKey)).toBe(JSON.stringify(["vectors:0"]));
+    expect(storage.getItem(selfExplanationStorageKey(otherNotesKey, promptId)))
+      .toBe("Other course note");
+    expect(storage.getItem("atomic-learning-graph.theme.v1")).toBe("dark");
+    expect(storage.getItem("atomic-learning-graph.passion.v1")).toBe("music");
 
     const progress = deriveProgress(
       fixtureGraph,
@@ -223,6 +319,47 @@ describe("Phase 5 learning flow", () => {
     expect(html).not.toContain(`worked through ${progress.pages.map(coursePageKey).join(" → ")}`);
   });
 
+  it("recaps only written self-explanations at completion and renders nothing when none exist", () => {
+    const progress = deriveProgress(fixtureGraph, fixtureGraph.goalId, "quick", []);
+    const complete = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      progress.pages.map(coursePageKey),
+    );
+    const prompts = courseSelfExplanationPrompts(fixtureGraph, complete.pages);
+    expect(prompts.length).toBeGreaterThan(1);
+    const notes = {
+      [prompts[0].id]: "This is the thread I made.",
+      [prompts[1].id]: "   ",
+    };
+    const props = {
+      graph: fixtureGraph,
+      goalId: fixtureGraph.goalId,
+      covered: [],
+      theme: "light" as const,
+      progress: complete,
+      onNext: () => undefined,
+      onRestart: () => undefined,
+    };
+
+    const written = renderToStaticMarkup(
+      <CourseScreen {...props} selfExplanations={notes} />,
+    );
+    const empty = renderToStaticMarkup(
+      <CourseScreen {...props} selfExplanations={{}} />,
+    );
+
+    expect(written).toContain("What you wrote");
+    expect(written).toContain("The thread you wrote through these ideas");
+    expect(written).toContain(prompts[0].prompt);
+    expect(written).toContain("This is the thread I made.");
+    expect(written).not.toContain(prompts[1].prompt);
+    expect(empty).not.toContain("What you wrote");
+    expect(empty).not.toContain("The thread you wrote through these ideas");
+    expect(empty).not.toContain("self-explanation-recap");
+  });
+
   it("quietly asks for self-explanation on the first page after a direct prerequisite", () => {
     const progress = deriveProgress(
       fixtureGraph,
@@ -248,7 +385,7 @@ describe("Phase 5 learning flow", () => {
 
     expect(html).toContain(selfExplanationPrompt(concept, prerequisite));
     expect(html).toContain("<textarea");
-    expect(html).toContain("Optional. Nothing checks or saves what you write.");
+    expect(html).toContain("Optional. Nothing grades this — your notes come back at the end.");
     expect(html).not.toContain("required");
     expect(html).toContain(">Next idea<");
   });
@@ -301,6 +438,50 @@ describe("Phase 5 learning flow", () => {
     expect(JSON.stringify(
       coveredConcepts(fixtureGraph, fixtureGraph.goalId, "quick", completedPages),
     )).toBe(coveredBefore);
+  });
+
+  it("keeps progress and covered status byte-identical when the optional prompt is answered", () => {
+    const completedPages = ["vectors:0"];
+    const beforeProgress = deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      completedPages,
+    );
+    const beforeCovered = coveredConcepts(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      completedPages,
+    );
+    const promptId = selfExplanationPromptId("dot-product", "vectors");
+
+    renderToStaticMarkup(
+      <CourseScreen
+        graph={fixtureGraph}
+        goalId={fixtureGraph.goalId}
+        covered={beforeCovered}
+        theme="light"
+        progress={beforeProgress}
+        selfExplanations={{ [promptId]: "Any answer, including nonsense." }}
+        onSelfExplanationChange={() => undefined}
+        onNext={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+
+    expect(deriveProgress(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      completedPages,
+    )).toEqual(beforeProgress);
+    expect(coveredConcepts(
+      fixtureGraph,
+      fixtureGraph.goalId,
+      "quick",
+      completedPages,
+    )).toEqual(beforeCovered);
   });
 
   it("offers only the selected goal's prerequisite spine using display titles", () => {

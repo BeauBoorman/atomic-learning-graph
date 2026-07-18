@@ -8,12 +8,12 @@ import { MapToggle } from "./MapToggle";
 import { StepIndicator } from "./StepIndicator";
 import {
   coursePageKey,
+  courseSelfExplanationPrompts,
   coveredConcepts,
   deriveProgress,
   knownForGoal,
   resolveCitation,
   resolveRenderingCitation,
-  selfExplanationPrompt,
   type CoursePage,
   type CourseProgress,
   type Depth,
@@ -33,6 +33,13 @@ type Theme = "light" | "dark";
 // other goals complete. That is not migratable — "you knew this" and "you read this" were
 // never distinguishable in the old shape — so the old keys are retired, not converted.
 const COURSE_KEY = "atomic-learning-graph.course.v4";
+const SELF_EXPLANATION_KEY = "atomic-learning-graph.selfexpl.v1";
+
+function courseScope(goalId: ConceptId, depth: Depth, known: ConceptId[]): string {
+  const declaration = encodeURIComponent(JSON.stringify([...new Set(known)].sort()));
+  return `${encodeURIComponent(goalId)}:${depth}:${declaration}`;
+}
+
 /** Exported for the scoping regression test: cross-course contamination is prevented HERE and
  *  nowhere else. `deriveProgress` is course-pure but page keys overlap between courses, so the
  *  storage key is the only thing that stops course A's pages being read as course B's. */
@@ -41,9 +48,71 @@ export const courseKey = (
   depth: Depth,
   known: ConceptId[] = [],
 ) => {
-  const declaration = encodeURIComponent(JSON.stringify([...new Set(known)].sort()));
-  return `${COURSE_KEY}:${encodeURIComponent(goalId)}:${depth}:${declaration}`;
+  return `${COURSE_KEY}:${courseScope(goalId, depth, known)}`;
 };
+
+/** Each answer gets its own storage key. The full course identity precedes the prompt identity,
+ *  so matching concept edges in two courses cannot collide. */
+export const selfExplanationCourseKey = (
+  goalId: ConceptId,
+  depth: Depth,
+  known: ConceptId[] = [],
+): string => `${SELF_EXPLANATION_KEY}:${courseScope(goalId, depth, known)}`;
+
+export const selfExplanationStorageKey = (courseKey: string, promptId: string): string => (
+  `${courseKey}:${promptId}`
+);
+
+type SelfExplanationStorage = Pick<
+  Storage,
+  "getItem" | "key" | "length" | "removeItem" | "setItem"
+>;
+
+function browserStorage(): Storage | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
+  }
+}
+
+export function loadSelfExplanations(
+  courseNotesKey: string,
+  storage: SelfExplanationStorage | undefined = browserStorage(),
+): Record<string, string> {
+  if (!storage) return {};
+  try {
+    const prefix = `${courseNotesKey}:`;
+    const answers: Record<string, string> = {};
+    const keys = Array.from(
+      { length: storage.length },
+      (_, index) => storage.key(index),
+    ).filter((key): key is string => key?.startsWith(prefix) ?? false);
+    for (const key of keys) {
+      const answer = storage.getItem(key);
+      if (answer !== null) answers[key.slice(prefix.length)] = answer;
+    }
+    return answers;
+  } catch {
+    return {};
+  }
+}
+
+export function saveSelfExplanation(
+  courseNotesKey: string,
+  promptId: string,
+  answer: string,
+  storage: SelfExplanationStorage | undefined = browserStorage(),
+) {
+  try {
+    const key = selfExplanationStorageKey(courseNotesKey, promptId);
+    if (answer.length === 0) storage?.removeItem(key);
+    else storage?.setItem(key, answer);
+  } catch {
+    // The note remains available in React state for this visit.
+  }
+}
 
 const LEGACY_KEYS = [
   "atomic-learning-graph.progress.v1", // orphaned by the .v2 bump; still on real machines
@@ -169,6 +238,8 @@ interface CourseScreenProps {
   covered: ConceptId[];
   theme: Theme;
   progress: CourseProgress;
+  selfExplanations?: Readonly<Record<string, string>>;
+  onSelfExplanationChange?: (promptId: string, answer: string) => void;
   onNext: () => void;
   onRestart: () => void;
 }
@@ -182,15 +253,24 @@ export function CourseScreen({
   covered,
   theme,
   progress,
+  selfExplanations = {},
+  onSelfExplanationChange = () => undefined,
   onNext,
   onRestart,
 }: CourseScreenProps) {
   if (progress.complete) {
+    const recap = courseSelfExplanationPrompts(graph, progress.pages).flatMap((entry) => {
+      const answer = selfExplanations[entry.id];
+      return typeof answer === "string" && answer.trim().length > 0
+        ? [{ prompt: entry.prompt, answer }]
+        : [];
+    });
     return (
       <CompletionPage
         graph={graph}
         goalId={goalId}
         route={uniqueConcepts(progress.pages)}
+        selfExplanations={recap}
         onRestart={onRestart}
       />
     );
@@ -203,21 +283,9 @@ export function CourseScreen({
   const alternateRenderings = renderings.renderings.filter(
     (rendering) => rendering.conceptId === concept.id,
   );
-  const pageIndex = progress.pages.findIndex(
-    (candidate) => coursePageKey(candidate) === coursePageKey(page),
+  const explanation = courseSelfExplanationPrompts(graph, progress.pages).find(
+    (entry) => entry.pageKey === coursePageKey(page),
   );
-  const previousPage = pageIndex > 0 ? progress.pages[pageIndex - 1] : undefined;
-  const prerequisite = previousPage && previousPage.conceptId !== page.conceptId
-    && graph.edges.some((edge) => (
-      edge.type === "prereq"
-      && edge.from === previousPage.conceptId
-      && edge.to === page.conceptId
-    ))
-    ? graph.concepts.find((candidate) => candidate.id === previousPage.conceptId)
-    : undefined;
-  const explanation = prerequisite
-    ? selfExplanationPrompt(concept, prerequisite)
-    : undefined;
 
   // The whole course, from `progress` — the one place the page list is built. Rebuilding it
   // here with a second `courseFor` call is how two views of one course drift apart.
@@ -242,7 +310,11 @@ export function CourseScreen({
           resolveRenderingCitation(graph, rendering, stepIndex)
         )}
         passion={passion}
-        selfExplanation={explanation}
+        selfExplanation={explanation?.prompt}
+        selfExplanationAnswer={explanation ? selfExplanations[explanation.id] : undefined}
+        onSelfExplanationChange={explanation
+          ? (answer) => onSelfExplanationChange(explanation.id, answer)
+          : undefined}
         nextLabel={nextLabel}
         onNext={onNext}
       />
@@ -267,11 +339,17 @@ export function CourseScreen({
  * derived page is page 1, while every other course and preference remains untouched. */
 export function restartCourseState(
   key: string,
-  storage?: Pick<Storage, "removeItem">,
+  courseNotesKey: string,
+  storage: SelfExplanationStorage | undefined = browserStorage(),
 ): CourseState {
-  const target = storage ?? (typeof window === "undefined" ? undefined : window.localStorage);
   try {
-    target?.removeItem(key);
+    storage?.removeItem(key);
+    const prefix = `${courseNotesKey}:`;
+    const noteKeys = Array.from(
+      { length: storage?.length ?? 0 },
+      (_, index) => storage?.key(index),
+    ).filter((storedKey): storedKey is string => storedKey?.startsWith(prefix) ?? false);
+    for (const noteKey of noteKeys) storage?.removeItem(noteKey);
   } catch {
     // The in-memory reset still returns the learner to page 1 for this visit.
   }
@@ -286,9 +364,17 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
   const [declaredKnown, setDeclaredKnown] = useState<ConceptId[]>([]);
   const [passion, setPassion] = useState<PassionId | undefined>(storedPassion);
   const activeCourse = courseKey(goalId, depth, declaredKnown);
+  const activeSelfExplanationCourse = selfExplanationCourseKey(goalId, depth, declaredKnown);
   const [course, setCourse] = useState<CourseState>(
     () => ({ key: activeCourse, pages: storedPages(activeCourse) }),
   );
+  const [selfExplanations, setSelfExplanations] = useState<{
+    key: string;
+    answers: Record<string, string>;
+  }>(() => ({
+    key: activeSelfExplanationCourse,
+    answers: loadSelfExplanations(activeSelfExplanationCourse),
+  }));
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [themeIsExplicit, setThemeIsExplicit] = useState(hasStoredTheme);
   const [announcement, setAnnouncement] = useState("");
@@ -302,6 +388,17 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
       current.key === activeCourse ? current : { key: activeCourse, pages: storedPages(activeCourse) }
     ));
   }, [activeCourse]);
+
+  useEffect(() => {
+    setSelfExplanations((current) => (
+      current.key === activeSelfExplanationCourse
+        ? current
+        : {
+            key: activeSelfExplanationCourse,
+            answers: loadSelfExplanations(activeSelfExplanationCourse),
+          }
+    ));
+  }, [activeSelfExplanationCourse]);
 
   useEffect(() => {
     if (course.key !== activeCourse) return; // mid-switch: these pages belong to the OLD course.
@@ -319,6 +416,25 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
     () => coveredConcepts(graph, goalId, depth, completedPages, declaredKnown),
     [completedPages, declaredKnown, depth, goalId, graph],
   );
+  const activeSelfExplanations = selfExplanations.key === activeSelfExplanationCourse
+    ? selfExplanations.answers
+    : {};
+
+  const handleSelfExplanationChange = useCallback((promptId: string, answer: string) => {
+    saveSelfExplanation(activeSelfExplanationCourse, promptId, answer);
+    setSelfExplanations((current) => (
+      current.key !== activeSelfExplanationCourse
+        ? current
+        : {
+            key: current.key,
+            answers: answer.length === 0
+              ? Object.fromEntries(
+                  Object.entries(current.answers).filter(([id]) => id !== promptId),
+                )
+              : { ...current.answers, [promptId]: answer },
+          }
+    ));
+  }, [activeSelfExplanationCourse]);
 
   useEffect(() => {
     try {
@@ -403,10 +519,11 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
   };
 
   const startOver = useCallback(() => {
-    setCourse(restartCourseState(activeCourse));
+    setCourse(restartCourseState(activeCourse, activeSelfExplanationCourse));
+    setSelfExplanations({ key: activeSelfExplanationCourse, answers: {} });
     setStarted(true);
     setAnnouncement("Course restarted. Page 1 is ready.");
-  }, [activeCourse]);
+  }, [activeCourse, activeSelfExplanationCourse]);
 
   const currentThemeName = theme === "light" ? "Light" : "Dark";
   const nextThemeName = theme === "light" ? "dark" : "light";
@@ -451,6 +568,8 @@ export function App({ graph, renderings = { renderings: [] } }: AppProps) {
           covered={covered}
           theme={theme}
           progress={progress}
+          selfExplanations={activeSelfExplanations}
+          onSelfExplanationChange={handleSelfExplanationChange}
           onNext={handleNext}
           onRestart={startOver}
         />

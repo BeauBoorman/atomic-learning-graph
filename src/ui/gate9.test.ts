@@ -121,16 +121,7 @@ describe("Gate 9 architecture", () => {
     expect(model.match(/getPath\(/g)?.length).toBe(1);
   });
 
-  it("keeps self-explanation outside persistence, progression, and covered status", () => {
-    const lesson = read("src/ui/LessonPage.tsx");
-    const promptStart = lesson.indexOf("function SelfExplanation");
-    const promptEnd = lesson.indexOf("function RenderingStep", promptStart);
-    const promptComponent = lesson.slice(promptStart, promptEnd);
-    expect(promptStart).toBeGreaterThanOrEqual(0);
-    expect(promptEnd).toBeGreaterThan(promptStart);
-    expect(promptComponent).not.toMatch(/\b(?:useState|localStorage|sessionStorage|onChange|onInput|required)\b/);
-    expect(promptComponent).not.toContain("name=");
-
+  it("keeps self-explanation outside progression and covered status", () => {
     const app = read("src/ui/App.tsx");
     const nextStart = app.indexOf("const handleNext");
     const nextEnd = app.indexOf("// None of these clear progress", nextStart);
@@ -138,6 +129,15 @@ describe("Gate 9 architecture", () => {
     expect(nextStart).toBeGreaterThanOrEqual(0);
     expect(nextEnd).toBeGreaterThan(nextStart);
     expect(nextHandler).not.toMatch(/explanation|response/i);
+
+    const lesson = read("src/ui/LessonPage.tsx");
+    const promptStart = lesson.indexOf("function SelfExplanation");
+    const promptEnd = lesson.indexOf("function RenderingStep", promptStart);
+    const promptComponent = lesson.slice(promptStart, promptEnd);
+    expect(promptStart).toBeGreaterThanOrEqual(0);
+    expect(promptEnd).toBeGreaterThan(promptStart);
+    expect(promptComponent).not.toMatch(/\b(?:required|disabled)\b/);
+    expect(promptComponent).not.toContain("name=");
 
     const model = read("src/ui/model.ts");
     const coveredStart = model.indexOf("export function coveredConcepts");

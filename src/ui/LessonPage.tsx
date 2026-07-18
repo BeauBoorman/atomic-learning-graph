@@ -18,6 +18,8 @@ interface LessonPageProps {
   resolveRendering?: (rendering: Rendering, stepIndex: number) => ResolvedPassage;
   passion?: PassionId;
   selfExplanation?: string;
+  selfExplanationAnswer?: string;
+  onSelfExplanationChange?: (answer: string) => void;
   nextLabel: string;
   onNext: () => void;
 }
@@ -37,8 +39,15 @@ const routeLabel = (format: AlternateFormat): string => (
   format === "why-it-exists" ? "See why it matters" : "See how it works"
 );
 
-/** Uncontrolled on purpose: the browser holds the optional text only until this page leaves. */
-function SelfExplanation({ question }: { question?: string }) {
+export function SelfExplanation({
+  question,
+  answer = "",
+  onAnswerChange = () => undefined,
+}: {
+  question?: string;
+  answer?: string;
+  onAnswerChange?: (answer: string) => void;
+}) {
   if (!question) return null;
   return (
     <section className="self-explanation" aria-labelledby="self-explanation-question">
@@ -48,8 +57,13 @@ function SelfExplanation({ question }: { question?: string }) {
         id="self-explanation-response"
         rows={2}
         aria-describedby="self-explanation-note"
+        value={answer}
+        onChange={(event) => onAnswerChange(event.currentTarget.value)}
+        onBlur={(event) => onAnswerChange(event.currentTarget.value)}
       />
-      <p id="self-explanation-note">Optional. Nothing checks or saves what you write.</p>
+      <p id="self-explanation-note">
+        Optional. Nothing grades this — your notes come back at the end.
+      </p>
     </section>
   );
 }
@@ -91,6 +105,8 @@ interface RenderingRouteProps {
   otherRenderings: Rendering[];
   resolveCitation: (rendering: Rendering, stepIndex: number) => ResolvedPassage;
   selfExplanation?: string;
+  selfExplanationAnswer?: string;
+  onSelfExplanationChange?: (answer: string) => void;
   nextLabel: string;
   onNext: () => void;
   onReturn: () => void;
@@ -105,6 +121,8 @@ export function RenderingRoute({
   otherRenderings,
   resolveCitation,
   selfExplanation,
+  selfExplanationAnswer,
+  onSelfExplanationChange,
   nextLabel,
   onNext,
   onReturn,
@@ -146,7 +164,11 @@ export function RenderingRoute({
           </button>
         ))}
       </div>
-      <SelfExplanation question={selfExplanation} />
+      <SelfExplanation
+        question={selfExplanation}
+        answer={selfExplanationAnswer}
+        onAnswerChange={onSelfExplanationChange}
+      />
       <button className="primary-button lesson-next" type="button" onClick={onNext}>
         {nextLabel}
       </button>
@@ -162,6 +184,8 @@ export function LessonPage({
   resolveRendering,
   passion,
   selfExplanation,
+  selfExplanationAnswer,
+  onSelfExplanationChange,
   nextLabel,
   onNext,
 }: LessonPageProps) {
@@ -233,6 +257,8 @@ export function LessonPage({
         )}
         resolveCitation={resolveRendering}
         selfExplanation={selfExplanation}
+        selfExplanationAnswer={selfExplanationAnswer}
+        onSelfExplanationChange={onSelfExplanationChange}
         nextLabel={nextLabel}
         onNext={onNext}
         onReturn={() => setActiveFormat(undefined)}
@@ -281,7 +307,11 @@ export function LessonPage({
           </button>
         </section>
       )}
-      <SelfExplanation question={selfExplanation} />
+      <SelfExplanation
+        question={selfExplanation}
+        answer={selfExplanationAnswer}
+        onAnswerChange={onSelfExplanationChange}
+      />
       <button className="primary-button lesson-next" type="button" onClick={onNext}>
         {nextLabel}
       </button>

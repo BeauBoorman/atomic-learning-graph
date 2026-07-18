@@ -171,6 +171,50 @@ export function selfExplanationPrompt(concept: Concept, prerequisite: Concept): 
   return `Before you continue — in your own words, why does ${titleFor(concept)} need ${titleFor(prerequisite)}?`;
 }
 
+export function selfExplanationPromptId(
+  conceptId: ConceptId,
+  prerequisiteId: ConceptId,
+): string {
+  return `${encodeURIComponent(conceptId)}:${encodeURIComponent(prerequisiteId)}`;
+}
+
+export interface CourseSelfExplanationPrompt {
+  id: string;
+  pageKey: string;
+  prompt: string;
+}
+
+/** The optional questions this course actually presents, in route order. They are derived from
+ *  direct prerequisite transitions only and remain entirely separate from progress/coverage. */
+export function courseSelfExplanationPrompts(
+  graph: LearningGraph,
+  pages: CoursePage[],
+): CourseSelfExplanationPrompt[] {
+  const concepts = new Map(graph.concepts.map((concept) => [concept.id, concept]));
+  const prompts: CourseSelfExplanationPrompt[] = [];
+
+  for (const [index, page] of pages.entries()) {
+    const previousPage = index > 0 ? pages[index - 1] : undefined;
+    if (!previousPage || previousPage.conceptId === page.conceptId) continue;
+    const isDirectPrerequisite = graph.edges.some((edge) => (
+      edge.type === "prereq"
+      && edge.from === previousPage.conceptId
+      && edge.to === page.conceptId
+    ));
+    if (!isDirectPrerequisite) continue;
+    const concept = concepts.get(page.conceptId);
+    const prerequisite = concepts.get(previousPage.conceptId);
+    if (!concept || !prerequisite) continue;
+    prompts.push({
+      id: selfExplanationPromptId(concept.id, prerequisite.id),
+      pageKey: coursePageKey(page),
+      prompt: selfExplanationPrompt(concept, prerequisite),
+    });
+  }
+
+  return prompts;
+}
+
 function findConcept(graph: LearningGraph, conceptId: ConceptId): Concept {
   const concept = graph.concepts.find((candidate) => candidate.id === conceptId);
   if (!concept) throw new Error(`unknown lesson concept: ${conceptId}`);

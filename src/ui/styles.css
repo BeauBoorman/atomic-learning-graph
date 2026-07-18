@@ -147,11 +147,10 @@ input {
   font: inherit;
 }
 
-/* No `summary` in these lists any more: the last <details> in the app was the one
-   hiding the source, and there is not a single <summary> element left in src/ui/. */
 button,
 select,
-a {
+a,
+summary {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -164,6 +163,7 @@ button:focus-visible,
 select:focus-visible,
 input:focus-visible,
 a:focus-visible,
+summary:focus-visible,
 [tabindex]:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
@@ -1178,6 +1178,51 @@ select {
   margin: 1.25rem auto 2rem;
   color: var(--muted);
   font-size: var(--t-body);
+}
+
+.self-explanation-recap {
+  max-width: var(--measure);
+  margin: 0 auto var(--s6);
+  padding: var(--s5);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+
+.self-explanation-recap summary {
+  color: var(--primary);
+  font-size: var(--t-ui);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.self-explanation-recap h2 {
+  margin: var(--s4) 0 var(--s5);
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.self-explanation-recap dl,
+.self-explanation-recap dd {
+  margin: 0;
+}
+
+.self-explanation-recap dl {
+  display: grid;
+  gap: var(--s5);
+}
+
+.self-explanation-recap dt {
+  color: var(--muted);
+  font-size: var(--t-colophon);
+  font-weight: 600;
+}
+
+.self-explanation-recap dd {
+  margin-top: var(--s2);
+  white-space: pre-wrap;
 }
 
 .completion-mark {
