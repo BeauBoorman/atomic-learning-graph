@@ -82,8 +82,8 @@ describe("build-time alternate renderings", () => {
   });
 
   it("keeps the grounding contract byte-identical across question formats", () => {
-    const groundingContract = `2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. If you cannot ground a step in a verbatim span, DROP that step.
-3. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.`;
+    const groundingContract = `2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The quoted span MUST contain the specific load-bearing claim made by the step; a span that is merely topically related but does not state that claim is a FAILURE. If the step's claim is not fully supported inside one contiguous span, TRIM the step's wording to exactly what the span supports (prefer trimming over attaching a weak quote). If you cannot ground a step in a verbatim span, DROP that step.
+3. Do NOT add qualifications, causal links, temporal ordering (such as "earlier"), or necessity (such as "without it, X would be impossible") that the cited span does not state. PRESERVE the source's hedges, including words such as "often", "typically", "roughly", and "intuition". Faithfulness to the cited span beats fluency. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.`;
     const why = renderInstructions("why-it-exists");
     const how = renderInstructions("how-it-works");
 
