@@ -115,10 +115,9 @@ const LEGIBLE_ZOOM_FLOOR = 0.72;
 const GUIDED_FIT_PADDING = 32;
 const FULL_MAP_FIT_PADDING = 44;
 
-/* The box is sized to the text (`width: "label"`), so a label can no longer overflow it by
-   construction. This records that fact rather than asserting it: the difference between the
-   node's bounding box WITH labels and WITHOUT is the number of pixels the label sticks out.
-   > 0 means clipped.
+/* This records whether a label extends beyond its explicit node box: the difference between the
+   bounding box WITH labels and WITHOUT is the number of pixels the label sticks out. > 0 means
+   the browser-sized node needs reconsideration.
 
    It replaces `renderedLabelSize = LABEL_FONT_SIZE * cy.zoom()`, which was a probe that COULD
    NOT FAIL: font-size times zoom is mathematically invariant to clipping, so it reported a
@@ -126,8 +125,7 @@ const FULL_MAP_FIT_PADDING = 44;
    the value; it only ever reassured.
 
    VERIFIED CAVEAT — this is meaningful in a browser ONLY. Headless Cytoscape has no canvas, so
-   `measureText` never runs, `rstyle.labelWidth` is never populated (cytoscape.cjs.js:12068 —
-   `width: "label"` returns `_p.rstyle.labelWidth || 0`) and BOTH boxes come back identical.
+   `measureText` never runs and BOTH boxes come back identical.
    A headless test asserting `withLabel <= box` therefore reduces to `0 <= 0` and passes for a
    grossly overflowing label. Do not write one. That is the same trap, rebuilt. */
 function recordLabelFit(cy: cytoscape.Core): void {
@@ -150,11 +148,13 @@ function fitAtLegibleZoom(cy: cytoscape.Core, padding: number): void {
   recordLabelFit(cy);
 }
 
-/** The label wraps at this width; the node is then sized to the wrapped text plus NODE_PADDING
- *  on every side. One number decides how wide a node is — there is no second number to disagree
- *  with it. */
+/** Labels wrap at this width. The explicit node dimensions leave room for three 15px lines plus
+ *  padding, avoiding Cytoscape's deprecated `label` dimensions and their browser-console noise. */
 const LABEL_MAX_WIDTH = 200;
 const NODE_PADDING = 14;
+const NODE_TEXT_LINES = 3;
+const NODE_WIDTH = LABEL_MAX_WIDTH + NODE_PADDING * 2;
+const NODE_HEIGHT = LABEL_FONT_SIZE * NODE_TEXT_LINES + NODE_PADDING * 2;
 
 /** Exported for GraphMap.test.tsx, which feeds it to Cytoscape's real parser. Cytoscape rejects
  *  an illegal property value SILENTLY — it warns to the console and falls back to the default —
@@ -169,38 +169,18 @@ export function stylesFor(
     {
       selector: "node",
       style: {
-        /* THE CLIP FIX. The box is sized to the text; the text is never sized to the box.
-           Verified in cytoscape@3.34.0: `width: "label"` resolves through
-           `recalculateRenderedStyle()` to `rstyle.labelWidth` (cytoscape.cjs.js:12068), so the
-           node is exactly as wide as its wrapped label, and `outerWidth()` adds the border and
-           2 * padding around it. A label cannot overflow a box that is defined as its own size.
-
-           This replaces a fixed 184/440px box with a `text-max-width` computed from it — which
-           had SPLIT BRAINS: a string "400px" in the stylesheet and a bare number 400 written
-           inline by the layout pass, and the inline one silently outranked the stylesheet
-           forever. That pairing is what clipped "Next · Vectors" (14 chars) symmetrically into
-           "xt · Vect" inside a box that was wide and mostly EMPTY — the giveaway that this was
-           never a space problem.
-
-           `width: "label"` logs a deprecation warning in 3.34.0 (cytoscape.cjs.js:18751) but is
-           the only mechanism that reads labelWidth, has no replacement in this version, and
-           works. Two warnings per stylesheet parse, not per node — the parse is cached. */
-        width: "label",
-        height: "label",
-        // px strings, not bare numbers: cytoscape parses both to the same pfValue (verified by
-        // execution), but its own TypeScript types accept only strings here. ONE constant feeds
-        // each, so the string/number split-brain that let an inline `400` outrank a stylesheet
-        // `"400px"` has nowhere to come back from.
+        // Explicit, parser-supported dimensions. A 200px text measure can take three 15px lines;
+        // the shared padding is included in both dimensions, so sizing remains single-source.
+        width: `${NODE_WIDTH}px`,
+        height: `${NODE_HEIGHT}px`,
         padding: `${NODE_PADDING}px`,
         "text-max-width": `${LABEL_MAX_WIDTH}px`,
         "text-wrap": "wrap",
         // Wrap on WHITESPACE (cytoscape's default), not "anywhere". "anywhere" breaks at any
         // character on every line, which rendered real titles as "Vectors as fixed-length list /
         // s" and "Multiply matching values, t / hen add" — mid-word breaks that read as broken.
-        // The guard it replaced was defending against a word longer than text-max-width escaping
-        // the node, which cannot happen here: `width: "label"` sizes the node TO its label, so an
-        // over-long word widens the box instead of overflowing it. Longest word in the real
-        // corpus is "probabilities" (~104px) against a 200px cap.
+        // The longest word in the real corpus is "probabilities" (~104px), well below the 200px
+        // measure, so whitespace wrapping keeps words intact inside the explicit node box.
         "text-overflow-wrap": "whitespace",
         shape: "round-rectangle",
         "background-color": color.surface,
@@ -211,9 +191,8 @@ export function stylesFor(
         /* A LITERAL stack and a LEGAL weight, and both halves matter.
 
            `ctx.font` is a CSS-font-shorthand parse in the canvas: `ui-sans-serif` and the
-           absent `Inter` are not names it can resolve, and a font string that fails to parse
-           makes `measureText` lie — which `width: "label"` above would then inherit. The font
-           string has to be fixed BEFORE the box can be sized from it.
+           absent `Inter` are not names it can resolve. The font string has to be valid for the
+           canvas label to match the intended browser typography.
 
            `font-weight: 650` was VERIFIED INVALID by execution, not by reading: cytoscape's
            fontWeight is enum-only (cytoscape.cjs.js:17414) and 650 is not a member, so it warns

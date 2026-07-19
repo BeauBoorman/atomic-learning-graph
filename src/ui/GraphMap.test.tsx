@@ -118,24 +118,11 @@ describe("the map's stylesheet survives Cytoscape's parser", () => {
     expect(style.fontFamily.strValue).toContain("-apple-system");
   });
 
-  // The box is sized to the text, so a label cannot overflow it. This asserts the MECHANISM is
-  // in place, which is the part that is knowable here — the pixel result is a browser question.
-  // Mutation-tested: restoring `width: 184` turns this red.
-  it("sizes the node box from its label, and wraps at one width with no second opinion", () => {
+  it("uses explicit label-safe node dimensions instead of deprecated label sizing", () => {
     const style = parsedNodeStyle();
-    expect(style.width.strValue).toBe("label");
-    expect(style.height.strValue).toBe("label");
+    expect(style.width.strValue).toBe("228px");
+    expect(style.height.strValue).toBe("73px");
     expect(style.textMaxWidth.pfValue).toBe(200);
-    // "whitespace", not "anywhere". "anywhere" was chosen to stop a word longer than
-    // text-max-width escaping the node — but `width: "label"` sizes the node TO its label,
-    // so an over-long word widens the box; it cannot escape. The cost was real: it breaks
-    // at any character on EVERY line, and the live map rendered "Vectors as fixed-length
-    // list / s" and "Multiply matching values, t / hen add". Found by opening the map.
-    // This assertion still earns its place: cytoscape rejects an illegal value silently and
-    // falls back to the default, and the default IS "whitespace" — so this cannot tell
-    // "accepted" from "rejected". What proves acceptance is the absence of a parser warning
-    // (the same run warns loudly about the deprecated `label` width/height and says nothing
-    // here). Kept as a pin against a future agent reintroducing "anywhere".
     expect(style.overflowWrap.strValue).toBe("whitespace");
   });
 });
