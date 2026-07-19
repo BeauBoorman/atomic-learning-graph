@@ -31,6 +31,15 @@ alg
 The installer never replaces an unrelated command with either name. From inside the repository,
 `pnpm alg` and `pnpm tui` are always available as fallbacks.
 
+> **Postinstall side effect, in case you audit installs:** `pnpm install` runs
+> `scripts/install-tui-aliases.mjs`, which creates the `alg` and `atomic-learning` symlinks in
+> `~/.local/bin` (or `%LOCALAPPDATA%\Microsoft\WindowsApps` on Windows). It is idempotent,
+> refuses to clobber an unrelated command at either path, and self-skips in CI unless
+> `ALG_INSTALL_TUI_ALIASES=1` is set. Set `ALG_BIN_DIR=<dir>` to choose a different target
+> directory. Uninstall is `rm ~/.local/bin/{alg,atomic-learning}`. If a `postinstall` that
+> writes to your PATH is not acceptable in your environment, run
+> `pnpm install --ignore-scripts` and use `pnpm tui` from inside the repo instead.
+
 The terminal UI can explore the committed course, rebuild any supported export, or guide a new
 paid course build. It shows the deterministic cost estimate and requires you to type `BUILD`
 before any model call. API keys are read from the provider's environment variable, a local `.env`,
@@ -96,3 +105,19 @@ pnpm --dir builder test
 The test uses the repository's labelled fixture graph through a mocked atomizer seam. It builds the
 real one-file reader in a temporary directory and verifies that provider-specific sentinel keys are
 not exposed in output or temporary files.
+
+### Two test runners, by design
+
+The builder is exercised by **two** test runners. Both run as part of the root acceptance gate
+(`scripts/gate.sh`):
+
+| Runner | Discovers | Run as | What it covers |
+|---|---|---|---|
+| **vitest** (root) | `builder/tui.test.mjs` and every `*.test.ts` / `*.test.tsx` under `src/` and `scripts/` | `pnpm test` | The TUI flow against the React/UI harness; the full deterministic invariant suite, including the adversarial/negative tests against the committed `data/graph.json`. |
+| **node:test** (builder-local) | `builder/tests.mjs` | `pnpm --dir builder test` | The offline BYOK packaging path — fixture graph in, one-file reader out, sentinel-key leakage check. |
+
+vitest is the default `pnpm test` runner at the repo root and discovers `builder/tui.test.mjs`
+through its default globs (there is no `vitest.config.ts` scoping `include` to `src/`); a future
+config change that added such a scope would silently drop the TUI tests from `pnpm test`. The
+gate runs both, so coverage does not depend on vitest's discovery alone. If you consolidate onto
+a single runner, update `scripts/gate.sh:54,58` first.
