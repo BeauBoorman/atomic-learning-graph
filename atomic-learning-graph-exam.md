@@ -95,7 +95,7 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `current`, `purposes`, `can`, `think`, `vector`, `fixed-length`, `array`, `scalars`
+- Item 1 must mention: `vector`, `fixed-length`, `array`, `scalars`
   Verbatim source span (`d2l-linear-algebra`):
 
 > For current purposes, you can think of a vector as a fixed-length array of scalars.
@@ -105,12 +105,12 @@ A self-check passes an item only when every listed source-derived term appears i
 
 > As with their code counterparts, we call these scalars the elements of the vector (synonyms include entries and components).
 
-- Item 3 must mention: `example`, `training`, `model`, `predict`, `risk`, `loan`, `defaulting`, `might`, `associate`, `each`, `applicant`, `vector`, `whose`, `components`, `correspond`, `quantities`, `like`, `income`, `length`, `employment`, `number`, `previous`, `defaults`
+- Item 3 must mention: `example`, `training`, `model`, `predict`, `risk`, `loan`, `defaulting`, `associate`, `applicant`, `vector`, `whose`, `components`, `correspond`, `quantities`, `income`, `length`, `employment`, `number`, `previous`, `defaults`
   Verbatim source span (`d2l-linear-algebra`):
 
 > For example, if we were training a model to predict the risk of a loan defaulting, we might associate each applicant with a vector whose components correspond to quantities like their income, length of employment, or number of previous defaults.
 
-- Item 4 must mention: `denote`, `vectors`, `bold`, `lowercase`, `letters`, `e`, `g`, `mathbf`, `x`, `y`, `z`
+- Item 4 must mention: `denote`, `vectors`, `bold`, `lowercase`, `letters`
   Verbatim source span (`d2l-linear-algebra`):
 
 > We denote vectors by bold lowercase letters, (e.g., $\mathbf{x}$, $\mathbf{y}$, and $\mathbf{z}$).
@@ -133,17 +133,17 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `dot`, `product`, `two`, `vectors`, `sum`, `over`, `products`, `elements`, `same`, `position`
+- Item 1 must mention: `dot`, `product`, `two`, `vectors`, `sum`, `products`, `elements`, `position`
   Verbatim source span (`d2l-linear-algebra`):
 
 > The dot product of two vectors is a sum over the products of the elements at the same position
 
-- Item 2 must mention: `weighted`, `sum`, `values`, `mathbf`, `x`, `according`, `weights`, `w`, `could`, `expressed`, `dot`, `product`, `top`
+- Item 2 must mention: `weighted`, `sum`, `values`, `according`, `weights`, `expressed`, `dot`, `product`
   Verbatim source span (`d2l-linear-algebra`):
 
 > the weighted sum of the values in $\mathbf{x}$ according to the weights $\mathbf{w}$ could be expressed as the dot product $\mathbf{x}^\top \mathbf{w}$.
 
-- Item 3 must mention: `weights`, `nonnegative`, `sum`, `1`, `e`, `left`, `n`, `w`, `right`, `dot`, `product`, `expresses`, `weighted`, `average`
+- Item 3 must mention: `weights`, `nonnegative`, `sum`, `dot`, `product`, `expresses`, `weighted`, `average`
   Verbatim source span (`d2l-linear-algebra`):
 
 > When the weights are nonnegative and sum to $1$, i.e., $\left(\sum_{i=1}^{n} {w_i} = 1\right)$, the dot product expresses a weighted average.
@@ -180,17 +180,17 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `matrix`, `vector`, `product`, `mathbf`, `x`, `simply`, `column`, `length`, `m`
+- Item 1 must mention: `matrix`, `vector`, `product`, `simply`, `column`, `length`
   Verbatim source span (`d2l-linear-algebra`):
 
 > The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$
 
-- Item 2 must mention: `whose`, `textrm`, `th`, `element`, `dot`, `product`, `mathbf`, `top`, `x`
+- Item 2 must mention: `whose`, `element`, `dot`, `product`
   Verbatim source span (`d2l-linear-algebra`):
 
 > whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
 
-- Item 3 must mention: `note`, `column`, `dimension`, `length`, `along`, `axis`, `1`, `must`, `same`, `x`
+- Item 3 must mention: `note`, `column`, `dimension`, `length`, `along`, `axis`
   Verbatim source span (`d2l-linear-algebra`):
 
 > Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length).
@@ -213,17 +213,17 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `putting`, `two`, `pieces`, `together`, `gives`, `us`, `softmax`, `function`, `hat`, `mathbf`, `y`, `mathrm`, `o`, `quad`, `textrm`, `frac`, `exp`, `sum`, `j`
+- Item 1 must mention: `putting`, `two`, `pieces`, `gives`, `softmax`, `function`
   Verbatim source span (`d2l-softmax-regression`):
 
 > Putting these two pieces together gives us the softmax function: $$\hat{\mathbf{y}} = \mathrm{softmax}(\mathbf{o}) \quad \textrm{where}\quad \hat{y}_i = \frac{\exp(o_i)}{\sum_j \exp(o_j)}.$$
 
-- Item 2 must mention: `can`, `transform`, `values`, `add`, `1`, `dividing`, `each`, `sum`, `process`, `called`, `normalization`
+- Item 2 must mention: `transform`, `values`, `add`, `dividing`, `sum`, `process`, `called`, `normalization`
   Verbatim source span (`d2l-softmax-regression`):
 
 > We can then transform these values so that they add up to $1$ by dividing each by their sum. This process is called normalization.
 
-- Item 3 must mention: `note`, `largest`, `coordinate`, `mathbf`, `o`, `corresponds`, `most`, `likely`, `class`, `according`, `hat`, `y`
+- Item 3 must mention: `note`, `largest`, `coordinate`, `corresponds`, `likely`, `class`, `according`
   Verbatim source span (`d2l-softmax-regression`):
 
 > Note that the largest coordinate of $\mathbf{o}$ corresponds to the most likely class according to $\hat{\mathbf{y}}$.
@@ -246,22 +246,22 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `denote`, `mathcal`, `d`, `stackrel`, `textrm`, `def`, `mathbf`, `k`, `1`, `v`, `ldots`, `m`, `database`, `tuples`, `keys`, `values`, `moreover`, `q`, `query`
+- Item 1 must mention: `denote`, `database`, `tuples`, `keys`, `values`, `moreover`, `query`
   Verbatim source span (`d2l-queries-keys-values`):
 
 > denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values. Moreover, denote by $\mathbf{q}$ a query.
 
-- Item 2 must mention: `can`, `define`, `attention`, `over`, `mathcal`, `d`, `textrm`, `mathbf`, `q`, `stackrel`, `def`, `sum`, `1`, `m`, `alpha`, `k`, `v`, `mathbb`, `r`, `ldots`, `scalar`, `weights`
+- Item 2 must mention: `define`, `attention`, `scalar`, `weights`
   Verbatim source span (`d2l-queries-keys-values`):
 
 > Then we can define the attention over $\mathcal{D}$ as $$\textrm{Attention}(\mathbf{q}, \mathcal{D}) \stackrel{\textrm{def}}{=} \sum_{i=1}^m \alpha(\mathbf{q}, \mathbf{k}_i) \mathbf{v}_i,$$ where $\alpha(\mathbf{q}, \mathbf{k}_i) \in \mathbb{R}$ ($i = 1, \ldots, m$) are scalar attention weights.
 
-- Item 3 must mention: `name`, `attention`, `derives`, `fact`, `operation`, `pays`, `particular`, `terms`, `weight`, `alpha`, `significant`, `e`, `large`
+- Item 3 must mention: `name`, `attention`, `derives`, `fact`, `operation`, `pays`, `particular`, `terms`, `weight`, `significant`, `large`
   Verbatim source span (`d2l-queries-keys-values`):
 
 > The name attention derives from the fact that the operation pays particular attention to the terms for which the weight $\alpha$ is significant (i.e., large).
 
-- Item 4 must mention: `weights`, `alpha`, `mathbf`, `q`, `k`, `form`, `convex`, `combination`, `e`, `sum`, `1`, `geq`, `0`, `all`, `most`, `common`, `setting`, `deep`, `learning`
+- Item 4 must mention: `weights`, `form`, `convex`, `combination`, `common`, `setting`, `deep`, `learning`
   Verbatim source span (`d2l-queries-keys-values`):
 
 > The weights $\alpha(\mathbf{q}, \mathbf{k}_i)$ form a convex combination, i.e., $\sum_i \alpha(\mathbf{q}, \mathbf{k}_i) = 1$ and $\alpha(\mathbf{q}, \mathbf{k}_i) \geq 0$ for all $i$. This is the most common setting in deep learning.
@@ -284,12 +284,12 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `attention`, `mechanism`, `computes`, `linear`, `combination`, `over`, `values`, `mathbf`, `v`, `mathit`, `via`, `pooling`, `weights`, `derived`, `according`, `compatibility`, `between`, `query`, `q`, `keys`, `k`
+- Item 1 must mention: `attention`, `mechanism`, `computes`, `linear`, `combination`, `values`, `pooling`, `weights`, `derived`, `according`, `compatibility`, `query`, `keys`
   Verbatim source span (`d2l-queries-keys-values`):
 
 > The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
 
-- Item 2 must mention: `one`, `benefits`, `attention`, `mechanism`, `can`, `quite`, `intuitive`, `particularly`, `weights`, `nonnegative`, `sum`, `1`, `case`, `might`, `interpret`, `large`, `way`, `model`, `select`, `components`, `relevance`, `while`, `good`, `intuition`, `important`, `remember`, `just`
+- Item 2 must mention: `one`, `benefits`, `attention`, `mechanism`, `quite`, `intuitive`, `particularly`, `weights`, `nonnegative`, `sum`, `case`, `interpret`, `large`, `way`, `model`, `select`, `components`, `relevance`, `while`, `good`, `intuition`, `important`, `remember`
   Verbatim source span (`d2l-queries-keys-values`):
 
 > One of the benefits of the attention mechanism is that it can be quite intuitive, particularly when the weights are nonnegative and sum to $1$. In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
@@ -312,17 +312,17 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `because`, `every`, `token`, `attending`, `each`, `other`, `unlike`, `case`, `decoder`, `steps`, `attend`, `encoder`, `such`, `architectures`, `typically`, `described`, `self-attention`, `models`, `elsewhere`, `intra-attention`, `model`
+- Item 1 must mention: `token`, `attending`, `unlike`, `case`, `decoder`, `steps`, `attend`, `encoder`, `architectures`, `typically`, `described`, `self-attention`, `models`, `elsewhere`, `intra-attention`, `model`
   Verbatim source span (`d2l-self-attention`):
 
 > Because every token is attending to each other token (unlike the case where decoder steps attend to encoder steps), such architectures are typically described as self-attention models , and elsewhere described as intra-attention model .
 
-- Item 2 must mention: `given`, `sequence`, `input`, `tokens`, `mathbf`, `x`, `1`, `ldots`, `n`, `any`, `mathbb`, `r`, `d`, `leq`, `self-attention`, `outputs`, `same`, `length`, `y`
+- Item 2 must mention: `sequence`, `input`, `tokens`, `self-attention`, `outputs`, `length`
   Verbatim source span (`d2l-self-attention`):
 
 > Given a sequence of input tokens $\mathbf{x}_1, \ldots, \mathbf{x}_n$ where any $\mathbf{x}_i \in \mathbb{R}^d$ ($1 \leq i \leq n$), its self-attention outputs a sequence of the same length $\mathbf{y}_1, \ldots, \mathbf{y}_n$
 
-- Item 3 must mention: `using`, `multi-head`, `attention`, `following`, `code`, `snippet`, `computes`, `self-attention`, `tensor`, `shape`, `batch`, `size`, `number`, `time`, `steps`, `sequence`, `length`, `tokens`, `d`, `output`, `same`
+- Item 3 must mention: `using`, `multi-head`, `attention`, `following`, `code`, `snippet`, `computes`, `self-attention`, `tensor`, `shape`, `batch`, `size`, `number`, `time`, `steps`, `sequence`, `length`, `tokens`, `output`
   Verbatim source span (`d2l-self-attention`):
 
 > Using multi-head attention, the following code snippet computes the self-attention of a tensor with shape (batch size, number of time steps or sequence length in tokens, $d$). The output tensor has the same shape.
@@ -345,17 +345,17 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `dominant`, `approach`, `preserving`, `information`, `about`, `order`, `tokens`, `represent`, `model`, `additional`, `input`, `associated`, `each`, `token`
+- Item 1 must mention: `dominant`, `approach`, `preserving`, `information`, `order`, `tokens`, `represent`, `model`, `additional`, `input`, `associated`, `token`
   Verbatim source span (`d2l-self-attention`):
 
 > The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token.
 
-- Item 2 must mention: `inputs`, `called`, `positional`, `encodings`, `can`, `either`, `learned`, `fixed`, `priori`
+- Item 2 must mention: `inputs`, `called`, `positional`, `encodings`, `learned`, `fixed`, `priori`
   Verbatim source span (`d2l-self-attention`):
 
 > These inputs are called positional encodings, and they can either be learned or fixed a priori.
 
-- Item 3 must mention: `positional`, `embedding`, `matrix`, `mathbf`, `p`, `rows`, `correspond`, `positions`, `within`, `sequence`, `columns`, `represent`, `different`, `encoding`, `dimensions`
+- Item 3 must mention: `positional`, `embedding`, `matrix`, `rows`, `correspond`, `positions`, `within`, `sequence`, `columns`, `represent`, `different`, `encoding`, `dimensions`
   Verbatim source span (`d2l-self-attention`):
 
 > In the positional embedding matrix $\mathbf{P}$, rows correspond to positions within a sequence and columns represent different positional encoding dimensions.
@@ -378,7 +378,7 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `softmax`, `operation`, `preserves`, `ordering`, `among`, `arguments`
+- Item 1 must mention: `softmax`, `operation`, `preserves`, `ordering`, `arguments`
   Verbatim source span (`d2l-softmax-regression`):
 
 > the softmax operation preserves the ordering among its arguments
@@ -406,22 +406,22 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `informally`, `norm`, `vector`, `tells`, `us`, `how`, `big`
+- Item 1 must mention: `informally`, `norm`, `vector`, `tells`, `how`, `big`
   Verbatim source span (`d2l-linear-algebra`):
 
 > Informally, the norm of a vector tells us how big it is.
 
-- Item 2 must mention: `here`, `employing`, `notion`, `size`, `concerns`, `magnitude`, `vector's`, `components`, `dimensionality`
+- Item 2 must mention: `employing`, `notion`, `size`, `concerns`, `magnitude`, `vector's`, `components`, `dimensionality`
   Verbatim source span (`d2l-linear-algebra`):
 
 > Here, we are employing a notion of size that concerns the magnitude of a vector's components (not its dimensionality).
 
-- Item 3 must mention: `norm`, `function`, `cdot`, `maps`, `vector`, `scalar`
+- Item 3 must mention: `norm`, `function`, `maps`, `vector`, `scalar`
   Verbatim source span (`d2l-linear-algebra`):
 
 > A norm is a function $\| \cdot \|$ that maps a vector to a scalar
 
-- Item 4 must mention: `many`, `functions`, `valid`, `norms`, `different`, `encode`, `notions`, `size`
+- Item 4 must mention: `functions`, `valid`, `norms`, `different`, `encode`, `notions`, `size`
   Verbatim source span (`d2l-linear-algebra`):
 
 > Many functions are valid norms and different norms encode different notions of size.

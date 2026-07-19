@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { loadGraph } from "./load";
 import type { RecallRubric } from "../types";
 import { fixtureGraph } from "./fixture-graph";
 import { buildRecallRubric, checkRecall } from "./recall-rubric";
@@ -16,6 +17,28 @@ describe("buildRecallRubric", () => {
       quotedText: concept.lesson?.steps[0].citation.quotedText,
       mustMention: ["vector", "ordered", "list", "numbers"],
     });
+  });
+
+  it("keeps only meaningful prose words, not stopwords or LaTeX command fragments", () => {
+    const concept = structuredClone(fixtureGraph.concepts[0]);
+    concept.lesson!.steps[0].citation.quotedText =
+      "The weights can be written as $\\textrm{value} \\mathbf{w} = \\left(1\\right)$ for every vector.";
+
+    const rubric = buildRecallRubric(concept);
+    expect(rubric.items[0].mustMention).toEqual(["weights", "written", "vector"]);
+    expect(checkRecall("A vector has weights written for it.", { ...rubric, items: [rubric.items[0]] })).toEqual([
+      { itemIndex: 0, met: true },
+    ]);
+  });
+
+  it("accepts the generated vector answer key for its first grounded checkpoint", () => {
+    const concept = loadGraph().concepts.find(({ id }) => id === "vectors");
+    if (!concept) throw new Error("generated graph lost vectors");
+
+    const rubric = buildRecallRubric(concept);
+    expect(checkRecall(concept.summary, { ...rubric, items: [rubric.items[0]] })).toEqual([
+      { itemIndex: 0, met: true },
+    ]);
   });
 });
 
