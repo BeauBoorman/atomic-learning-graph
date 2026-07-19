@@ -18,7 +18,7 @@ The whole project, in five steps:
 4. **Inspect how the course was generated and verified.** Human-specified structure, model-generated
    prose, deterministically-verified grounding, advisory-reviewed quality, and the limits we do not
    prove — each boundary is labelled, not hidden.
-5. **Build your own.** Paste your own open text and key into the builder; it compiles a course with the same guarantees, offline.
+5. **Build your own.** Paste your own open text and key into the builder; it compiles a course you can then read offline.
 
 Pick something you want to understand. We work backwards through a prerequisite graph to the ideas
 it rests on, and teach them one page at a time, in order. Every page is a plain-English translation
@@ -38,8 +38,10 @@ browser bytes, not left as a promise.
 - **Optional depth:** every step, or just the spine.
 
 Multiple representations, analogical transfer, cognitive-load management, interest-based motivation.
-These are not learning styles. That idea has been tested and it does not hold up (Pashler et al. 2008;
-Coffield et al. 2004; Kirschner 2017).
+These are not learning styles. That idea has been tested and it does not hold up — see Pashler et al.
+(2008), [Learning Styles: Concepts and Evidence](https://journals.sagepub.com/doi/10.1111/j.1539-6053.2009.01038.x);
+Coffield et al. (2004), [Should We Be Using Learning Styles?](https://www.voced.edu.au/content/ngv:18293);
+and Kirschner (2017), [Stop Propagating the Learning Styles Myth](https://journals.sagepub.com/doi/10.1177/0031721717731807).
 
 ## What you can check
 
@@ -53,17 +55,25 @@ Every claim on this page is a property of the committed artifact, not a descript
 | The graph was not hand-EDITED | `data/graph.json` is written only by `pnpm atomize`. Its sha256 is pinned in `data/graph.run.json`, and `src/atomization/graph-run.test.ts` recomputes it. A single hand-edited character turns the suite red. |
 | The sources are what we say they are | Four pinned CC-BY-SA-4.0 source sections (spanning three chapters), license-checked before ingestion, with revision pins and license evidence recorded in `data/oer/sources.json`. |
 
-The product graph structure is deliberately specified, not independently discovered. A full-graph
-spine fixes all ten stable concept IDs, their source assignments, all nine prerequisite edges, and
-`self-attention` as the goal. The inventory prompt requests exactly that set, then code projects the
-grounded response onto it; the relationship prompt receives the exact edge set, then code replaces
-all returned relations with those nine edges. `pnpm verify:anchors` separately checks that five named
-corpus passages remain verbatim in the extracted sources. Those passages are not inserted into the
-graph as constants: the model proposes each concept quote, and code only snaps a
-whitespace-equivalent proposal to the stored source bytes. If a required quote fails grounding, a
-concept-specific regex narrows the stored-source excerpt for a separate model repair. The build
-refuses to write an artifact whose IDs, source assignments, edges, route, or goal differ from the
-full spine.
+The course *structure* is hand-specified, not discovered. We decided in advance which ten concepts the
+course must contain, which source each one cites, which nine prerequisite edges connect them, and that
+`self-attention` is the goal. The model then fills that fixed structure with grounded content — titles,
+summaries, tags, lesson steps, analogies, and the chosen source quotes — and the build refuses to ship
+if its output does not match the specified structure exactly. The model proposes; deterministic code
+disposes.
+
+<details><summary>How that structuring actually works (mechanics)</summary>
+
+The inventory prompt requests the exact ten-concept set; the grounded response is projected onto that
+fixed ID set. The relationship prompt receives the exact nine-edge set; code replaces any returned
+relations with those edges. `pnpm verify:anchors` checks that five named corpus passages remain
+verbatim in the extracted sources. Those passages are not inserted into the graph as constants: the
+model proposes each concept quote, and code only normalizes whitespace before matching the proposal to
+the stored source bytes. If a required quote fails grounding, a concept-specific regex narrows the
+stored-source excerpt for a separate model repair. The build refuses to write an artifact whose IDs,
+source assignments, edges, route, or goal differ from the specified structure.
+
+</details>
 
 The model still proposes the grounded content inside those ten slots: titles, summaries, tags, all
 ten concept-level quote selections, all lesson steps, and all analogies. The graph and citations then
@@ -138,24 +148,26 @@ guarantees travel — not the headline.
   cost, and the graph's sha256 (`1672b7d6…`) that `src/atomization/graph-run.test.ts` recomputes. It
   distinguishes the human-specified structure from the model-generated prose, and records that the
   browser makes zero model calls.
-- **Seven exports, attribution-clean.** The one graph emits an `llms.txt` manifest, an
-  [org-roam graph](atomic-learning-graph.org), a
-  [native Tinderbox document](atomic-learning-graph.tbx) with a
-  [portable OPML outline](atomic-learning-graph.opml), an [Obsidian vault](exports/obsidian/), an
-  [Anki deck](atomic-learning-graph-anki.tsv), and a
-  [grounded practice exam](atomic-learning-graph-exam.md) — the most education-shaped artifact:
-  every answer in its key carries the verbatim source passage that grounds it — plus a
-  machine-checkable [course receipt](data/course.receipt.json). The six learning-content exports
-  carry CC-BY-SA attribution, a deed link, and a modification notice; the receipt records the work,
-  authors, license, revision, and graph hash.
+- **Six learning-content exports, attribution-clean.** The one graph emits six learning-content
+  exports: an [`llms.txt`](llms.txt) manifest, an [org-roam graph](atomic-learning-graph.org), a
+  [native Tinderbox document](atomic-learning-graph.tbx), an [Obsidian vault](exports/obsidian/), an
+  [Anki deck](atomic-learning-graph-anki.tsv), and a [grounded practice exam](atomic-learning-graph-exam.md)
+  — the most education-shaped artifact: every answer in its key carries the verbatim source passage
+  that grounds it. The six carry CC-BY-SA attribution, a deed link, and a modification notice.
+  Listed separately because they are not learning content: a portable, rebuildable
+  [OPML outline](atomic-learning-graph.opml) — the deterministic interchange artifact that drives the
+  Tinderbox import — and a machine-checkable [course receipt](data/course.receipt.json) recording the
+  work, authors, license, revision, and graph hash.
   `pnpm verify:llms|orgroam|tinderbox|obsidian|anki|exam|receipt` gates them against the committed
   graph. The Obsidian vault opens with a prerequisite-ordered **Start Here** note and carries the
   full cited lesson in every concept note; org-roam leads with the same learning path. The native
   Tinderbox document opens directly with styled concept/source/edge prototypes, a mapped learning
-  path, and native prerequisite links. The deterministic OPML remains the gated, rebuildable
-  interchange artifact: Tinderbox imports it in one shot, promotes graph metadata to inspectable
+  path, and native prerequisite links; the deterministic OPML remains the only **gated, rebuildable**
+  Tinderbox artifact: Tinderbox imports it in one shot, promotes graph metadata to inspectable
   user attributes, applies the presentation, and materializes prerequisite links while preserving
-  every canonical relation as a typed edge record.
+  every canonical relation as a typed edge record. The committed `.tbx` is a hand-finished
+  convenience for opening the course without an import step; it is not regenerated by the gate, so
+  the OPML is the supported interchange and the `.tbx` is a presentation convenience.
 
   These are deliberately **opinionated, presentation-ready projections**, not neutral dumps or
   new authorities. Each emitter applies the best practices we could verify in that format's
@@ -182,10 +194,10 @@ No coding is required. Download the file or folder for your app, then follow the
 
 | Format | What it is | How to open and use it |
 |---|---|---|
-| [Obsidian vault](exports/obsidian/) | A linked set of course notes with lessons and source receipts. | Download the whole `exports/obsidian` folder. In Obsidian, choose **Open folder as vault**, select that folder, then open **Start Here** and follow the learning path. |
+| [Obsidian vault](exports/obsidian/) | A linked set of course notes with lessons and source receipts. | GitHub does not let you download a single folder directly, so either clone the repository (`git clone`) or use **Code → Download ZIP** on GitHub, then unpack it. In Obsidian, choose **Open folder as vault**, select the `exports/obsidian` folder, then open **Start Here** and follow the learning path. |
 | [org-roam](atomic-learning-graph.org) | The same linked course as one Emacs Org file. | Put the `.org` file in your org-roam folder, open it in Emacs, run `M-x org-roam-db-sync` once, then begin at **Learning Path**. |
-| [Tinderbox](atomic-learning-graph.tbx) | A visual course map with styled concept cards, sources, and prerequisite links. | Double-click the `.tbx` file in Tinderbox, open **Concepts** in Map view, and follow the connected notes. The [OPML file](atomic-learning-graph.opml) is the portable one-import version. |
-| [Anki deck](atomic-learning-graph-anki.tsv) | Ready-to-study question-and-answer cards with a source receipt on every answer. | In Anki, choose **File → Import**, select the `.tsv` file, keep the **Basic** note type, import it, then choose **Study Now**. |
+| [Tinderbox](atomic-learning-graph.opml) | A visual course map with styled concept cards, sources, and prerequisite links. | The supported artifact is the gated [OPML file](atomic-learning-graph.opml): in Tinderbox, choose **File → Import…**, select the OPML, and the map, prototypes, colors, positions, and links apply in one shot. A committed [`atomic-learning-graph.tbx`](atomic-learning-graph.tbx) is also included as a hand-finished convenience that opens directly in Tinderbox 9.0+ without an import step; it is not gated or rebuilt by the pipeline. |
+| [Anki deck](atomic-learning-graph-anki.tsv) | Ready-to-study question-and-answer cards with a source receipt on every answer. | In Anki, choose **File → Import**, select the `.tsv` file, keep the **Basic** note type, import it, then choose **Study Now**. The file sets its own deck and tag. |
 | [Practice exam](atomic-learning-graph-exam.md) | A printable self-check with questions, passage matching, answer keys, and grounded recall checks. | Open the Markdown file in any Markdown reader or on GitHub. Answer Parts A and B before scrolling to the answer key; print it if you prefer paper. |
 | [`llms.txt`](llms.txt) | A plain-text course index made for AI assistants; [`llms-full.txt`](llms-full.txt) contains the complete lessons and receipts. | Attach or paste `llms.txt` into an assistant for the overview. Add `llms-full.txt` when you want it to use the full course, and ask it to follow prerequisite order and show the source receipts. |
 
@@ -196,8 +208,9 @@ forgetting-curve engine — we hand clean, cited cards to one that is already tr
 - **A single-file offline reader.** `pnpm build:single` emits one `dist-single/index.html` you can
   double-click: no server, no network. `pnpm verify:single` gates it.
 - **Bring your own text and key.** `builder/` compiles a course from any pasted open text with your
-  own OpenAI, Anthropic, or compatible key. The key lives in memory only, never written to disk. Same
-  offline guarantees, your corpus.
+  own OpenAI, Anthropic, or compatible key. The key lives in memory only, never written to disk.
+  Building makes paid model calls at compile time; once the build converges, the downloaded reader
+  runs offline with the same guarantees as the demo reader — no key, no network, no model call.
 - **Cost is stated, not hidden.** The demo graph cost **$0.44** to compile (~**$0.044** per concept,
   36,871 tokens). `src/cost/estimator.ts` is a pure, no-network estimator surfaced in both the reader
   and the builder.
@@ -291,11 +304,14 @@ sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside th
 
 ## Is it maintained?
 
-The honest answer is machine-checkable rather than promised. `pnpm gate` is the maintenance
-status: it re-verifies every claim in this README against the committed bytes — grounding,
-licenses, pinned hashes, the shipped-bundle network scan — on any machine, with no API key. A
-checkout that has rotted goes red; a green gate means the guarantees hold *today*, not that they
-held when this paragraph was written. The build receipt in
+The honest answer is machine-checkable rather than promised. `pnpm gate` is the maintenance status:
+on any machine, with no API key, it re-verifies the committed artifact, corpus, build, and shipped
+bundle — typecheck, the full test suite (including every adversarial/negative test) against the
+committed `data/graph.json`, license and provenance integrity of the corpus, every export's
+graph-derived bytes, the production build, and the post-build network/model-client scan of the
+bytes a learner actually downloads. A checkout that has rotted goes red on one of those stages; a
+green gate means those bounded guarantees hold *today*, not that they held when this paragraph was
+written, and not that every product quality outside that set is solved. The build receipt in
 [`data/graph.run.json`](data/graph.run.json) records what was last compiled, by which model, at
 what cost.
 
@@ -363,8 +379,9 @@ Honest limits, stated up front:
 CC-BY-4.0.**
 
 The source code (`src/`, `scripts/` and the build configuration) is licensed
-[MIT](LICENSE-CODE). Creative Commons recommends against CC licenses for software, and ShareAlike
-is viral on adaptations, so the boundary is drawn between the engine and the text it renders.
+[MIT](LICENSE-CODE). Creative Commons recommends against CC licenses for software, and CC-BY-SA's
+share-alike term requires adaptations of the licensed text to carry the same license, so the
+boundary is drawn between the engine and the text it renders.
 
 The lessons are adaptations of CC-BY-SA-4.0 material from *Dive into Deep Learning* by Aston Zhang,
 Zachary C. Lipton, Mu Li and Alexander J. Smola, translated into plain English at build time and

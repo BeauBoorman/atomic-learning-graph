@@ -5,6 +5,16 @@ You are building `atomic-learning-graph` to a FIXED, machine-checkable acceptanc
 **This prompt is the full brief. An orchestration script fires you PHASE BY PHASE** (`codex exec` then `codex exec resume`) and gates each phase on `pnpm typecheck && pnpm test` or an adjudicated ledger. The script enforces the sequence; you do not self-gate. If `resume` ever drops your prior-phase context, the repo's `AGENTS.md` scope fences (reloaded every run) are the backstop. Work the gates in order; the script will not advance you past a red one.
 
 > **Historical note (2026-07-18):** this is the point-in-time kickoff brief and is kept as written. One item it lists as an out-of-MVP marked slot — `Rendering` / `RenderingFormat` (§1 below) — was **subsequently built and gated** once its structural blocker was resolved by the sibling gate `invalidRenderingCitations`. See `ROADMAP.md` §1 (SHIPPED) for the current state; the "cut … yet" language below reflects the state at kickoff, not today.
+>
+> **Other points superseded since kickoff (read the body with these in mind):** (a) the brief says
+> "5 hard invariants" in §AGENTS precedence and Gate 6 — the current count is **6** hard deterministic
+> proof-invariants plus `isSingleConcept` as advisory (see `AGENTS.md`); (b) the supporting docs the
+> body references under `plans/` / `docs/` (execution plan, corpus-fetch strategy, isSingleConcept
+> reframe spec, Codex config) are not in the shipping tree — the rules they carried now live in
+> `AGENTS.md`, `src/atomization/AGENTS.md`, the in-source docstrings, and `ROADMAP.md`; (c) Gate 4's
+> "`pnpm verify:corpus` … re-fetches from the pinned URL" behaviour is no longer the default — the
+> committed gate is hermetic and re-derives hashes locally, with `VERIFY_UPSTREAM=1` as the explicit
+> network-re-fetch opt-in (see `scripts/gate.sh` and `scripts/verify-corpus.ts`).
 
 ## Mission & thesis
 Turn open educational resources into a navigable PREREQUISITE GRAPH of one-concept-at-a-time lessons, with a DETERMINISTIC pathfinder routing a learner from what they know to a goal. It is NOT a chatbot. The thesis is load-bearing and governs every decision:

@@ -33,7 +33,7 @@ Goal: [[id:self-attention][Self-Attention]]
 * Vectors
 :PROPERTIES:
 :ID: vectors
-:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#vectors
 :END:
 
 A vector is a fixed-length array whose elements are scalars.
@@ -93,7 +93,7 @@ We denote vectors by bold lowercase letters, (e.g., $\mathbf{x}$, $\mathbf{y}$, 
 * Dot Product
 :PROPERTIES:
 :ID: dot-product
-:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#dot-product
 :END:
 
 The dot product of two vectors sums the products of elements at corresponding positions.
@@ -146,7 +146,7 @@ When the weights are nonnegative and sum to $1$, i.e., $\left(\sum_{i=1}^{n} {w_
 * Matrix–Vector Product
 :PROPERTIES:
 :ID: matrix-vector-product
-:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#matrix-vector-product
 :END:
 
 A matrix–vector product contains one dot product between the input vector and each row of the matrix.
@@ -213,7 +213,7 @@ Note that the column dimension of A (its length along axis 1) must be the same a
 * Softmax
 :PROPERTIES:
 :ID: softmax
-:ROAM_REFS: d2l-softmax-regression https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md#softmax
 :END:
 
 Softmax exponentiates scores and normalizes them into values that sum to one.
@@ -266,7 +266,7 @@ Note that the largest coordinate of $\mathbf{o}$ corresponds to the most likely 
 * Queries, Keys, and Values
 :PROPERTIES:
 :ID: qkv
-:ROAM_REFS: d2l-queries-keys-values https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md#qkv
 :END:
 
 Attention can be framed using a query applied to a collection of key–value pairs.
@@ -329,7 +329,7 @@ The weights $\alpha(\mathbf{q}, \mathbf{k}_i)$ form a convex combination, i.e., 
 * Attention Pooling
 :PROPERTIES:
 :ID: attention-pooling
-:ROAM_REFS: d2l-queries-keys-values https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md#attention-pooling
 :END:
 
 Attention pooling combines values linearly using weights determined by query–key compatibility.
@@ -372,7 +372,7 @@ One of the benefits of the attention mechanism is that it can be quite intuitive
 * Self-Attention
 :PROPERTIES:
 :ID: self-attention
-:ROAM_REFS: d2l-self-attention https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md#self-attention
 :END:
 
 Self-attention lets every token attend to every other token in the same sequence.
@@ -425,7 +425,7 @@ Using multi-head attention, the following code snippet computes the self-attenti
 * Positional Encoding
 :PROPERTIES:
 :ID: positional-encoding
-:ROAM_REFS: d2l-self-attention https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md#positional-encoding
 :END:
 
 Positional encodings provide token-order information to models as additional token-associated inputs.
@@ -478,7 +478,7 @@ In the positional embedding matrix $\mathbf{P}$, rows correspond to positions wi
 * Softmax Preserves Ordering
 :PROPERTIES:
 :ID: softmax-ordering
-:ROAM_REFS: d2l-softmax-regression https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md#softmax-ordering
 :END:
 
 Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
@@ -521,7 +521,7 @@ we do not need to compute the softmax to determine which class has been assigned
 * Vector Norm
 :PROPERTIES:
 :ID: vector-norm
-:ROAM_REFS: d2l-linear-algebra https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#vector-norm
 :END:
 
 A vector norm provides a scalar measure of the vector's magnitude.

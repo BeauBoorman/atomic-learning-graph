@@ -26,9 +26,16 @@ const ANKI_HEADERS = [
   "#separator:Tab",
   "#html:true",
   "#notetype:Basic",
+  "#deck:Atomic Learning Graph",
+  "#tags:atomic-learning-graph::d2l",
   "#columns:Front\tBack",
-  "# This is a ready-to-study Anki deck: choose File > Import, select this .tsv file, keep the Basic note type, then choose Study Now.",
+  "# This is a ready-to-study Anki deck: choose File > Import, select this .tsv file, keep the Basic note type, then choose Study Now. The file sets its own deck and tag.",
 ] as const;
+
+// Anki uses the first field as the unique key for dupe detection across imports. A generic
+// "What is Vectors?" would collide if a user imports a second Atomic Learning course. Prefixing the
+// first field with a course marker keeps this deck's cards distinct from any other course's.
+const COURSE_PREFIX = "ALG :: ";
 
 function assertStructurallyEmittable(graph: LearningGraph): void {
   const duplicateConcepts = duplicateConceptIds(graph);
@@ -92,7 +99,7 @@ function renderSourceAttribution(source: Source): string[] {
 }
 
 function renderCard(concept: Concept, source: Source): string {
-  const front = escapeAnkiField(`What is ${concept.title}?`);
+  const front = escapeAnkiField(`${COURSE_PREFIX}What is ${concept.title}?`);
   const back = escapeAnkiField(
     [
       concept.summary,
