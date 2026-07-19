@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Build a one-file offline course from text you own." />
-    <title>Course Foundry — Atomic Learning Graph</title>
+    <title>Atomic Learning Graph</title>
     <style>
       :root { color-scheme: dark; --ink:#f4f0e6; --muted:#aaa79f; --paper:#11120f; --panel:#1a1c18; --line:#373a32; --lime:#c8ff4d; --orange:#ff8a4d; --blue:#78dce8; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
       * { box-sizing:border-box; }
@@ -66,7 +66,7 @@
     <main>
       <header>
         <div>
-          <div class="eyebrow">Atomic Learning Graph / Course Foundry</div>
+          <div class="eyebrow">Atomic Learning Graph</div>
           <h1>Your words.<br />A course you can hold.</h1>
           <p class="lede">Paste source text you own. The model builds the map once; deterministic checks prove every atom has a real receipt. You get one offline HTML file.</p>
         </div>
@@ -101,7 +101,7 @@
                 <input id="model" maxlength="200" value="gpt-5.6-sol" spellcheck="false" autocomplete="off" required />
               </div>
             </div>
-            <div class="recommendation"><strong>Recommended: a high-quality model</strong> — this is educational content and it costs only cents. Better reasoning here is worth far more than shaving a few cents from a one-time build.</div>
+            <div class="recommendation"><strong>Recommended: a high-quality model</strong> — for a typical textbook chapter, this is usually under a dollar; check the estimate below for your input. Better reasoning here is worth more than shaving cost from a one-time build.</div>
             <div class="field" id="base-url-field" hidden>
               <label for="base-url">OpenAI-compatible base URL</label>
               <input id="base-url" type="url" maxlength="500" placeholder="http://127.0.0.1:11434/v1" spellcheck="false" autocomplete="off" />

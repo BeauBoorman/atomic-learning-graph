@@ -21,7 +21,7 @@ describe("atomization cost estimator", () => {
     ]);
   });
 
-  it("reproduces the Mill run scale from 41k source characters", () => {
+  it("reproduces the calibration scale from 41k source characters", () => {
     const estimates = estimateAtomizationCosts("x".repeat(41_000));
 
     expect(estimates.map(({ model }) => model)).toEqual([

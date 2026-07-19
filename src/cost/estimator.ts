@@ -2,8 +2,9 @@
  * Offline atomization cost estimates.
  *
  * These constants intentionally approximate a complete multi-call course build rather than one
- * prompt. The Mill calibration run used about 41,000 source characters, 18,700 billed input
- * tokens, 11,600 billed output tokens, and produced 10 concepts. No tokenizer or model is called.
+ * prompt. The committed calibration receipt (`data/graph.run.json`) records 26,617 billed input
+ * tokens, 10,254 billed output tokens, 36,871 total tokens, and 10 concepts. No tokenizer or
+ * model is called.
  */
 
 /** Deterministic source-token heuristic: JavaScript UTF-16 code units divided by four. */
@@ -11,15 +12,15 @@ export const CHARS_PER_SOURCE_TOKEN = 4;
 
 /**
  * A full run repeats source-derived material across inventory, relationship, translation, and
- * enrichment calls. This calibration maps the Mill run's 41k characters to its 18.7k total billed
- * input tokens after first applying the four-characters-per-source-token heuristic.
+ * enrichment calls. These cost-model calibration constants are heuristics, not a copy of the
+ * canonical run's token allocation; see `data/graph.run.json` for the recorded usage.
  */
 export const ATOMIZATION_INPUT_MULTIPLIER = 18_700 / (41_000 / CHARS_PER_SOURCE_TOKEN);
 
-/** Mill run calibration: about 11.6k output tokens / 18.7k input tokens. */
+/** Output-budget calibration heuristic; canonical token usage lives in `data/graph.run.json`. */
 export const OUTPUT_INPUT_TOKEN_RATIO = 0.62;
 
-/** Mill run calibration: about 10 concepts / 41k source characters. */
+/** Concept-yield calibration: about 10 concepts / 41k source characters. */
 export const CONCEPTS_PER_1K_CHARS = 10 / 41;
 
 export interface ModelPricing {

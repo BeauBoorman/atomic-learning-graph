@@ -142,7 +142,7 @@ ten concept-level quote selections, all lesson steps, and all analogies. The gra
 face deterministic gates; analogies remain optional illustrations.
 
 The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (21 core,
-10 deep) and **186 optional analogies** across 6 interests, plus the complete text of the four
+10 deep) and **186 optional analogies** across 6 passions, plus the complete text of the four
 pinned sources, embedded so the receipt can be verified in the browser with no request.
 
 ## Appendix: compilation mechanics

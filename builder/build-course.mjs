@@ -47,7 +47,7 @@ export function validateBuildInput(input) {
     );
   }
   if (text.length > MAXIMUM_TEXT_LENGTH) {
-    throw new Error(`Keep this MVP build under ${MAXIMUM_TEXT_LENGTH.toLocaleString("en-US")} characters.`);
+    throw new Error(`Keep this build under ${MAXIMUM_TEXT_LENGTH.toLocaleString("en-US")} characters.`);
   }
   if (apiKey.length < 12) throw new Error("Enter a valid API key for the selected provider.");
   if (!model) throw new Error("Enter the high-quality model you want to trust with this course.");

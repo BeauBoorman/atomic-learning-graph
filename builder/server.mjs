@@ -22,7 +22,7 @@ async function readJson(request) {
   let size = 0;
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > MAXIMUM_REQUEST_BYTES) throw new Error("The pasted text is too large for this MVP.");
+    if (size > MAXIMUM_REQUEST_BYTES) throw new Error("The pasted text is too large for the local builder.");
     chunks.push(chunk);
   }
   try {

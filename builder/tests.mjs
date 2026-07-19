@@ -688,7 +688,7 @@ test("builder page exposes only the scoped plain-text GUI", async () => {
   assert.match(html, /Choose your model provider/u);
   assert.match(html, /OpenAI-compatible/u);
   assert.match(html, /Recommended: a high-quality model/u);
-  assert.match(html, /costs only cents/u);
+  assert.match(html, /usually under a dollar/u);
   assert.match(html, /fetch\(["']\/api\/estimate["']/u);
   assert.match(html, /This text will cost about/u);
   assert.match(html, /BUILD MY OFFLINE COURSE/u);
