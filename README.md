@@ -10,6 +10,8 @@ learner several grounded routes to the same idea, and we show you the receipts.
 
 **[Open the live demo →](https://beauboorman.github.io/atomic-learning-graph/)** — runs entirely in your browser; nothing is generated while you read.
 
+**[Watch the 60-second explainer →](https://youtu.be/cHKRaXLN2-Y)** — a plain-language tour of what it does and why. Prefer the full version? Here's the [three-minute walkthrough](https://youtu.be/PUTDXMFwbql).
+
 The whole project, in five steps:
 
 1. **Pick something to learn.** Choose a goal concept.
