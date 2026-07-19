@@ -53,6 +53,10 @@ run "typecheck" pnpm typecheck
 #   - atomizer fail-closed on license/provenance (src/atomization/*.test.ts)
 run "tests (incl. adversarial, vs committed data/graph.json)" pnpm test
 
+# The optional local builder has its own Node test harness and package boundary. It handles keys
+# and invokes the atomizer, so a root-only Vitest pass cannot stand in for it.
+run "builder tests (key handling, provider seams, packaging)" pnpm --dir builder test
+
 # Provenance + license integrity of the committed corpus.
 run "corpus integrity (license allowlist + stored text)" pnpm verify:corpus
 run "golden anchors (quoted text still resolves)" pnpm verify:anchors
