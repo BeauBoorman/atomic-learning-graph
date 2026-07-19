@@ -11,7 +11,7 @@
 // this verifier does not contain the literal strings it looks for. More importantly, it reads only
 // dist outputs; scripts/ is outside the Vite entry graph and the verifier never scans its source.
 
-import { globSync, readFileSync } from "node:fs";
+import { existsSync, globSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -24,6 +24,21 @@ if (javascriptChunks.length === 0) {
 }
 if (htmlFiles.length === 0) {
   throw new Error("bundle verification found no emitted HTML; run the production build first");
+}
+
+// The README links to these plain-text course artifacts at the GitHub Pages root. They are
+// generated and verified from the committed graph at the repository root, then Vite copies those
+// exact bytes into dist for deployment. A successful app build without these files would otherwise
+// leave judge-visible 404s outside the JavaScript bundle scan.
+for (const filename of ["llms.txt", "llms-full.txt"] as const) {
+  const sourcePath = resolve(repoRoot, filename);
+  const deployedPath = resolve(repoRoot, "dist", filename);
+  if (!existsSync(deployedPath)) {
+    throw new Error(`bundle verification is missing deployed ${filename}`);
+  }
+  if (readFileSync(deployedPath, "utf8") !== readFileSync(sourcePath, "utf8")) {
+    throw new Error(`bundle verification found deployed ${filename} differs from its gated source`);
+  }
 }
 
 const forbiddenSignatures = [
