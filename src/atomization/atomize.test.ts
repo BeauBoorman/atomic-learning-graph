@@ -640,8 +640,12 @@ describe("atomizer input and output selection", () => {
 
   it("refuses an occupied --out-dir before initializing a model client", async () => {
     const outDir = mkdtempSync(resolve(tmpdir(), "atomic-out-dir-"));
-    writeFileSync(resolve(outDir, "graph.json"), "do not clobber\n", "utf8");
-    await expect(main(["--out-dir", outDir])).rejects.toThrow(/refusing to overwrite/i);
+    try {
+      writeFileSync(resolve(outDir, "graph.json"), "do not clobber\n", "utf8");
+      await expect(main(["--out-dir", outDir])).rejects.toThrow(/refusing to overwrite/i);
+    } finally {
+      rmSync(outDir, { recursive: true, force: true });
+    }
   });
 
   it("resolves a second manifest relative to its own corpus directory", () => {

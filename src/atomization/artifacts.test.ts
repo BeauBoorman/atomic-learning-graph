@@ -1,13 +1,27 @@
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { fixtureGraph } from "../graph/fixture-graph";
 import { writeGraphArtifact, writeJsonArtifact } from "./artifacts";
 
+const temporaryDirectories: string[] = [];
+
+function temporaryDirectory(prefix: string): string {
+  const directory = mkdtempSync(resolve(tmpdir(), prefix));
+  temporaryDirectories.push(directory);
+  return directory;
+}
+
+afterEach(() => {
+  for (const directory of temporaryDirectories.splice(0)) {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 describe("artifact writes", () => {
   it("uses exclusive creation and cannot clobber an existing graph", () => {
-    const dir = mkdtempSync(resolve(tmpdir(), "atomic-artifact-"));
+    const dir = temporaryDirectory("atomic-artifact-");
     const path = resolve(dir, "graph.json");
     const first = writeGraphArtifact(path, fixtureGraph);
 
@@ -17,7 +31,7 @@ describe("artifact writes", () => {
   });
 
   it("requires an explicit overwrite option for run-log replacement", () => {
-    const dir = mkdtempSync(resolve(tmpdir(), "atomic-run-log-"));
+    const dir = temporaryDirectory("atomic-run-log-");
     const path = resolve(dir, "graph.run.json");
     writeJsonArtifact(path, { run: 1 });
 
