@@ -21,6 +21,12 @@ function cardRows(artifact: string): string[] {
 }
 
 describe("Anki build artifact", () => {
+  it("declares its own deck and tag so imports do not collide with other courses", () => {
+    const emitted = emitAnkiArtifact(fixtureGraph);
+    expect(emitted).toContain("#deck:Atomic Learning Graph");
+    expect(emitted).toContain("#tags:atomic-learning-graph::d2l");
+  });
+
   it("starts with plain-language Anki import directions that do not become a card", () => {
     const emitted = emitAnkiArtifact(fixtureGraph);
     expect(emitted).toContain(
@@ -52,7 +58,7 @@ describe("Anki build artifact", () => {
       GOLDEN_PATH.map((id) => {
         const concept = fixtureGraph.concepts.find((candidate) => candidate.id === id);
         if (!concept) throw new Error(`fixture lost ${id}`);
-        return `What is ${concept.title}?`;
+        return `ALG :: What is ${concept.title}?`;
       }),
     );
   });
@@ -66,7 +72,9 @@ describe("Anki build artifact", () => {
     for (const concept of graph.concepts) {
       const source = graph.sources.find(({ id }) => id === concept.provenance.sourceId);
       if (!source) throw new Error(`committed concept ${concept.id} lost its source`);
-      const row = rows.find((candidate) => candidate.startsWith(`What is ${concept.title}?\t`));
+      const row = rows.find((candidate) =>
+        candidate.startsWith(`ALG :: What is ${concept.title}?\t`),
+      );
       expect(row).toBeDefined();
       expect(row).toContain(concept.summary);
       expect(row).toContain(escapeAnkiField(concept.provenance.quotedText));
@@ -124,7 +132,7 @@ describe("Anki build artifact", () => {
 
     const rows = cardRows(emitAnkiArtifact(graph));
     expect(rows).toHaveLength(graph.concepts.length);
-    expect(rows[0]).toContain("What is Vectors&#9;and &lt;coordinates&gt;?");
+    expect(rows[0]).toContain("ALG :: What is Vectors&#9;and &lt;coordinates&gt;?");
     expect(rows[0]).toContain("Line one<br>Line two &amp; more");
     expect(rows[0]).toContain(
       "A grounded quote&#9;with enough content words<br>for deterministic Anki escaping.",

@@ -51,8 +51,11 @@ function orgQuote(value: string): string {
   return `#+begin_quote\n${value}\n#+end_quote`;
 }
 
-function sourceReference(source: Source): string {
-  return [source.id, source.url].filter((value): value is string => value !== undefined).join(" ");
+// org-roam treats :ROAM_REFS: as a unique-per-node external identifier. Concepts that cite the same
+// source would collide on the bare source URL, so we disambiguate with a per-concept URL fragment.
+function conceptReference(concept: Concept, source: Source): string {
+  const baseUrl = source.url ?? source.id;
+  return `${baseUrl}#${concept.id}`;
 }
 
 function modificationNotice(source: Source): string {
@@ -91,7 +94,7 @@ function renderConcept(
   if (!lesson) throw new Error(`validated concept ${concept.id} has no lesson`);
 
   const sections = [
-    `* ${concept.title}\n:PROPERTIES:\n:ID: ${concept.id}\n:ROAM_REFS: ${sourceReference(source)}\n:END:`,
+    `* ${concept.title}\n:PROPERTIES:\n:ID: ${concept.id}\n:ROAM_REFS: ${conceptReference(concept, source)}\n:END:`,
     concept.summary,
   ];
   if (prerequisiteIds.length > 0) {
