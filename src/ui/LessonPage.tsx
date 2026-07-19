@@ -229,6 +229,8 @@ export function LessonPage({
     (rendering) => rendering.format === activeFormat,
   );
 
+  const hasAnalogies = !!(step.analogies && Object.keys(step.analogies).length > 0);
+
   // A summoned sheet must never outlive the claim it backs. Without this, turning the page with
   // the sheet open leaves page 4's source sitting over page 5's lesson — a wrong receipt, which
   // on this project is the only unsurvivable kind of bug.
@@ -310,28 +312,34 @@ export function LessonPage({
         <FootnoteMark ref={mark} open={sourceOpen} onOpen={() => setSourceOpen(true)} />
       </p>
 
+      {onPassionChange && hasAnalogies && (
+        <div className="analogy-selector">
+          <label htmlFor="analogy-select" className="analogy-select-label">
+            Examples:
+          </label>
+          <select
+            id="analogy-select"
+            className="analogy-select"
+            value={passion ?? ""}
+            onChange={(event) => {
+              const value = event.target.value;
+              onPassionChange(value === "" ? undefined : value as PassionId);
+            }}
+          >
+            <option value="">Skip analogies</option>
+            {PASSION_IDS.map((id) => (
+              <option value={id} key={id}>
+                {passionLabels[id]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {analogy && passion && (
         <aside className="analogy" aria-label="Optional analogy">
           <div className="analogy-header">
             <p className="analogy-label">{analogyVoices[passion]}</p>
-            {onPassionChange && (
-              <select
-                className="analogy-select"
-                value={passion}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  onPassionChange(value === "" ? undefined : value as PassionId);
-                }}
-                aria-label="Change analogy domain"
-              >
-                <option value="">Skip analogies</option>
-                {PASSION_IDS.map((id) => (
-                  <option value={id} key={id}>
-                    {passionLabels[id]}
-                  </option>
-                ))}
-              </select>
-            )}
           </div>
           <p>{analogy}</p>
         </aside>
@@ -344,21 +352,22 @@ export function LessonPage({
         onOpen={() => setSourceOpen(true)}
         onClose={() => setSourceOpen(false)}
       />
-      {availableRenderings.length > 0 && resolveRendering && (
-        <section className="rendering-summon" aria-label="Another route through this idea">
-          <p>Need another way into this idea?</p>
-          <button
-            className="text-button"
-            type="button"
-            onClick={() => setActiveFormat(
-              availableRenderings.find((rendering) => rendering.format === "why-it-exists")
-                ?.format ?? availableRenderings[0].format,
-            )}
-          >
-            Try another way in
-          </button>
-        </section>
-      )}
+      {availableRenderings.length > 0 && resolveRendering && (() => {
+        const destinationFormat = availableRenderings.find((rendering) => rendering.format === "why-it-exists")
+          ?.format ?? availableRenderings[0].format;
+        return (
+          <section className="rendering-summon" aria-label="Another route through this idea">
+            <p>Need another way into this idea?</p>
+            <button
+              className="text-button"
+              type="button"
+              onClick={() => setActiveFormat(destinationFormat)}
+            >
+              {routeLabel(destinationFormat)}
+            </button>
+          </section>
+        );
+      })()}
       <SelfExplanation
         question={selfExplanation}
         answer={selfExplanationAnswer}

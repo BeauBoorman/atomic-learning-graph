@@ -223,16 +223,20 @@ export function Citation({
           gesture is not discharged. What is summoned is the source TEXT, never the credit. */}
       {attribution && <p className="colophon">
         <span className="colophon-mark" aria-hidden="true">ᵃ</span>
-        <strong>Plain Reading Edition</strong> · meaning-for-meaning from{" "}
+        <strong>Plain translation</strong> based on{" "}
         <cite>
           <a href={source.url} target="_blank" rel="noreferrer">
             {work}
+            <span className="sr-only"> (opens in a new tab)</span>
+            <span aria-hidden="true" className="external-link-icon">↗</span>
           </a>
         </cite>
         {section ? ` §${section.number}, “${section.name}”` : ""} — {surnames(source.author)} ·{" "}
         {licenseUrl ? (
           <a href={licenseUrl} target="_blank" rel="noreferrer">
             {licenseLabel(source.license)}
+            <span className="sr-only"> (opens in a new tab)</span>
+            <span aria-hidden="true" className="external-link-icon">↗</span>
           </a>
         ) : (
           licenseLabel(source.license)
