@@ -53,7 +53,7 @@ extension point, never a stub that pretends to work.
 
 **What:** a real atomicity judge that catches multi-concept nodes a syntactic rule cannot. For
 example, `"Scaled dot-product attention computes a weighted average."` bundles scaling, dot product,
-softmax, and weighted average in one un-coordinated noun phrase. This is the `it.skip` KNOWN-LIMIT case
+softmax, and weighted average in one uncoordinated noun phrase. This is the `it.skip` KNOWN-LIMIT case
 in `invariants.test.ts`.
 
 **Why it is a seed, not a leaf:** `isSingleConcept` was **kept but demoted** (2026-07-15) from a hard
@@ -134,23 +134,32 @@ prefer-prose-over-symbol-dense sources.**
 
 # Expansion directions (net-new, invariant-preserving)
 
-Sections 1–7 are capabilities **cut from the MVP on purpose**. The items below are the opposite:
-net-new directions surfaced during delivery review. They are listed only because each can be built
-**without ever trusting the model at request time** — the permanent invariant. None is claimed as
-started; none is a stub.
+Sections 1–7 were capabilities **cut from the MVP on purpose** at kickoff; **§1 and §3 have since
+shipped** (see their SHIPPED notes) once the structural blocker that forced the cut was resolved.
+The items below are the opposite of a cut: net-new directions surfaced during delivery review. They
+are listed only because each can be built **without ever trusting the model at request time** — the
+permanent invariant. None is claimed as started; none is a stub.
 
 ## 8. Recall rubrics: a receipt for the *learner's* answer
+
+**Status (2026-07-18): partial — the practice-exam artifact ships; the deterministic rubric
+self-check remains future work.**
 
 **What:** a per-concept, build-time checklist ("a correct recall states X, Y, and Z"), every rubric
 item byte-anchored to a specific source span and shipped inside the practice-exam artifact, so a
 learner's free-recall answer becomes self-checkable deterministically — the answer earns a receipt the
 same way every lesson sentence does.
 
-**Now unblocked:** it needs the same per-item provenance gate as (1) — the ability to say "rubric item
-R of concept C is ungrounded," not just "concept C is ungrounded." That gate now exists as
-`invalidRenderingCitations`'s typed-issue pattern, so a rubric gate is a sibling of it, not new
-infrastructure. The remaining work is building the rubric artifact and its own typed gate on top of the
-proven pattern. Self-checking stays deterministic (string inclusion); no request-time model.
+**What shipped:** the [grounded practice exam](atomic-learning-graph-exam.md) and its emitter
+(`scripts/emit-exam.ts`) — every answer in its key carries the verbatim source passage that grounds
+it, gated by `pnpm verify:exam`. That closes the "show the receipt on the answer" half.
+
+**What still needs work:** the deterministic self-check layer itself. It needs the same per-item
+provenance gate as (1) — the ability to say "rubric item R of concept C is ungrounded," not just
+"concept C is ungrounded." That gate now exists as `invalidRenderingCitations`'s typed-issue pattern,
+so a rubric gate is a sibling of it, not new infrastructure. The remaining work is building the
+rubric artifact and its own typed gate on top of the proven pattern. Self-checking stays
+deterministic (string inclusion); no request-time model.
 
 ## 9. Deterministic review schedule + spaced-repetition handoff
 
