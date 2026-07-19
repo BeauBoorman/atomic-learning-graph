@@ -1,0 +1,132 @@
+:PROPERTIES:
+:ID: alg-showcase
+:END:
+
+#+title: Atomic Learning Graph — Quick Tour
+
+#+startup: overview
+
+#+options: toc:2
+
+A five-step tour of Atomic Learning
+
+Atomic Learning Graph turns open educational text into a small, offline course. It breaks a hard topic into one-concept lessons, puts prerequisites in a useful order, and keeps each explanation beside the source passage that supports it.
+
+Put this file in your org-roam directory, run ~org-roam-db-sync~, then follow the numbered nodes.
+
+* Learning Path
+
+1. [[id:choose-a-goal][Choose a goal]] — Begin with something specific that you want to understand.
+
+2. [[id:follow-the-path][Follow the path]] — Learn prerequisites before the ideas that depend on them.
+
+3. [[id:learn-one-idea][Learn one idea]] — Each stop explains one concept in plain language.
+
+4. [[id:check-the-receipt][Check the receipt]] — Every explanation stays close to the source passage that supports it.
+
+5. [[id:take-it-with-you][Take it with you]] — Use the learning tool you already like.
+
+* 1. Choose a goal
+:PROPERTIES:
+:ID: choose-a-goal
+:END:
+
+Begin with something specific that you want to understand.
+
+A clear destination keeps the course focused. Atomic Learning works backward from that goal to find the ideas you need first.
+
+** Try it
+
+Name one topic that currently feels too large or tangled to learn all at once.
+
+** Project evidence
+
+README.md — The whole project, steps 1 and 2
+
+** Keep moving
+
+[[id:alg-showcase][← Start Here]] · [[id:follow-the-path][Follow the path →]]
+
+* 2. Follow the path
+:PROPERTIES:
+:ID: follow-the-path
+:END:
+
+Learn prerequisites before the ideas that depend on them.
+
+The graph turns relationships into an ordered route. You can see where you are going and why an earlier idea belongs before a later one.
+
+** Try it
+
+Start at the first item in the map, outline, note list, or deck supplied by your app.
+
+** Project evidence
+
+src/graph/path.ts — deterministic prerequisite walk
+
+** Keep moving
+
+[[id:choose-a-goal][← Choose a goal]] · [[id:learn-one-idea][Learn one idea →]]
+
+* 3. Learn one idea
+:PROPERTIES:
+:ID: learn-one-idea
+:END:
+
+Each stop explains one concept in plain language.
+
+Small lessons reduce the amount you must hold in mind at once. If a lesson feels too hard, step back to its prerequisite instead of pushing through a wall of text.
+
+** Try it
+
+Read one lesson, then explain its single idea in your own words.
+
+** Project evidence
+
+README.md — Atomic steps and prerequisite scaffolding
+
+** Keep moving
+
+[[id:follow-the-path][← Follow the path]] · [[id:check-the-receipt][Check the receipt →]]
+
+* 4. Check the receipt
+:PROPERTIES:
+:ID: check-the-receipt
+:END:
+
+Every explanation stays close to the source passage that supports it.
+
+You do not have to trust a smooth explanation just because it sounds confident. Open the source receipt and compare the lesson with the original words.
+
+** Try it
+
+Challenge one explanation by reading the exact quoted passage beside it.
+
+** Project evidence
+
+src/graph/invariants.ts — quote-primary provenance checks
+
+** Keep moving
+
+[[id:learn-one-idea][← Learn one idea]] · [[id:take-it-with-you][Take it with you →]]
+
+* 5. Take it with you
+:PROPERTIES:
+:ID: take-it-with-you
+:END:
+
+Use the learning tool you already like.
+
+The same course can become an Obsidian vault, org-roam file, Tinderbox map, Anki deck, plain Markdown, or an LLM-readable guide. The graph stays the authority; each export is an opinionated presentation for its destination.
+
+** Try it
+
+Open this showcase in another supported app and compare how the same ideas travel.
+
+** Project evidence
+
+README.md — What ships beyond the reader
+
+** Keep moving
+
+[[id:check-the-receipt][← Check the receipt]] · [[id:alg-showcase][Finish →]]

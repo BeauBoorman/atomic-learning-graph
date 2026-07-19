@@ -15,11 +15,31 @@ tags:
   - "weighted combination"
 ---
 
+# Attention Pooling
+
 Attention pooling combines values linearly using weights determined by query–key compatibility.
 
 ## Prerequisites
 
 - [[qkv]]
+
+## Lesson: Combining Values by Relevance
+
+### Step 1 · core
+
+Attention pooling makes a weighted linear combination of values. Each weight comes from how compatible the query is with a key.
+
+**Source receipt — `d2l-queries-keys-values`**
+
+> The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
+
+### Step 2 · deep
+
+When the weights are nonnegative and add up to 1, large weights can be viewed as the model selecting relevant parts—but this is only an intuition.
+
+**Source receipt — `d2l-queries-keys-values`**
+
+> One of the benefits of the attention mechanism is that it can be quite intuitive, particularly when the weights are nonnegative and sum to $1$. In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
 
 ## Source
 

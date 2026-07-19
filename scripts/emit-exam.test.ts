@@ -19,6 +19,12 @@ function partAQuestions(artifact: string): string[] {
 }
 
 describe("practice exam build artifact", () => {
+  it("opens with plain-language directions for taking the exam", () => {
+    expect(emitExamArtifact(fixtureGraph)).toContain(
+      "This is a printable self-check: open it in any Markdown reader, answer Parts A and B",
+    );
+  });
+
   it("is byte-deterministic for the same committed input", () => {
     const first = emitExamArtifact(fixtureGraph);
     const second = emitExamArtifact(fixtureGraph);

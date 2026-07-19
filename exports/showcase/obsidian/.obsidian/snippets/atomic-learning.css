@@ -1,0 +1,16 @@
+.alg-showcase {
+  --h1-color: #e76f51;
+  --h2-color: #264653;
+  --link-color: #2a9d8f;
+  --link-color-hover: #e76f51;
+  --blockquote-border-color: #e9c46a;
+}
+
+.alg-showcase .callout[data-callout="tip"] {
+  --callout-color: 42, 157, 143;
+}
+
+.alg-showcase.markdown-preview-view {
+  max-width: 760px;
+  line-height: 1.65;
+}

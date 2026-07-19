@@ -19,6 +19,16 @@ Every generated line has a grounded receipt.
 const noRenderings: RenderingSet = { renderings: [] };
 
 describe("llms.txt build artifacts", () => {
+  it("explains how a non-developer can use each plain-text file with an AI assistant", () => {
+    const emitted = emitLlmsArtifacts(fixtureGraph, noRenderings, README);
+    expect(emitted.index).toContain(
+      "This is a plain-text course index for AI assistants. Attach or paste this file",
+    );
+    expect(emitted.full).toContain(
+      "This is the complete plain-text course for AI assistants. Attach or paste it",
+    );
+  });
+
   it("is byte-deterministic for the same committed inputs", () => {
     const first = emitLlmsArtifacts(fixtureGraph, noRenderings, README);
     const second = emitLlmsArtifacts(fixtureGraph, noRenderings, README);

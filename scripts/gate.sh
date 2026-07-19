@@ -58,10 +58,12 @@ run "corpus integrity (license allowlist + stored text)" pnpm verify:corpus
 run "golden anchors (quoted text still resolves)" pnpm verify:anchors
 run "llms artifacts match committed graph-derived bytes" pnpm verify:llms
 run "org-roam artifact matches committed graph-derived bytes" pnpm verify:orgroam
+run "Tinderbox artifact matches committed graph-derived bytes" pnpm verify:tinderbox
 run "Anki deck matches committed graph-derived bytes" pnpm verify:anki
 run "Obsidian vault matches committed graph-derived bytes" pnpm verify:obsidian
 run "practice exam matches committed graph-derived bytes" pnpm verify:exam
 run "course receipt matches committed artifacts" pnpm verify:receipt
+run "optional export showcase matches generated presentation bytes" pnpm verify:showcase
 
 # It has to actually build.
 run "build" pnpm build

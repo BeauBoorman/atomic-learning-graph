@@ -21,6 +21,14 @@ function cardRows(artifact: string): string[] {
 }
 
 describe("Anki build artifact", () => {
+  it("starts with plain-language Anki import directions that do not become a card", () => {
+    const emitted = emitAnkiArtifact(fixtureGraph);
+    expect(emitted).toContain(
+      "# This is a ready-to-study Anki deck: choose File > Import, select this .tsv file",
+    );
+    expect(cardRows(emitted)).toHaveLength(fixtureGraph.concepts.length);
+  });
+
   it("is byte-deterministic for the same committed input", () => {
     const first = emitAnkiArtifact(fixtureGraph);
     const second = emitAnkiArtifact(fixtureGraph);

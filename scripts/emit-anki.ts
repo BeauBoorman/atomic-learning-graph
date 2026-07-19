@@ -27,6 +27,7 @@ const ANKI_HEADERS = [
   "#html:true",
   "#notetype:Basic",
   "#columns:Front\tBack",
+  "# This is a ready-to-study Anki deck: choose File > Import, select this .tsv file, keep the Basic note type, then choose Study Now.",
 ] as const;
 
 function assertStructurallyEmittable(graph: LearningGraph): void {

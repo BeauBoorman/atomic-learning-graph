@@ -24,11 +24,12 @@ import {
 import { loadGraph } from "../src/graph/load";
 import { topologicalConceptOrder } from "../src/graph/path";
 import { licenseDeedUrl, licenseWithDeed } from "./export-attribution";
-import type { Concept, LearningGraph, Source } from "../src/types";
+import type { Concept, LearningGraph, LessonStep, Source } from "../src/types";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 
 export const OBSIDIAN_PATH = resolve(repoRoot, "exports", "obsidian");
+export const OBSIDIAN_START_HERE = "Start Here.md";
 
 export interface ObsidianNote {
   filename: string;
@@ -77,6 +78,44 @@ function modificationNotice(source: Source): string {
   );
 }
 
+function renderLessonStep(step: LessonStep, index: number): string {
+  return [
+    `### Step ${index + 1} · ${step.stepTier}`,
+    step.text,
+    `**Source receipt — \`${step.citation.sourceId}\`**`,
+    markdownQuote(step.citation.quotedText),
+  ].join("\n\n");
+}
+
+function renderStartHere(concepts: readonly Concept[], goal: Concept): string {
+  const frontmatter = [
+    "---",
+    'title: "Atomic Learning Graph"',
+    "aliases:",
+    '  - "Start Here"',
+    "tags:",
+    '  - "atomic-learning-graph"',
+    "---",
+  ].join("\n");
+  return `${[
+    frontmatter,
+    "# Atomic Learning Graph",
+    "This is a ready-to-use Obsidian course: open this folder as a vault, start with this note, " +
+      "and follow the linked concepts in order.",
+    "Follow the concepts below in prerequisite order. Every concept and lesson step carries a " +
+      "verbatim source receipt.",
+    `**Goal:** [[${goal.id}|${goal.title}]]`,
+    "## Learning path",
+    ...concepts.map(
+      (concept, index) =>
+        `${index + 1}. [[${concept.id}|${concept.title}]] — ${concept.summary}`,
+    ),
+    "## How to use this vault",
+    "Open a concept, read its lesson, and follow its prerequisite links when you need to step " +
+      "back. Source passages and attribution stay beside the claims they ground.",
+  ].join("\n\n")}\n`;
+}
+
 function renderFrontmatter(concept: Concept, source: Source): string {
   const tags = [...concept.tags].sort();
   return [
@@ -103,7 +142,10 @@ function renderConcept(
   prerequisiteIds: readonly string[],
   relatedIds: readonly string[],
 ): string {
-  const sections = [renderFrontmatter(concept, source), concept.summary];
+  const lesson = concept.lesson;
+  if (!lesson) throw new Error(`validated concept ${concept.id} has no lesson`);
+
+  const sections = [renderFrontmatter(concept, source), `# ${concept.title}`, concept.summary];
   if (prerequisiteIds.length > 0) {
     sections.push(
       ["## Prerequisites", ...prerequisiteIds.map((id) => `- [[${id}]]`)].join("\n\n"),
@@ -112,6 +154,12 @@ function renderConcept(
   if (relatedIds.length > 0) {
     sections.push(["## Related", ...relatedIds.map((id) => `- [[${id}]]`)].join("\n\n"));
   }
+  sections.push(
+    [
+      `## Lesson: ${lesson.plainTitle}`,
+      ...lesson.steps.map((step, index) => renderLessonStep(step, index)),
+    ].join("\n\n"),
+  );
   sections.push(
     [
       "## Source",
@@ -157,7 +205,7 @@ export function emitObsidianVault(graph: LearningGraph): ObsidianNote[] {
     .map((id) => conceptById.get(id))
     .filter((concept): concept is Concept => concept !== undefined && !invalidConcepts.has(concept.id));
 
-  return orderedConcepts.map((concept) => {
+  const conceptNotes = orderedConcepts.map((concept) => {
     const source = sourceById.get(concept.provenance.sourceId);
     if (!source) throw new Error(`validated concept ${concept.id} has no source`);
     const relatedIds = [...(relatedByConcept.get(concept.id) ?? [])].sort();
@@ -171,6 +219,15 @@ export function emitObsidianVault(graph: LearningGraph): ObsidianNote[] {
       ),
     };
   });
+
+  const goal = conceptById.get(graph.goalId);
+  if (!goal || invalidConcepts.has(goal.id)) {
+    throw new Error(`validated Obsidian goal ${graph.goalId} is unavailable`);
+  }
+  return [
+    { filename: OBSIDIAN_START_HERE, bytes: renderStartHere(orderedConcepts, goal) },
+    ...conceptNotes,
+  ];
 }
 
 export function writeObsidianVault(

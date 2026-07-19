@@ -1,5 +1,7 @@
 # Atomic Learning Graph — Practice Exam
 
+This is a printable self-check: open it in any Markdown reader, answer Parts A and B without looking ahead, then compare your work with the answer key.
+
 Every answer in the key carries the verbatim source passage that grounds it. Questions follow prerequisite order, so earlier answers are fair to assume in later ones.
 
 ## Part A — Explain each concept

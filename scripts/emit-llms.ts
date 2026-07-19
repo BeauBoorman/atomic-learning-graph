@@ -201,6 +201,9 @@ export function emitLlmsArtifacts(
     "",
     `> ${thesis}`,
     "",
+    "> This is a plain-text course index for AI assistants. Attach or paste this file for the " +
+      "overview; add `llms-full.txt` when the assistant needs the complete lessons and source receipts.",
+    "",
     "## Concepts in prerequisite order",
     "",
     ...orderedConcepts.map((concept) => {
@@ -217,6 +220,8 @@ export function emitLlmsArtifacts(
   const fullSections = [
     `# ${title}`,
     `> ${thesis}`,
+    "> This is the complete plain-text course for AI assistants. Attach or paste it, then ask the " +
+      "assistant to follow prerequisite order and show the source receipts it uses.",
     "## Concepts in prerequisite order",
     ...orderedConcepts.map((concept) =>
       renderConcept(concept, renderingsByConcept.get(concept.id) ?? [])

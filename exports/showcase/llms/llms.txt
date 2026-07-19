@@ -1,0 +1,9 @@
+# Atomic Learning Graph — Quick Tour
+
+> Atomic Learning Graph turns open educational text into a small, offline course. It breaks a hard topic into one-concept lessons, puts prerequisites in a useful order, and keeps each explanation beside the source passage that supports it.
+
+A five-step tour of Atomic Learning. Follow the five ideas in order. This file is the compact index; llms-full.txt contains the complete tour.
+
+## Guide
+
+- [Complete five-step tour](llms-full.txt): What the product is, how a learner uses it, and how its source receipts work.

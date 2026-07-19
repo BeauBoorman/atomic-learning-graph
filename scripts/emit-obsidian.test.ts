@@ -8,6 +8,7 @@ import type { LearningGraph } from "../src/types";
 import {
   emitObsidianVault,
   OBSIDIAN_PATH,
+  OBSIDIAN_START_HERE,
   verifyObsidianVault,
   writeObsidianVault,
 } from "./emit-obsidian";
@@ -25,9 +26,10 @@ describe("Obsidian markdown vault", () => {
     const actual = emitObsidianVault(shuffled);
 
     expect(actual).toEqual(expected);
-    expect(actual.map(({ filename }) => filename)).toEqual(
-      GOLDEN_PATH.map((id) => `${id}.md`),
-    );
+    expect(actual.map(({ filename }) => filename)).toEqual([
+      OBSIDIAN_START_HERE,
+      ...GOLDEN_PATH.map((id) => `${id}.md`),
+    ]);
     for (const [index, note] of actual.entries()) {
       expect(Buffer.from(note.bytes)).toEqual(Buffer.from(expected[index].bytes));
     }
@@ -62,6 +64,8 @@ tags:
   - "transformers"
 ---
 
+# self-attention
+
 single concept: self-attention
 
 ## Prerequisites
@@ -71,6 +75,24 @@ single concept: self-attention
 ## Related
 
 - [[vectors]]
+
+## Lesson: self-attention
+
+### Step 1 · core
+
+Start with the plain-language idea behind self-attention.
+
+**Source receipt — \`s1\`**
+
+> Self-attention scores every token against every other token.
+
+### Step 2 · deep
+
+Then connect self-attention to the learning path.
+
+**Source receipt — \`s1\`**
+
+> Self-attention scores every token against every other token.
 
 ## Source
 
@@ -82,6 +104,33 @@ URL: https://example.test/primer
 `);
     expect(vectorsNote).toContain("## Related\n\n- [[self-attention]]");
     expect(goalNote).not.toContain("[[softmax]]");
+  });
+
+  it("opens with a human-readable learning path and gives every concept a visible title and lesson", () => {
+    const notes = emitObsidianVault(fixtureGraph);
+    const startHere = notes.find(({ filename }) => filename === OBSIDIAN_START_HERE)?.bytes;
+    if (!startHere) throw new Error("emitter dropped Start Here");
+
+    expect(startHere).toContain("# Atomic Learning Graph");
+    expect(startHere).toContain(
+      "This is a ready-to-use Obsidian course: open this folder as a vault, start with this note",
+    );
+    expect(startHere).toContain("**Goal:** [[self-attention|self-attention]]");
+    const path = startHere.slice(startHere.indexOf("## Learning path"));
+    const pathOffsets = GOLDEN_PATH.map((id) => path.indexOf(`[[${id}|${id}]]`));
+    expect(pathOffsets.every((offset) => offset >= 0)).toBe(true);
+    expect(pathOffsets).toEqual([...pathOffsets].sort((left, right) => left - right));
+
+    for (const concept of fixtureGraph.concepts) {
+      const note = notes.find(({ filename }) => filename === `${concept.id}.md`)?.bytes;
+      if (!note || !concept.lesson) throw new Error(`emitter dropped ${concept.id}`);
+      expect(note).toContain(`# ${concept.title}`);
+      expect(note).toContain(`## Lesson: ${concept.lesson.plainTitle}`);
+      for (const step of concept.lesson.steps) {
+        expect(note).toContain(step.text);
+        expect(note).toContain(step.citation.quotedText);
+      }
+    }
   });
 
   it("omits empty relationship sections", () => {
@@ -127,7 +176,7 @@ URL: https://example.test/primer
       notes.map(({ filename, bytes }) => [filename.slice(0, -3), bytes]),
     );
 
-    expect(notes).toHaveLength(graph.concepts.length);
+    expect(notes).toHaveLength(graph.concepts.length + 1);
     for (const concept of graph.concepts) expect(noteById.has(concept.id)).toBe(true);
     for (const edge of graph.edges.filter(({ type }) => type === "prereq")) {
       expect(noteById.get(edge.to)).toContain(`- [[${edge.from}]]`);

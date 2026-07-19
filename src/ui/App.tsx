@@ -237,6 +237,7 @@ interface CourseScreenProps {
   renderings?: RenderingSet;
   goalId: ConceptId;
   passion?: PassionId;
+  onPassionChange?: (passion?: PassionId) => void;
   covered: ConceptId[];
   theme: Theme;
   progress: CourseProgress;
@@ -252,6 +253,7 @@ export function CourseScreen({
   renderings = { renderings: [] },
   goalId,
   passion,
+  onPassionChange,
   covered,
   theme,
   progress,
@@ -312,6 +314,7 @@ export function CourseScreen({
           resolveRenderingCitation(graph, rendering, stepIndex)
         )}
         passion={passion}
+        onPassionChange={onPassionChange}
         selfExplanation={explanation?.prompt}
         selfExplanationAnswer={explanation ? selfExplanations[explanation.id] : undefined}
         onSelfExplanationChange={explanation
@@ -607,6 +610,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
           renderings={renderings}
           goalId={goalId}
           passion={passion}
+          onPassionChange={setPassion}
           covered={covered}
           theme={theme}
           progress={progress}

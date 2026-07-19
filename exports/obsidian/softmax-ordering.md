@@ -15,11 +15,31 @@ tags:
   - "softmax"
 ---
 
+# Softmax Preserves Ordering
+
 Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
 
 ## Prerequisites
 
 - [[softmax]]
+
+## Lesson: Softmax Keeps Scores in the Same Order
+
+### Step 1 · core
+
+Softmax keeps its input scores in the same order.
+
+**Source receipt — `d2l-softmax-regression`**
+
+> the softmax operation preserves the ordering among its arguments
+
+### Step 2 · core
+
+So you can identify the class with the highest probability without calculating softmax.
+
+**Source receipt — `d2l-softmax-regression`**
+
+> we do not need to compute the softmax to determine which class has been assigned the highest probability
 
 ## Source
 

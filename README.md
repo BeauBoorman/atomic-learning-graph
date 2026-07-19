@@ -137,15 +137,56 @@ guarantees travel — not the headline.
   cost, and the graph's sha256 (`1672b7d6…`) that `src/atomization/graph-run.test.ts` recomputes. It
   distinguishes the human-specified structure from the model-generated prose, and records that the
   browser makes zero model calls.
-- **Six exports, attribution-clean.** The one graph emits an `llms.txt` manifest, an
-  [org-roam graph](atomic-learning-graph.org), an [Obsidian vault](exports/obsidian/), an
+- **Seven exports, attribution-clean.** The one graph emits an `llms.txt` manifest, an
+  [org-roam graph](atomic-learning-graph.org), a
+  [native Tinderbox document](atomic-learning-graph.tbx) with a
+  [portable OPML outline](atomic-learning-graph.opml), an [Obsidian vault](exports/obsidian/), an
   [Anki deck](atomic-learning-graph-anki.tsv), and a
   [grounded practice exam](atomic-learning-graph-exam.md) — the most education-shaped artifact:
   every answer in its key carries the verbatim source passage that grounds it — plus a
-  machine-checkable [course receipt](data/course.receipt.json). The five learning-content exports
+  machine-checkable [course receipt](data/course.receipt.json). The six learning-content exports
   carry CC-BY-SA attribution, a deed link, and a modification notice; the receipt records the work,
-  authors, license, revision, and graph hash. `pnpm verify:llms|orgroam|obsidian|anki|exam|receipt`
-  gates them against the committed graph.
+  authors, license, revision, and graph hash.
+  `pnpm verify:llms|orgroam|tinderbox|obsidian|anki|exam|receipt` gates them against the committed
+  graph. The Obsidian vault opens with a prerequisite-ordered **Start Here** note and carries the
+  full cited lesson in every concept note; org-roam leads with the same learning path. The native
+  Tinderbox document opens directly with styled concept/source/edge prototypes, a mapped learning
+  path, and native prerequisite links. The deterministic OPML remains the gated, rebuildable
+  interchange artifact: Tinderbox imports it in one shot, promotes graph metadata to inspectable
+  user attributes, applies the presentation, and materializes prerequisite links while preserving
+  every canonical relation as a typed edge record.
+
+  These are deliberately **opinionated, presentation-ready projections**, not neutral dumps or
+  new authorities. Each emitter applies the best practices we could verify in that format's
+  documentation and community conventions: navigable entry points, native metadata, useful
+  ordering, readable labels, attribution where a learner encounters the content, and styling when
+  the format supports it. Those choices can be changed in the emitter; `data/graph.json` remains
+  the only authority for course content and relationships. The implementation follows the native
+  guidance for [Anki text imports](https://docs.ankiweb.net/importing/text-files.html),
+  [Obsidian links](https://help.obsidian.md/links),
+  [org-roam](https://www.orgroam.com/manual.html),
+  [Tinderbox OPML attribute mapping](https://atbref.com/atbref10/index/Formatting/Support_for_other_app-specific_formats/OmniOutliner.html),
+  and the [llms.txt proposal](https://llmstxt.org/), rather than forcing every platform into one
+  lowest-common-denominator shape.
+
+  A separate, optional export showcase presents a plain-language mini-course about the product in
+  each supported application. It doubles as human onboarding and a presentation fixture: people
+  can learn how Atomic Learning works in their preferred tool, while maintainers can inspect that
+  tool's links, hierarchy, metadata, and styling. Normal course exports do not include this product
+  tutorial, so repeat exports stay clean.
+
+### Open the course in the app you already use
+
+No coding is required. Download the file or folder for your app, then follow the matching row:
+
+| Format | What it is | How to open and use it |
+|---|---|---|
+| [Obsidian vault](exports/obsidian/) | A linked set of course notes with lessons and source receipts. | Download the whole `exports/obsidian` folder. In Obsidian, choose **Open folder as vault**, select that folder, then open **Start Here** and follow the learning path. |
+| [org-roam](atomic-learning-graph.org) | The same linked course as one Emacs Org file. | Put the `.org` file in your org-roam folder, open it in Emacs, run `M-x org-roam-db-sync` once, then begin at **Learning Path**. |
+| [Tinderbox](atomic-learning-graph.tbx) | A visual course map with styled concept cards, sources, and prerequisite links. | Double-click the `.tbx` file in Tinderbox, open **Concepts** in Map view, and follow the connected notes. The [OPML file](atomic-learning-graph.opml) is the portable one-import version. |
+| [Anki deck](atomic-learning-graph-anki.tsv) | Ready-to-study question-and-answer cards with a source receipt on every answer. | In Anki, choose **File → Import**, select the `.tsv` file, keep the **Basic** note type, import it, then choose **Study Now**. |
+| [Practice exam](atomic-learning-graph-exam.md) | A printable self-check with questions, passage matching, answer keys, and grounded recall checks. | Open the Markdown file in any Markdown reader or on GitHub. Answer Parts A and B before scrolling to the answer key; print it if you prefer paper. |
+| [`llms.txt`](llms.txt) | A plain-text course index made for AI assistants; [`llms-full.txt`](llms-full.txt) contains the complete lessons and receipts. | Attach or paste `llms.txt` into an assistant for the overview. Add `llms-full.txt` when you want it to use the full course, and ask it to follow prerequisite order and show the source receipts. |
 
 **Retention is a handoff, not a rebuild.** This project compiles the inspectable artifact; long-term
 spaced review rides on Anki’s proven scheduler via the gated Anki export. We do not reimplement a
@@ -199,10 +240,18 @@ load the built module.
 - `pnpm demo:tamper` runs the five in-memory tamper scenarios against the production gates.
 - `pnpm emit:llms` rebuilds `llms.txt` and `llms-full.txt` from the committed graph and renderings.
 - `pnpm emit:orgroam` rebuilds the org-roam graph from the committed graph.
+- `pnpm emit:tinderbox` rebuilds the presentation-ready Tinderbox OPML from the committed graph.
+  One import applies the hierarchy, inspectable metadata, prototypes, colors, badges, dimensions,
+  and prerequisite-layer map positions; no separate styling pass is required. The native `.tbx`
+  counterpart opens directly in Tinderbox 11.
 - `pnpm emit:obsidian` rebuilds the Obsidian vault from the committed graph.
 - `pnpm emit:anki` rebuilds the Anki TSV deck from the committed graph.
 - `pnpm emit:exam` rebuilds the grounded practice exam from the committed graph.
 - `pnpm emit:receipt` rebuilds the machine-checkable course receipt from committed build facts.
+- `pnpm emit:showcase` rebuilds the separate, optional product tutorial in Markdown, Obsidian,
+  org-roam, Tinderbox, Anki, and llms.txt formats under `exports/showcase/`. It is for GitHub
+  visitors and presentation QA; normal course exports never include it. `pnpm verify:showcase`
+  gates the exact showcase bytes.
 
 Atomization is a separate build-time operation and requires `OPENAI_API_KEY`. Output is always
 explicit; a run cannot silently replace the committed demo graph:
@@ -262,6 +311,9 @@ what cost.
   and injected with the existing Responses client.
 - `src/graph/path.ts`: deterministic prerequisite-ancestor walk with a stable tie-break.
 - `src/graph/load.ts`: fail-closed loader for the committed graph.
+- `scripts/emit-tinderbox.ts`: deterministic, one-shot styled Tinderbox OPML with concepts,
+  sources, typed edge records, prototypes, and graph-derived map positions;
+  `atomic-learning-graph.tbx` is the styled native document for direct use in Tinderbox 11.
 - `src/ui/`: static React interface over the embedded graph, with local-only interactions.
 - `scripts/verify-bundle.ts`: post-build scan of emitted JavaScript, HTML and CSS; the
   shipped-bytes enforcement boundary for the no-network browser claim.

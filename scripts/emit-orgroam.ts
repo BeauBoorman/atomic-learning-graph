@@ -114,6 +114,19 @@ function renderConcept(
   return sections.join("\n\n");
 }
 
+function renderLearningPath(concepts: readonly Concept[], goal: Concept): string {
+  return [
+    "* Learning Path",
+    "Follow these concepts in prerequisite order. Every concept and lesson step carries a " +
+      "verbatim source receipt.",
+    `Goal: [[id:${goal.id}][${goal.title}]]`,
+    ...concepts.map(
+      (concept, index) =>
+        `${index + 1}. [[id:${concept.id}][${concept.title}]] — ${concept.summary}`,
+    ),
+  ].join("\n\n");
+}
+
 /** Generate the artifact entirely in memory so a validation failure cannot partially write. */
 export function emitOrgRoamArtifact(graph: LearningGraph): string {
   assertStructurallyEmittable(graph);
@@ -142,6 +155,11 @@ export function emitOrgRoamArtifact(graph: LearningGraph): string {
     return renderConcept(concept, source, prerequisitesByConcept.get(concept.id) ?? []);
   });
 
+  const goal = conceptById.get(graph.goalId);
+  if (!goal || invalidConcepts.has(goal.id)) {
+    throw new Error(`validated org-roam goal ${graph.goalId} is unavailable`);
+  }
+
   const sourceAttributions = [
     "* Source Attributions",
     ...[...new Set(orderedConcepts.map(({ provenance }) => provenance.sourceId))]
@@ -153,7 +171,14 @@ export function emitOrgRoamArtifact(graph: LearningGraph): string {
       }),
   ].join("\n\n");
 
-  return `${["#+title: Atomic Learning Graph", sourceAttributions, ...conceptSections].join("\n\n")}\n`;
+  return `${[
+    ["#+title: Atomic Learning Graph", "#+startup: overview", "#+options: toc:2"].join("\n"),
+    "This is a ready-to-use org-roam course: put this file in your org-roam folder, open it in " +
+      "Emacs, run ~M-x org-roam-db-sync~ once, and begin at Learning Path.",
+    renderLearningPath(orderedConcepts, goal),
+    ...conceptSections,
+    sourceAttributions,
+  ].join("\n\n")}\n`;
 }
 
 export function writeOrgRoamArtifact(

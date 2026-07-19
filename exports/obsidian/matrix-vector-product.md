@@ -15,11 +15,39 @@ tags:
   - "vectors"
 ---
 
+# Matrix–Vector Product
+
 A matrix–vector product contains one dot product between the input vector and each row of the matrix.
 
 ## Prerequisites
 
 - [[dot-product]]
+
+## Lesson: Multiplying a Matrix by a Vector
+
+### Step 1 · core
+
+The result of multiplying matrix A by vector x is a column vector with m entries.
+
+**Source receipt — `d2l-linear-algebra`**
+
+> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$
+
+### Step 2 · core
+
+Each entry in the result is the dot product—the sum of paired values multiplied together—of x and the matching row of A.
+
+**Source receipt — `d2l-linear-algebra`**
+
+> whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
+
+### Step 3 · core
+
+For the multiplication to work, the number of columns in A must equal the number of entries in x.
+
+**Source receipt — `d2l-linear-algebra`**
+
+> Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length).
 
 ## Source
 

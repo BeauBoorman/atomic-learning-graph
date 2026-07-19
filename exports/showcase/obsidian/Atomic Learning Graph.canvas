@@ -1,0 +1,88 @@
+{
+  "nodes": [
+    {
+      "id": "choose-a-goal",
+      "type": "file",
+      "file": "choose-a-goal.md",
+      "x": 0,
+      "y": 0,
+      "width": 340,
+      "height": 220,
+      "color": "4"
+    },
+    {
+      "id": "follow-the-path",
+      "type": "file",
+      "file": "follow-the-path.md",
+      "x": 430,
+      "y": 120,
+      "width": 340,
+      "height": 220,
+      "color": "4"
+    },
+    {
+      "id": "learn-one-idea",
+      "type": "file",
+      "file": "learn-one-idea.md",
+      "x": 860,
+      "y": 0,
+      "width": 340,
+      "height": 220,
+      "color": "4"
+    },
+    {
+      "id": "check-the-receipt",
+      "type": "file",
+      "file": "check-the-receipt.md",
+      "x": 1290,
+      "y": 120,
+      "width": 340,
+      "height": 220,
+      "color": "4"
+    },
+    {
+      "id": "take-it-with-you",
+      "type": "file",
+      "file": "take-it-with-you.md",
+      "x": 1720,
+      "y": 0,
+      "width": 340,
+      "height": 220,
+      "color": "1"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "fromNode": "choose-a-goal",
+      "fromSide": "right",
+      "toNode": "follow-the-path",
+      "toSide": "left",
+      "label": "next"
+    },
+    {
+      "id": "edge-2",
+      "fromNode": "follow-the-path",
+      "fromSide": "right",
+      "toNode": "learn-one-idea",
+      "toSide": "left",
+      "label": "next"
+    },
+    {
+      "id": "edge-3",
+      "fromNode": "learn-one-idea",
+      "fromSide": "right",
+      "toNode": "check-the-receipt",
+      "toSide": "left",
+      "label": "next"
+    },
+    {
+      "id": "edge-4",
+      "fromNode": "check-the-receipt",
+      "fromSide": "right",
+      "toNode": "take-it-with-you",
+      "toSide": "left",
+      "label": "next"
+    }
+  ]
+}

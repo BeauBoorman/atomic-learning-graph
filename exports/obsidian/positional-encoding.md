@@ -15,11 +15,39 @@ tags:
   - "token representations"
 ---
 
+# Positional Encoding
+
 Positional encodings provide token-order information to models as additional token-associated inputs.
 
 ## Prerequisites
 
 - [[self-attention]]
+
+## Lesson: Adding Token Order Information
+
+### Step 1 · core
+
+The main way to preserve token order is to give the model extra input linked to each token.
+
+**Source receipt — `d2l-self-attention`**
+
+> The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token.
+
+### Step 2 · core
+
+These extra inputs are called positional encodings, and they may be learned or set in advance.
+
+**Source receipt — `d2l-self-attention`**
+
+> These inputs are called positional encodings, and they can either be learned or fixed a priori.
+
+### Step 3 · deep
+
+In the positional encoding matrix, each row matches a position in the sequence, while each column holds a different encoding dimension.
+
+**Source receipt — `d2l-self-attention`**
+
+> In the positional embedding matrix $\mathbf{P}$, rows correspond to positions within a sequence and columns represent different positional encoding dimensions.
 
 ## Source
 

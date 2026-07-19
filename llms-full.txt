@@ -2,6 +2,8 @@
 
 > *Every sentence has a receipt. Every claim has a gate.* **Give it an open textbook chapter. It produces an offline learning path where every generated sentence can be challenged against its source.**
 
+> This is the complete plain-text course for AI assistants. Attach or paste it, then ask the assistant to follow prerequisite order and show the source receipts it uses.
+
 ## Concepts in prerequisite order
 
 <a id="vectors"></a>

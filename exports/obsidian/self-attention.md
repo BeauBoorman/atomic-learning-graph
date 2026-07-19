@@ -15,11 +15,39 @@ tags:
   - "tokens"
 ---
 
+# Self-Attention
+
 Self-attention lets every token attend to every other token in the same sequence.
 
 ## Prerequisites
 
 - [[qkv]]
+
+## Lesson: How Tokens Look at One Another
+
+### Step 1 · core
+
+In self-attention, every token attends to every other token in the same sequence.
+
+**Source receipt — `d2l-self-attention`**
+
+> Because every token is attending to each other token (unlike the case where decoder steps attend to encoder steps), such architectures are typically described as self-attention models , and elsewhere described as intra-attention model .
+
+### Step 2 · core
+
+Self-attention produces an output sequence with the same length as the input sequence.
+
+**Source receipt — `d2l-self-attention`**
+
+> Given a sequence of input tokens $\mathbf{x}_1, \ldots, \mathbf{x}_n$ where any $\mathbf{x}_i \in \mathbb{R}^d$ ($1 \leq i \leq n$), its self-attention outputs a sequence of the same length $\mathbf{y}_1, \ldots, \mathbf{y}_n$
+
+### Step 3 · deep
+
+When computed with multi-head attention, the output data has the same shape as the input data.
+
+**Source receipt — `d2l-self-attention`**
+
+> Using multi-head attention, the following code snippet computes the self-attention of a tensor with shape (batch size, number of time steps or sequence length in tokens, $d$). The output tensor has the same shape.
 
 ## Source
 

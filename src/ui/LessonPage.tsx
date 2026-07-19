@@ -6,6 +6,7 @@ import type {
   PassionId,
   Rendering,
 } from "../types";
+import { PASSION_IDS } from "../types";
 import { MathText } from "./MathText";
 import { Citation, FootnoteMark } from "./Citation";
 import type { ResolvedPassage } from "./model";
@@ -18,6 +19,7 @@ interface LessonPageProps {
   renderings?: Rendering[];
   resolveRendering?: (rendering: Rendering, stepIndex: number) => ResolvedPassage;
   passion?: PassionId;
+  onPassionChange?: (passion?: PassionId) => void;
   selfExplanation?: string;
   selfExplanationAnswer?: string;
   onSelfExplanationChange?: (answer: string) => void;
@@ -34,6 +36,15 @@ const analogyVoices: Record<PassionId, string> = {
   "video-games": "In the game",
   cars: "Under the hood",
   gardening: "In the garden",
+};
+
+const passionLabels: Record<PassionId, string> = {
+  cooking: "Cooking",
+  sports: "Sports",
+  music: "Music",
+  "video-games": "Video games",
+  cars: "Cars",
+  gardening: "Gardening",
 };
 
 const routeLabel = (format: AlternateFormat): string => (
@@ -199,6 +210,7 @@ export function LessonPage({
   renderings = [],
   resolveRendering,
   passion,
+  onPassionChange,
   selfExplanation,
   selfExplanationAnswer,
   onSelfExplanationChange,
@@ -300,7 +312,27 @@ export function LessonPage({
 
       {analogy && passion && (
         <aside className="analogy" aria-label="Optional analogy">
-          <p className="analogy-label">{analogyVoices[passion]}</p>
+          <div className="analogy-header">
+            <p className="analogy-label">{analogyVoices[passion]}</p>
+            {onPassionChange && (
+              <select
+                className="analogy-select"
+                value={passion}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  onPassionChange(value === "" ? undefined : value as PassionId);
+                }}
+                aria-label="Change analogy domain"
+              >
+                <option value="">Skip analogies</option>
+                {PASSION_IDS.map((id) => (
+                  <option value={id} key={id}>
+                    {passionLabels[id]}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <p>{analogy}</p>
         </aside>
       )}

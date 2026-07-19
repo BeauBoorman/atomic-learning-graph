@@ -15,11 +15,39 @@ tags:
   - "softmax"
 ---
 
+# Softmax
+
 Softmax exponentiates scores and normalizes them into values that sum to one.
 
 ## Prerequisites
 
 - [[dot-product]]
+
+## Lesson: Turning scores into values that add up to one
+
+### Step 1 · core
+
+Softmax first applies the exponential function to each score, then divides each result by the sum of all the exponentiated scores.
+
+**Source receipt — `d2l-softmax-regression`**
+
+> Putting these two pieces together gives us the softmax function: $$\hat{\mathbf{y}} = \mathrm{softmax}(\mathbf{o}) \quad \textrm{where}\quad \hat{y}_i = \frac{\exp(o_i)}{\sum_j \exp(o_j)}.$$
+
+### Step 2 · core
+
+Dividing each value by their sum makes the resulting values add up to 1. This is called normalization.
+
+**Source receipt — `d2l-softmax-regression`**
+
+> We can then transform these values so that they add up to $1$ by dividing each by their sum. This process is called normalization.
+
+### Step 3 · deep
+
+The largest original score corresponds to the class that softmax considers most likely.
+
+**Source receipt — `d2l-softmax-regression`**
+
+> Note that the largest coordinate of $\mathbf{o}$ corresponds to the most likely class according to $\hat{\mathbf{y}}$.
 
 ## Source
 

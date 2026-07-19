@@ -631,6 +631,33 @@ select {
   color: var(--muted);
 }
 
+.analogy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--s2);
+}
+
+.analogy-select {
+  width: auto;
+  min-height: auto;
+  margin: 0;
+  padding: 0.15rem 1.5rem 0.15rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--t-colophon);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.analogy-select:focus-visible {
+  border-color: var(--analogy-rule);
+  outline: none;
+}
+
 /* ── The footnote mark ────────────────────────────────────────────────────────
    The summon. `ᵃ` is U+1D43, which is ALREADY a raised glyph — no vertical-align,
    or it raises twice and clears the cap height. Amber on hover because amber is the

@@ -48,6 +48,25 @@ describe("org-roam build artifact", () => {
     expect(emitted).not.toContain("- [[id:self-attention]]");
   });
 
+  it("opens with the prerequisite-ordered learning path and leaves attribution after the course", () => {
+    const emitted = emitOrgRoamArtifact(fixtureGraph);
+
+    expect(emitted).toContain("#+startup: overview");
+    expect(emitted).toContain(
+      "This is a ready-to-use org-roam course: put this file in your org-roam folder",
+    );
+    expect(emitted).toContain("* Learning Path");
+    expect(emitted).toContain("Goal: [[id:self-attention][self-attention]]");
+    const path = emitted.slice(emitted.indexOf("1. [[id:vectors]"));
+    const pathOffsets = GOLDEN_PATH.map((id) => path.indexOf(`[[id:${id}][${id}]]`));
+    expect(pathOffsets.every((offset) => offset >= 0)).toBe(true);
+    expect(pathOffsets).toEqual([...pathOffsets].sort((left, right) => left - right));
+    expect(emitted.indexOf("* Learning Path")).toBeLessThan(emitted.indexOf(":ID: vectors"));
+    expect(emitted.indexOf("* Source Attributions")).toBeGreaterThan(
+      emitted.indexOf(":ID: self-attention"),
+    );
+  });
+
   it("emits summaries, lesson prose, and provenance quotes verbatim", () => {
     const concept = fixtureGraph.concepts.find(({ id }) => id === "vectors");
     if (!concept?.lesson) throw new Error("fixture lost vectors lesson");
