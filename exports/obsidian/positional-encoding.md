@@ -9,10 +9,10 @@ license: "CC-BY-SA-4.0"
 license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 tags:
-  - "positional encoding"
+  - "positional-encoding"
   - "self-attention"
-  - "sequence order"
-  - "token representations"
+  - "sequence-order"
+  - "token-representations"
 ---
 
 # Positional Encoding

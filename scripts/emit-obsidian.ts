@@ -117,7 +117,9 @@ function renderStartHere(concepts: readonly Concept[], goal: Concept): string {
 }
 
 function renderFrontmatter(concept: Concept, source: Source): string {
-  const tags = [...concept.tags].sort();
+  const tags = (concept.tags ?? [])
+    .map((tag) => tag.replace(/\s+/gu, "-"))
+    .sort();
   return [
     "---",
     `id: ${yamlString(concept.id)}`,

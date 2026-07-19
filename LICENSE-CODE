@@ -28,4 +28,5 @@ build configuration.
 It does NOT cover the learning content. data/oer/ (excerpts from Dive into Deep
 Learning) and data/graph.json (the lesson adaptations generated from them) are
 licensed CC-BY-SA-4.0 — see LICENSE, DATA-LICENSE, and ATTRIBUTIONS.md.
-ShareAlike is viral on adaptations, so the lessons cannot be relicensed.
+CC-BY-SA-4.0's share-alike term requires adaptations of the lessons to carry
+the same license.

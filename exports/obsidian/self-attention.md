@@ -11,7 +11,7 @@ modification_notice: "Adapted (translated to plain English; atomized into concep
 tags:
   - "attention"
   - "self-attention"
-  - "sequence encoding"
+  - "sequence-encoding"
   - "tokens"
 ---
 

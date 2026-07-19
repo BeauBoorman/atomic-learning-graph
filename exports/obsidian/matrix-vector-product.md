@@ -9,9 +9,9 @@ license: "CC-BY-SA-4.0"
 license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 2.3 Linear Algebra by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 tags:
-  - "linear algebra"
+  - "linear-algebra"
   - "matrices"
-  - "matrix-vector product"
+  - "matrix-vector-product"
   - "vectors"
 ---
 

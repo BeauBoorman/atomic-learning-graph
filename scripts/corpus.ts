@@ -392,7 +392,7 @@ export function renderNotice(entries: readonly AuditedSourceEntry[]): string {
 
 Source code (src/, scripts/, build config) is licensed under MIT; see LICENSE-CODE.
 Learning content (data/oer/, data/graph.json) is licensed under CC-BY-SA-4.0; see LICENSE.
-ShareAlike is viral on adaptations: the lessons cannot be relicensed.
+CC-BY-SA-4.0's share-alike term requires adaptations of the lessons to carry the same license.
 
 The ${entries.length} source documents in data/oer/ are adapted from Dive into Deep Learning by
 ${D2L_AUTHOR}, pinned to ${D2L_TAG} at commit ${D2L_COMMIT}. They are used under
