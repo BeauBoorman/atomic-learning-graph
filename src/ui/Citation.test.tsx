@@ -84,7 +84,7 @@ describe("Citation — the receipt, rendered", () => {
     // Attribution is a license obligation. An obligation discharged only if the reader performs
     // a gesture is not discharged. The source TEXT is summoned; the credit never is.
     const html = render("vectors", 0, steps[0].text);
-    expect(html).toContain("Plain Reading Edition");
+    expect(html).toContain("Plain translation");
     expect(html).toContain("Dive into Deep Learning");
     expect(html).toContain("Zhang, Lipton, Li &amp; Smola");
     expect(html).toContain("CC BY-SA 4.0");

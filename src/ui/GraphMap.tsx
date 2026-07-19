@@ -626,11 +626,23 @@ export function GraphMap({
   const offRouteIds = keyboardOrder.filter((id) => !routeIds.has(id));
   const coveredIds = new Set(covered);
 
+  const selectedConcept = graph.concepts.find((c) => c.id === selectedId);
+  const selectedConceptStatus = selectedId === currentId
+    ? "next step"
+    : selectedId === goalId
+      ? "goal"
+      : coveredIds.has(selectedId)
+        ? "covered"
+        : "not started";
+
   return (
     // `is-full-map` / `is-guided-route` are gone with the two hardcoded heights that were their
     // only consumers. They styled nothing, and `showFullMap` is already in hand for anything
     // that needs the distinction.
     <div className="graph-card">
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        Selected: {selectedTitle}. Status: {selectedConceptStatus}.
+      </div>
       <div className="graph-toolbar">
         <div>
           <span className="graph-view-label">{showFullMap ? "EVIDENCE MAP · OPTIONAL VIEW" : "YOUR GUIDED ROUTE"}</span>
@@ -686,6 +698,17 @@ export function GraphMap({
           <button type="button" onClick={fit} aria-label="Fit visible concepts in view">Fit</button>
         </div>
       </div>
+
+      {selectedConcept && (
+        <div className="map-detail-panel" aria-labelledby="map-detail-title">
+          <h3 id="map-detail-title">{titleFor(selectedConcept)}</h3>
+          <p className="detail-status">
+            Status: <span className={`status-badge ${selectedConceptStatus.replace(" ", "-")}`}>{selectedConceptStatus}</span>
+          </p>
+          <p className="detail-summary">{selectedConcept.summary}</p>
+        </div>
+      )}
+
       {/* "Step N" belongs to the ROUTE only. The full map used to pour all ten concepts through
           this list as "Step 8: …, not started" — numbering and promising steps a five-step
           course does not contain. Off-route concepts are named as what they are: on the map,

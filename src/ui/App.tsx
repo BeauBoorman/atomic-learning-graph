@@ -599,7 +599,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
                 the toggle feel reversed even though the colours were always correct. The
                 icon and text now both describe what the click will do, matching aria-label. */}
             <span aria-hidden="true">{nextThemeName === "light" ? "☀" : "☾"}</span>
-            <span>Switch to {nextThemeName}</span>
+            <span className="theme-button-text">Switch to {nextThemeName}</span>
           </button>
         </div>
       </header>

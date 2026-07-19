@@ -54,7 +54,7 @@ describe("summoned rendering route", () => {
     // identical attribution under all steps read as a stuck rubber stamp; the license
     // obligation is discharged by the single visible credit.
     expect(markup.match(/Read the source ⟢/g)).toHaveLength(1);
-    expect(markup.match(/Plain Reading Edition/g)).toHaveLength(1);
+    expect(markup.match(/Plain translation/g)).toHaveLength(1);
   });
 
   it("keeps the lesson one gesture away and offers a second grounded route contextually", () => {

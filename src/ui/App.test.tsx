@@ -65,7 +65,7 @@ describe("Phase 5 learning flow", () => {
       />,
     );
 
-    expect(html).toContain(">Try another way in<");
+    expect(html).toContain(">See why it matters<");
   });
 
   it("stays silent when alternates belong to a different concept", () => {

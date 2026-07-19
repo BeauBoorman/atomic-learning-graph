@@ -1,7 +1,7 @@
 import type { ConceptId, LearningGraph, PassionId } from "../types";
 import { PASSION_IDS } from "../types";
 import { CostEstimatorCard } from "./CostEstimatorCard";
-import { prerequisitesForGoal, type Depth } from "./model";
+import { prerequisitesForGoal, courseFor, type Depth } from "./model";
 import { titleFor } from "./titles";
 
 interface EntryProps {
@@ -46,6 +46,9 @@ export function Entry({
   const concepts = new Map(graph.concepts.map((concept) => [concept.id, concept]));
   const prerequisites = prerequisitesForGoal(graph, goalId);
 
+  const quickPageCount = courseFor(graph, goalId, "quick", known).length;
+  const thoroughPageCount = courseFor(graph, goalId, "thorough", known).length;
+
   return (
     <main className="entry" id="main-content">
       <p className="eyebrow">Build a short learning path</p>
@@ -87,7 +90,7 @@ export function Entry({
                     onChange={(event) => {
                       onKnownChange(
                         event.target.checked
-                          ? [...known, conceptId]
+                           ? [...known, conceptId]
                           : known.filter((knownId) => knownId !== conceptId),
                       );
                     }}
@@ -112,7 +115,10 @@ export function Entry({
               checked={depth === "quick"}
               onChange={() => onDepthChange("quick")}
             />
-            <span><strong>Quick</strong><small>Only the main ideas</small></span>
+            <span>
+              <strong>Quick</strong>
+              <small>Only the main ideas (~{quickPageCount} min / {quickPageCount} {quickPageCount === 1 ? "page" : "pages"})</small>
+            </span>
           </label>
           <label className={depth === "thorough" ? "choice is-selected" : "choice"}>
             <input
@@ -125,7 +131,10 @@ export function Entry({
             {/* NOT "and related ideas": data/graph.json has 9 edges, 9 of them prereq and zero
                 related, so the enrichment branch in `courseFor` is dead code and the promise was
                 false on the judge's first screen. */}
-            <span><strong>Thorough</strong><small>Every step, including the details</small></span>
+            <span>
+              <strong>Thorough</strong>
+              <small>Every step, including the details (~{thoroughPageCount} min / {thoroughPageCount} {thoroughPageCount === 1 ? "page" : "pages"})</small>
+            </span>
           </label>
         </fieldset>
 
