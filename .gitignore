@@ -46,3 +46,6 @@ coverage/
 # NOT the product. Never committed: an unpinned graph has no golden spine protecting
 # it and may not contain the goal at all. See ROADMAP.
 .artifacts/
+
+# internal task backlog — not for the public repo
+todo.taskpaper
