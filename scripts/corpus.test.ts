@@ -196,7 +196,7 @@ describe("the pinned OpenStax proof corpus", () => {
   });
 });
 
-describe("the pinned Mill proof corpus", () => {
+describe("the pinned calibration proof corpus", () => {
   const corpusDir = resolve(repoRoot, "data", "corpora", "mill-utilitarianism");
   const manifest = JSON.parse(readFileSync(resolve(corpusDir, "sources.json"), "utf8")) as {
     sources: AuditedSourceEntry[];
