@@ -56,7 +56,12 @@ function assertStructurallyEmittable(graph: LearningGraph): void {
 
 /** Keep each Basic-note field on one TSV row while preserving its displayed text in Anki. */
 export function escapeAnkiField(value: string): string {
-  return value
+  // Anki's MathJax recognises `\(...\)` and `\[...\]`, not Markdown's dollar delimiters.
+  // Convert before HTML escaping so the TeX payload still receives the normal field protection.
+  const ankiMath = value
+    .replace(/\$\$([\s\S]*?)\$\$/gu, "\\[$1\\]")
+    .replace(/\$([^$\r\n]+?)\$/gu, "\\($1\\)");
+  return ankiMath
     .replace(/&/gu, "&amp;")
     .replace(/</gu, "&lt;")
     .replace(/>/gu, "&gt;")

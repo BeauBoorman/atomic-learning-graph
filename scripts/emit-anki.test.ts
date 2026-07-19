@@ -132,6 +132,12 @@ describe("Anki build artifact", () => {
     expect(rows.every((row) => row.split("\t").length === 2)).toBe(true);
   });
 
+  it("converts TeX delimiters before escaping card HTML for Anki MathJax", () => {
+    expect(escapeAnkiField("Inline $x < y$ and $$z & w$$.")).toBe(
+      "Inline \\(x &lt; y\\) and \\[z &amp; w\\].",
+    );
+  });
+
   it("fails loudly rather than dropping orphaned or dangling graph content", () => {
     const orphaned = structuredClone(fixtureGraph);
     orphaned.concepts.push({ ...structuredClone(orphaned.concepts[0]), id: "orphan" });
