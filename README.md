@@ -4,6 +4,10 @@
 **Give it an open textbook chapter. It produces an offline learning path where every lesson step
 can be challenged against the exact source passage it cites.**
 
+[![Live demo](https://img.shields.io/badge/live%20demo-open-2ea44f)](https://beauboorman.github.io/atomic-learning-graph/)
+[![Code license: MIT](https://img.shields.io/badge/code-MIT-2ea44f)](LICENSE-CODE)
+[![Content license: CC BY-SA 4.0](https://img.shields.io/badge/content-CC--BY--SA--4.0-2ea44f)](LICENSE)
+
 Humans specify the educational intent; a model does the expensive translation work; deterministic
 evidence makes every boundary visible. We don't ask what kind of learner you are — we give every
 learner several grounded routes to the same idea, and we show you the receipts.
@@ -32,6 +36,59 @@ The translation was made once, before publication, and checked against the sourc
 generated while you read.** No key, no network, no model call. That is enforced against the shipped
 browser bytes, not left as a promise.
 
+## Start here
+
+- [Run the offline reader](#quick-start)
+- [Understand the pipeline](#how-it-works)
+- [Inspect what is verified](#what-is-verified)
+- [Use an export in your tool](docs/exports.md)
+- [See the build record](#build-record-codex)
+- [Check maintenance and contribute](#maintenance-and-contributing)
+- [Read the project map](#project-map)
+- [Read the limits](#what-we-are-not-claiming)
+- [Read the licenses](#licenses)
+- [Inspect compilation mechanics](#appendix-compilation-mechanics)
+
+## Quick start
+
+The committed reader needs **Node.js 20.19 or newer** and **pnpm 10.33.0** (the exact
+[`engines` and `packageManager`](package.json) contract). It needs no API key and makes no model
+or network request while a learner reads.
+
+```bash
+git clone https://github.com/beauboorman/atomic-learning-graph.git
+cd atomic-learning-graph
+corepack enable
+pnpm install
+pnpm build
+pnpm preview
+```
+
+Open the local URL Vite prints, then stop the preview server with <kbd>Ctrl</kbd>+<kbd>C</kbd> when
+you are done. Use `pnpm preview` instead of opening `dist/index.html` directly: a `file://` origin
+cannot load the built module.
+
+### Build your own course
+
+The local BYOK builder requires **Node.js 22.18 or newer**, text you are allowed to embed, and your
+own provider key. From the checkout, run `pnpm alg` for the guided terminal UI, or follow the
+[complete builder guide](BUILDER.md) for the local browser flow. Building makes billed provider calls;
+the produced one-file reader is offline after a successful build.
+
+## How it works
+
+1. **Specify.** A human fixes the course goal, concept inventory, prerequisite edges, and permitted
+   source corpus before a model is called.
+2. **Compile.** The model proposes grounded explanations, citations, and optional analogies inside
+   that fixed structure.
+3. **Verify.** Deterministic checks reject bad licenses, structure, provenance, paths, and shipped
+   browser bytes; advisory reports stay advisory.
+4. **Ship.** The committed graph and its projections power a static reader and exports. Reading is a
+   pure local walk over those bytes, not a request-time model session.
+
+The [compilation-mechanics appendix](#appendix-compilation-mechanics) records the detailed boundary
+conditions. The next section states the claims the repository actually checks.
+
 ### The routes
 
 - **Atomic steps:** one idea per page, never two.
@@ -45,7 +102,7 @@ These are not learning styles. That idea has been tested and it does not hold up
 Coffield et al. (2004), [Should We Be Using Learning Styles?](https://www.voced.edu.au/content/ngv:18293);
 and Kirschner (2017), [Stop Propagating the Learning Styles Myth](https://journals.sagepub.com/doi/10.1177/0031721717731807).
 
-## What you can check
+## What is verified
 
 Every claim on this page is a property of the committed artifact, not a description of intent.
 
@@ -85,7 +142,7 @@ The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited less
 10 deep) and **186 optional analogies** across 6 interests, plus the complete text of the four
 pinned sources, embedded so the receipt can be verified in the browser with no request.
 
-## How it is made
+## Appendix: compilation mechanics
 
 The lessons are a **translation, not a summary**, and translation is the product here.
 
@@ -111,7 +168,7 @@ language model, bounded at every step by deterministic checks it cannot talk its
 The map is human-specified; model output *fills* it with grounded lessons and citations, and is not
 trusted until the deterministic checks pass.
 
-## How this was built with Codex
+## Build record: Codex
 
 Each negative test names the cheating implementation it kills. A `() => []` stub, a hard-coded
 golden path, a substring shortcut, and a first-match source lookup each have a test built to catch
@@ -194,6 +251,10 @@ guarantees travel — not the headline.
 
 No coding is required. Download the file or folder for your app, then follow the matching row:
 
+For import prerequisites, exact file paths, and the distinction between a gated export and an
+application-specific import experience, see the [exports guide](docs/exports.md). The table is the
+short version.
+
 | Format | What it is | How to open and use it |
 |---|---|---|
 | [Obsidian vault](exports/obsidian/) | A linked set of course notes with lessons and source receipts. | GitHub does not let you download a single folder directly, so either clone the repository (`git clone`) or use **Code → Download ZIP** on GitHub, then unpack it. In Obsidian, choose **Open folder as vault**, select the `exports/obsidian` folder, then open **Start Here** and follow the learning path. |
@@ -217,9 +278,10 @@ forgetting-curve engine — we hand clean, cited cards to one that is already tr
   36,871 tokens). `src/cost/estimator.ts` is a pure, no-network estimator surfaced in both the reader
   and the builder.
 
-## Run it
+## Verify and rebuild
 
-Requires Node.js and pnpm. No API key is needed to run, test, or build the committed graph and UI.
+The quick start above runs the committed reader. No API key is needed to test or build its committed
+graph and UI.
 
 `pnpm gate` is the acceptance bar. A passing `pnpm test` is not: it skips corpus verification, the
 gap through which a false license notice nearly shipped. The gate brings the repository's checks
@@ -227,28 +289,15 @@ together and states what it **does not** prove on every run. Green is bounded ev
 that the model's interpretation is correct or that every product quality is solved.
 
 ```bash
-pnpm install
-alg                    # installed automatically; atomic-learning is the long form
 pnpm gate
 pnpm typecheck
 pnpm test
 pnpm verify:corpus
-pnpm dev
 ```
 
 `pnpm verify:corpus` is hermetic by default: it validates the committed manifest, source hashes,
 extraction transform, and derived notices without a network request. To additionally prove the pins
 still match the real upstream source and license bytes, run `VERIFY_UPSTREAM=1 pnpm verify:corpus`.
-
-A production build:
-
-```bash
-pnpm build
-pnpm preview
-```
-
-Use `pnpm preview` rather than opening `dist/index.html` directly because a `file://` origin cannot
-load the built module.
 
 ### Rebuild the artifacts
 
@@ -304,7 +353,7 @@ pnpm atomize:toy -- --manifest data/corpora/openstax-physics/sources.json
 001](docs/adr/001-commit-the-generated-graph.md). Display-layer editorial choices (such as
 sentence-case lesson titles) live in `src/ui/titles.ts`, deliberately outside the pinned artifact.
 
-## Is it maintained?
+## Maintenance and contributing
 
 The honest answer is machine-checkable rather than promised. `pnpm gate` is the maintenance status:
 on any machine, with no API key, it re-verifies the committed artifact, corpus, build, and shipped
@@ -317,7 +366,17 @@ written, and not that every product quality outside that set is solved. The buil
 [`data/graph.run.json`](data/graph.run.json) records what was last compiled, by which model, at
 what cost.
 
-## Architecture
+For changes, start with [CONTRIBUTING.md](CONTRIBUTING.md). It explains the non-negotiable artifact
+boundaries and the local checks expected before a contribution is proposed.
+
+## Project map
+
+For orientation: `data/` holds the pinned corpus and committed artifacts; `src/` holds the compiler,
+graph rules, and static reader; `scripts/` emits and checks projections; `builder/` is the separate
+BYOK course builder; and `exports/` holds the generated learner-facing projections. The
+[exports guide](docs/exports.md) explains how those projections travel into other tools.
+
+<details><summary>Key modules and enforcement boundaries</summary>
 
 - `data/oer/`: pinned upstream Markdown, deterministically extracted source text, and the fail-closed source manifest.
 - `data/corpora/openstax-physics/`: a separate one-source CC-BY-4.0 corpus proving manifest-relative ingestion.
@@ -341,6 +400,8 @@ what cost.
 Relations live only in `LearningGraph.edges[]`. Provenance is quote-primary: normalized `quotedText`
 must clear the shared strength floor and occur in exactly one resolved source, while offsets remain
 non-load-bearing hints.
+
+</details>
 
 ## Why a graph, not a chatbot?
 
