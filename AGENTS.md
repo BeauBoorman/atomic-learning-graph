@@ -37,7 +37,9 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
   `data/oer/sources.json` with an allowlisted open license. See `src/atomization/AGENTS.md`.
 - **Public README claims must match working commands.** Do not leave future-tense placeholders or
   commands that do not exist in a shipping README.
-- **Keep the demo scoped:** one subject (how LLMs work), one goal (`self-attention`), one loop.
+- **Keep the demo scoped:** one subject (the linear-algebra and softmax substrate beneath
+  self-attention — the math under one LLM mechanism, not an LLM survey), one goal
+  (`self-attention`), one loop.
 - **Treat this repo as PUBLIC.** It is not published yet (the only remote is a private forgejo) and
   it is about to be, irreversibly. Never commit `.env`, an API key, or any credential. Anything you
   add now is something a stranger reads on 2026-07-21.
@@ -45,9 +47,8 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
 ## Commands
 
 **Do not narrate command state here.** `package.json` is the source of truth for what exists and
-`pnpm gate` is the source of truth for what passes. This table rotted once already. It swore the
-suite was red and the atomizer unbuilt for a day after both went green, and every agent that read it
-believed it. List commands; never their status.
+`pnpm gate` is the source of truth for what passes. List commands, never their status: a status
+table drifts from reality and misleads every agent that trusts it.
 
 | Command | Notes |
 |---|---|
@@ -59,24 +60,13 @@ believed it. List commands; never their status.
 | `pnpm verify:corpus` / `verify:anchors` | license + provenance gates. Corpus verification is local by default; `VERIFY_UPSTREAM=1 pnpm verify:corpus` also checks pinned upstream bytes. |
 | `pnpm verify:bundle` | post-build scan of shipped JavaScript, HTML and CSS for network/model clients and remote assets |
 | `pnpm build` / `preview` | vite |
-| `pnpm dev` | ⛔ **NEVER run `dev` or `preview` in an agent.** They never exit and will hang the session until it is killed. Codex has already lost a run to this. Read the code or run `pnpm build`. |
+| `pnpm dev` | ⛔ **NEVER run `dev` or `preview` in an agent.** They never exit and will hang the session until it is killed. Read the code or run `pnpm build`. |
 
-## Current critical path
+## Core status
 
-**The core is BUILT and green.** Invariants, the license gate, the atomizer, `getPath`, the UI and
-the renderings pipeline all exist and pass. Do not re-implement them. `git log` and `pnpm gate` are
-the truth; if this section disagrees with them, they win and this section is stale. Say so.
-
-What remains is **shipping**, not building. Deadline **2026-07-21 17:00 PT**:
-
-1. **Secret + history audit** → a SAFE / NOT-SAFE verdict. Gates everything below. Publishing is
-   irreversible; `data/graph.run.json` carries real API response IDs that need a ruling.
-2. **Provide repository access:** the rules allow either a public repository with relevant
-   licensing or a private repository shared with `testing@devpost.com` and
-   `build-week-event@openai.com`. Public launch is preferred, but it is not a submission blocker.
-   **Beau's hands, gated on 1.**
-3. **Demo video < 3:00, YouTube.** Beau.
-4. **Codex `/feedback` session ID** from the session where the core was built. Beau.
+The core is built and green: invariants, the license gate, the atomizer, `getPath`, the UI, and the
+renderings pipeline all exist and pass. Do not re-implement them. `git log` and `pnpm gate` are the
+truth; if any prose disagrees with them, they win.
 
 ## Acceptance bar
 
