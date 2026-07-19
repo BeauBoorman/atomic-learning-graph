@@ -1,8 +1,8 @@
 # Atomic Learning — a compiler for inspectable curricula
 
-*Every sentence has a receipt. Every claim has a gate.*
-**Give it an open textbook chapter. It produces an offline learning path where every generated
-sentence can be challenged against its source.**
+*Every lesson step has a receipt. Every claim has a gate.*
+**Give it an open textbook chapter. It produces an offline learning path where every lesson step
+can be challenged against the exact source passage it cites.**
 
 Humans specify the educational intent; a model does the expensive translation work; deterministic
 evidence makes every boundary visible. We don't ask what kind of learner you are — we give every
@@ -107,8 +107,9 @@ them. That adversarial suite fenced Codex with executable constraints it could n
 
 **A safety property, and it is not circular.** No fabricated citation passes the gates: five tamper
 scenarios — empty-graph stub, hard-coded golden path, substring-faked citation, first-match source
-lookup, hand-edited graph.json — are all rejected (5 / 5), and every lesson sentence is checked
-byte-for-byte against the real source. Unlike a live-AI tutor whose grader is validated on a gold
+lookup, hand-edited graph.json — are all rejected (5 / 5), and every lesson step's cited source excerpt is checked
+byte-for-byte against the real source — the plain-English lesson is a faithful translation of that
+excerpt, shown beside it so you can judge the translation; analogies are illustrative, not sourced. Unlike a live-AI tutor whose grader is validated on a gold
 set its own model family authored, this proof rests on deterministic checks against a real CC-BY-SA
 source — there is no model judging itself at read time.
 
