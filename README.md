@@ -213,6 +213,7 @@ that the model's interpretation is correct or that every product quality is solv
 
 ```bash
 pnpm install
+pnpm tui
 pnpm gate
 pnpm typecheck
 pnpm test

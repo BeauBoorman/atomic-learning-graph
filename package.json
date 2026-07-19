@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "tui": "node --import tsx builder/tui.mjs",
     "estimate:cost": "node --import tsx scripts/estimate-cost.ts",
     "typecheck": "tsc --noEmit",
     "fetch:corpus": "tsx scripts/fetch-corpus.ts",

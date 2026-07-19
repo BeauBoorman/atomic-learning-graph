@@ -21,6 +21,20 @@ pnpm install
 
 ## Start the builder
 
+For a keyboard-driven terminal menu, run this from the repository root:
+
+```sh
+pnpm tui
+```
+
+The terminal UI can explore the committed course, rebuild any supported export, or guide a new
+paid course build. It shows the deterministic cost estimate and requires you to type `BUILD`
+before any model call. API keys are read from the provider's environment variable, a local `.env`,
+or a masked session-only prompt; the key is never displayed, logged, saved, or placed on the
+command line.
+
+The browser builder remains available:
+
 From the repository root:
 
 ```sh
