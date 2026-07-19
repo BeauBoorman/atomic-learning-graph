@@ -1,7 +1,9 @@
 name: Deploy reader to GitHub Pages
 
-# Builds the static reader (vite build -> dist/) and publishes it to GitHub Pages.
-# The reader ships the committed data/graph.json; the build makes no network or model call.
+# Type-checks, runs the test suite (including every adversarial/negative test against the
+# committed data/graph.json), builds the static reader (vite build -> dist/), and scans the
+# shipped bytes for network/model clients BEFORE publishing to GitHub Pages. The deploy is
+# the URL in the README hero; a broken push must not reach it.
 # One-time setup: repo Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
 
 on:
@@ -25,13 +27,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.33.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Gate the deploy on the same deterministic checks the local acceptance bar runs.
+      # Vite will happily bundle type-broken code, so typecheck must run before build; the
+      # bundle scan must run after build because it inspects emitted bytes. Paid-key stages
+      # (atomize, render) and the upstream network re-fetch (VERIFY_UPSTREAM=1) are
+      # deliberately omitted — they have no place on the deploy path.
+      - run: pnpm typecheck
+      - run: pnpm test
       - run: pnpm build
+      - run: pnpm verify:bundle
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

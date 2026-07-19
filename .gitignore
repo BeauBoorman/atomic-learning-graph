@@ -49,3 +49,7 @@ coverage/
 
 # internal task backlog — not for the public repo
 todo.taskpaper
+
+# opencode session-continuation / working files (ses_*.json etc.)
+# Same reflexive-`git add -A` failure mode as plans/ above.
+.omo/
