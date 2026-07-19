@@ -213,7 +213,7 @@ that the model's interpretation is correct or that every product quality is solv
 
 ```bash
 pnpm install
-pnpm tui
+alg                    # installed automatically; atomic-learning is the long form
 pnpm gate
 pnpm typecheck
 pnpm test

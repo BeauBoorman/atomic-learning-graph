@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
+import { mkdtemp, readlink, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { PassThrough } from "node:stream";
 import { describe, it } from "vitest";
 import { fixtureGraph, SOURCE_TEXT } from "../src/graph/fixture-graph.ts";
+import { installTuiAliases } from "../scripts/install-tui-aliases.mjs";
 import {
   browseCourse,
   parseEnvFile,
@@ -227,5 +231,52 @@ describe("builder terminal UI", () => {
         ANTHROPIC_API_KEY: "anthropic-key",
       },
     );
+  });
+
+  it("automatically installs both safe command aliases and is idempotent", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "alg-tui-bin-"));
+    const launcherPath = resolve("builder/tui.mjs");
+    try {
+      const first = await installTuiAliases({
+        platform: "darwin",
+        binDir: directory,
+        launcherPath,
+        pathValue: directory,
+      });
+      const second = await installTuiAliases({
+        platform: "darwin",
+        binDir: directory,
+        launcherPath,
+        pathValue: directory,
+      });
+
+      assert.equal(first.onPath, true);
+      assert.deepEqual(first.results.map(({ status }) => status), ["installed", "installed"]);
+      assert.deepEqual(second.results.map(({ status }) => status), ["installed", "installed"]);
+      for (const alias of ["atomic-learning", "alg"]) {
+        assert.equal(resolve(directory, await readlink(join(directory, alias))), launcherPath);
+      }
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses to overwrite an unrelated command during automatic installation", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "alg-tui-conflict-"));
+    try {
+      await writeFile(join(directory, "alg"), "another program\n", "utf8");
+      const result = await installTuiAliases({
+        platform: "darwin",
+        binDir: directory,
+        launcherPath: resolve("builder/tui.mjs"),
+        pathValue: directory,
+      });
+      assert.deepEqual(
+        result.results.find(({ alias }) => alias === "alg"),
+        { alias: "alg", status: "skipped", reason: "existing file" },
+      );
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 });

@@ -21,11 +21,15 @@ pnpm install
 
 ## Start the builder
 
-For a keyboard-driven terminal menu, run this from the repository root:
+Installing the repository automatically adds two terminal commands for the keyboard-driven menu:
 
 ```sh
-pnpm tui
+alg
+# or: atomic-learning
 ```
+
+The installer never replaces an unrelated command with either name. From inside the repository,
+`pnpm alg` and `pnpm tui` are always available as fallbacks.
 
 The terminal UI can explore the committed course, rebuild any supported export, or guide a new
 paid course build. It shows the deterministic cost estimate and requires you to type `BUILD`

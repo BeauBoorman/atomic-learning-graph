@@ -5,6 +5,10 @@
   "description": "Open Atomic Learning Graph — turn open educational resources into a navigable prerequisite graph of one-concept lessons.",
   "license": "MIT AND CC-BY-SA-4.0",
   "type": "module",
+  "bin": {
+    "atomic-learning": "./builder/tui.mjs",
+    "alg": "./builder/tui.mjs"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,7 +16,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "tui": "node --import tsx builder/tui.mjs",
+    "postinstall": "node scripts/install-tui-aliases.mjs",
+    "tui": "node builder/tui.mjs",
+    "atomic-learning": "node builder/tui.mjs",
+    "alg": "node builder/tui.mjs",
     "estimate:cost": "node --import tsx scripts/estimate-cost.ts",
     "typecheck": "tsc --noEmit",
     "fetch:corpus": "tsx scripts/fetch-corpus.ts",
