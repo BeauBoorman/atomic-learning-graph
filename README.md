@@ -12,6 +12,9 @@ Humans specify the educational intent; a model does the expensive translation wo
 evidence makes every boundary visible. We don't ask what kind of learner you are — we give every
 learner several grounded routes to the same idea, and we show you the receipts.
 
+**The live demo is the reader for one compiled course. [Build your own from open text with the
+local builder →](#build-your-own-course)**
+
 **[Open the live demo →](https://beauboorman.github.io/atomic-learning-graph/)** — runs entirely in your browser; nothing is generated while you read.
 
 **[Watch the 60-second explainer →](https://youtu.be/cHKRaXLN2-Y)** — a plain-language tour of what it does and why. Prefer the full version? Here's the [three-minute walkthrough](https://youtu.be/PUTDXMFwbql).
@@ -259,7 +262,7 @@ short version.
 |---|---|---|
 | [Obsidian vault](exports/obsidian/) | A linked set of course notes with lessons and source receipts. | GitHub does not let you download a single folder directly, so either clone the repository (`git clone`) or use **Code → Download ZIP** on GitHub, then unpack it. In Obsidian, choose **Open folder as vault**, select the `exports/obsidian` folder, then open **Start Here** and follow the learning path. |
 | [org-roam](atomic-learning-graph.org) | The same linked course as one Emacs Org file. | Put the `.org` file in your org-roam folder, open it in Emacs, run `M-x org-roam-db-sync` once, then begin at **Learning Path**. |
-| [Tinderbox](atomic-learning-graph.opml) | A visual course map with styled concept cards, sources, and prerequisite links. | The supported artifact is the gated [OPML file](atomic-learning-graph.opml): in Tinderbox, choose **File → Import…**, select the OPML, and the map, prototypes, colors, positions, and links apply in one shot. A committed [`atomic-learning-graph.tbx`](atomic-learning-graph.tbx) is also included as a hand-finished convenience that opens directly in Tinderbox 9.0+ without an import step; it is not gated or rebuilt by the pipeline. |
+| [Tinderbox](atomic-learning-graph.opml) | A visual course map with styled concept cards, sources, and prerequisite links. | The supported artifact is the gated [OPML file](atomic-learning-graph.opml): in Tinderbox, choose **File → Import…**, select the OPML, and the map, prototypes, colors, positions, and links apply in one shot. A committed [`atomic-learning-graph.tbx`](atomic-learning-graph.tbx) is also included as a hand-finished convenience that opens directly in Tinderbox 11.8 without an import step; it is not gated or rebuilt by the pipeline. |
 | [Anki deck](atomic-learning-graph-anki.tsv) | Ready-to-study question-and-answer cards with a source receipt on every answer. | In Anki, choose **File → Import**, select the `.tsv` file, keep the **Basic** note type, import it, then choose **Study Now**. The file sets its own deck and tag. |
 | [Practice exam](atomic-learning-graph-exam.md) | A printable self-check with questions, passage matching, answer keys, and grounded recall checks. | Open the Markdown file in any Markdown reader or on GitHub. Answer Parts A and B before scrolling to the answer key; print it if you prefer paper. |
 | [`llms.txt`](llms.txt) | A plain-text course index made for AI assistants; [`llms-full.txt`](llms-full.txt) contains the complete lessons and receipts. | Attach or paste `llms.txt` into an assistant for the overview. Add `llms-full.txt` when you want it to use the full course, and ask it to follow prerequisite order and show the source receipts. |
@@ -309,7 +312,7 @@ still match the real upstream source and license bytes, run `VERIFY_UPSTREAM=1 p
 - `pnpm emit:tinderbox` rebuilds the presentation-ready Tinderbox OPML from the committed graph.
   One import applies the hierarchy, inspectable metadata, prototypes, colors, badges, dimensions,
   and prerequisite-layer map positions; no separate styling pass is required. The native `.tbx`
-  counterpart opens directly in Tinderbox 11.
+  counterpart opens directly in Tinderbox 11.8.
 - `pnpm emit:obsidian` rebuilds the Obsidian vault from the committed graph.
 - `pnpm emit:anki` rebuilds the Anki TSV deck from the committed graph.
 - `pnpm emit:exam` rebuilds the grounded practice exam from the committed graph.
@@ -392,7 +395,7 @@ BYOK course builder; and `exports/` holds the generated learner-facing projectio
 - `src/graph/load.ts`: fail-closed loader for the committed graph.
 - `scripts/emit-tinderbox.ts`: deterministic, one-shot styled Tinderbox OPML with concepts,
   sources, typed edge records, prototypes, and graph-derived map positions;
-  `atomic-learning-graph.tbx` is the styled native document for direct use in Tinderbox 11.
+  `atomic-learning-graph.tbx` is the styled native document for direct use in Tinderbox 11.8.
 - `src/ui/`: static React interface over the embedded graph, with local-only interactions.
 - `scripts/verify-bundle.ts`: post-build scan of emitted JavaScript, HTML and CSS; the
   shipped-bytes enforcement boundary for the no-network browser claim.
@@ -425,7 +428,8 @@ Honest limits, stated up front:
   grade **10.38** (the worst is `positional-encoding` at 11.08). The floor is a build gate against runaway prose, not a promise of grade-8 English.
   Tightening it is a re-translation, not a config change.
 - **The graph is small and the domain is narrow.** 10 concepts across four source sections (three chapters). The pitch is the
-  substrate and the provenance, not coverage.
+  substrate and the provenance, not coverage. The demo course is the math substrate under one LLM
+  mechanism (`self-attention`), not an LLM survey.
 - **This artifact is a prerequisite tree, not evidence of a relationship mesh.** The graph type
   supports `prereq`, `method`, and `related`, but the pinned product run deliberately projects onto
   9 `prereq` edges and zero other links. No concept has more than one incoming prerequisite. A
