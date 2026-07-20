@@ -51,11 +51,16 @@ function orgQuote(value: string): string {
   return `#+begin_quote\n${value}\n#+end_quote`;
 }
 
-// org-roam treats :ROAM_REFS: as a unique-per-node external identifier. Concepts that cite the same
-// source would collide on the bare source URL, so we disambiguate with a per-concept URL fragment.
+// org-roam indexes each :ROAM_REFS: value as a UNIQUE external identifier for a node. Concepts that
+// cite the same source would collide on the bare source URL, and appending a `#<conceptId>` fragment
+// to that URL would fabricate a page anchor that does not exist on the cited page. Instead we emit
+// an org-cite citekey (`@<sourceId>-<conceptId>`): it is honestly a citation reference rather than a
+// pretend URL fragment, it is unique per node because concept ids are unique, and it is derived
+// purely from ids so it stays document-agnostic (no hardcoded concept or heading strings). The
+// human-facing source link is preserved verbatim in each concept's "** Source" section and in
+// Source Attributions.
 function conceptReference(concept: Concept, source: Source): string {
-  const baseUrl = source.url ?? source.id;
-  return `${baseUrl}#${concept.id}`;
+  return `@${source.id}-${concept.id}`;
 }
 
 function modificationNotice(source: Source): string {

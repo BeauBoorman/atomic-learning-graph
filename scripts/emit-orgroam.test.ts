@@ -42,17 +42,18 @@ describe("org-roam build artifact", () => {
 
     expect(emitted).toContain(":ID: self-attention");
     // Each concept must own a UNIQUE :ROAM_REFS: value (org-roam indexes it as an external
-    // identifier). Concepts that cite the same source would collide on the bare source URL,
-    // so the emitter appends a per-concept URL fragment.
+    // identifier). Concepts that cite the same source would collide on the bare source URL, so the
+    // emitter uses an org-cite citekey `@<sourceId>-<conceptId>` rather than a fabricated `#anchor`.
     const refsMatches = [...emitted.matchAll(/:ROAM_REFS: ([^\n]+)\n/gu)];
     expect(refsMatches.length).toBe(fixtureGraph.concepts.length);
     const refsValues = refsMatches.map((match) => match[1]);
     expect(new Set(refsValues).size).toBe(refsValues.length);
+    // No ref may masquerade as a page anchor by appending a `#fragment` to the source URL.
+    for (const value of refsValues) expect(value).not.toContain("#");
     for (const concept of fixtureGraph.concepts) {
       const source = fixtureGraph.sources.find(({ id }) => id === concept.provenance.sourceId);
       if (!source) throw new Error(`fixture lost source for ${concept.id}`);
-      const baseUrl = source.url ?? source.id;
-      expect(emitted).toContain(`:ROAM_REFS: ${baseUrl}#${concept.id}`);
+      expect(emitted).toContain(`:ROAM_REFS: @${source.id}-${concept.id}`);
     }
     expect(emitted).toContain("- [[id:qkv]]");
     expect(emitted).not.toContain("- [[id:self-attention]]");

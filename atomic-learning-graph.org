@@ -33,7 +33,7 @@ Goal: [[id:self-attention][Self-Attention]]
 * Vectors
 :PROPERTIES:
 :ID: vectors
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#vectors
+:ROAM_REFS: @d2l-linear-algebra-vectors
 :END:
 
 A vector is a fixed-length array whose entries are scalars.
@@ -83,7 +83,7 @@ For example, if we were training a model to predict the risk of a loan defaultin
 * Dot Product
 :PROPERTIES:
 :ID: dot-product
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#dot-product
+:ROAM_REFS: @d2l-linear-algebra-dot-product
 :END:
 
 The dot product sums products of corresponding elements from two vectors.
@@ -136,7 +136,7 @@ When the weights are nonnegative and sum to $1$, i.e., $\left(\sum_{i=1}^{n} {w_
 * Matrix–Vector Product
 :PROPERTIES:
 :ID: matrix-vector-product
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#matrix-vector-product
+:ROAM_REFS: @d2l-linear-algebra-matrix-vector-product
 :END:
 
 A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
@@ -203,7 +203,7 @@ We can think of multiplication with a matrix $\mathbf{A}\in \mathbb{R}^{m \times
 * Softmax
 :PROPERTIES:
 :ID: softmax
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md#softmax
+:ROAM_REFS: @d2l-softmax-regression-softmax
 :END:
 
 Softmax exponentiates a collection of outputs and normalizes them into values that sum to one.
@@ -246,7 +246,7 @@ Note that the largest coordinate of $\mathbf{o}$ corresponds to the most likely 
 * Queries, Keys, and Values
 :PROPERTIES:
 :ID: qkv
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md#qkv
+:ROAM_REFS: @d2l-queries-keys-values-qkv
 :END:
 
 An attention database can be represented as key–value pairs that are accessed using a query.
@@ -309,7 +309,7 @@ The name attention derives from the fact that the operation pays particular atte
 * Attention Pooling
 :PROPERTIES:
 :ID: attention-pooling
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md#attention-pooling
+:ROAM_REFS: @d2l-queries-keys-values-attention-pooling
 :END:
 
 Attention pooling combines values linearly using weights determined by query–key compatibility.
@@ -362,7 +362,7 @@ Just as convenient is the fact that attention can operate on arbitrarily large d
 * Self-Attention
 :PROPERTIES:
 :ID: self-attention
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md#self-attention
+:ROAM_REFS: @d2l-self-attention-self-attention
 :END:
 
 Self-attention lets every token attend to the other tokens in the same sequence.
@@ -415,7 +415,7 @@ where $$\mathbf{y}_i = f(\mathbf{x}_i, (\mathbf{x}_1, \mathbf{x}_1), \ldots, (\m
 * Positional Encoding
 :PROPERTIES:
 :ID: positional-encoding
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md#positional-encoding
+:ROAM_REFS: @d2l-self-attention-positional-encoding
 :END:
 
 Positional encodings provide token-order information to models as additional token-associated inputs.
@@ -478,7 +478,7 @@ The positional encoding outputs $\mathbf{X} + \mathbf{P}$ using a positional emb
 * Softmax Preserves Ordering
 :PROPERTIES:
 :ID: softmax-ordering
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md#softmax-ordering
+:ROAM_REFS: @d2l-softmax-regression-softmax-ordering
 :END:
 
 Softmax preserves the ordering of its inputs, so the largest logit identifies the highest-probability class.
@@ -521,7 +521,7 @@ we do not need to compute the softmax to determine which class has been assigned
 * Vector Norm
 :PROPERTIES:
 :ID: vector-norm
-:ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#vector-norm
+:ROAM_REFS: @d2l-linear-algebra-vector-norm
 :END:
 
 A vector norm expresses the magnitude or size of a vector.
