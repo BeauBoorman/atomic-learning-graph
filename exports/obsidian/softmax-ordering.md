@@ -9,7 +9,6 @@ license: "CC-BY-SA-4.0"
 license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 4.1 Softmax Regression by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 tags:
-  - "argmax"
   - "classification"
   - "ordering"
   - "softmax"
@@ -17,17 +16,17 @@ tags:
 
 # Softmax Preserves Ordering
 
-Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
+Softmax preserves the ordering of its inputs, so the largest logit identifies the highest-probability class.
 
 ## Prerequisites
 
 - [[softmax]]
 
-## Lesson: Softmax Keeps Scores in the Same Order
+## Lesson: Softmax Keeps Values in the Same Order
 
 ### Step 1 · core
 
-Softmax keeps its input scores in the same order.
+Softmax preserves the ordering of its input values.
 
 **Source receipt — `d2l-softmax-regression`**
 
@@ -35,7 +34,7 @@ Softmax keeps its input scores in the same order.
 
 ### Step 2 · core
 
-So you can identify the class with the highest probability without calculating softmax.
+You can identify the class with the highest probability without calculating softmax.
 
 **Source receipt — `d2l-softmax-regression`**
 

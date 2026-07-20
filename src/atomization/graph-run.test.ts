@@ -27,7 +27,7 @@ describe("generated graph run log", () => {
       promptVersion?: string;
       strictStructuredOutputs?: boolean;
     };
-    expect(run.promptVersion).toBe("atomizer-v4-full-spine-one-claim-steps");
+    expect(run.promptVersion).toBe("atomizer-v5-graph-defined-vocabulary");
     expect(run.strictStructuredOutputs).toBe(true);
   });
 });

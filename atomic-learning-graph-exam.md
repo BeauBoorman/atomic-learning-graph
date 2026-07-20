@@ -45,15 +45,19 @@ Passages are listed in passage-text order, not exam order.
 
 > Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability.
 
-**P7** — from Dive into Deep Learning — 11.1 Queries, Keys, and Values (d2l-queries-keys-values):
+**P7** — from Dive into Deep Learning — 4.1 Softmax Regression (d2l-softmax-regression):
+
+> Putting these two pieces together gives us the softmax function: $$\hat{\mathbf{y}} = \mathrm{softmax}(\mathbf{o}) \quad \textrm{where}\quad \hat{y}_i = \frac{\exp(o_i)}{\sum_j \exp(o_j)}.$$
+
+**P8** — from Dive into Deep Learning — 11.1 Queries, Keys, and Values (d2l-queries-keys-values):
 
 > The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
 
-**P8** — from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding (d2l-self-attention):
+**P9** — from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding (d2l-self-attention):
 
 > The dominant approach for preserving information about the order of tokens is to represent this to the model as an additional input associated with each token.
 
-**P9** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
+**P10** — from Dive into Deep Learning — 2.3 Linear Algebra (d2l-linear-algebra):
 
 > The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$: $$
 > \mathbf{A}\mathbf{x}
@@ -71,15 +75,11 @@ Passages are listed in passage-text order, not exam order.
 > \end{bmatrix}.
 > $$
 
-**P10** — from Dive into Deep Learning — 4.1 Softmax Regression (d2l-softmax-regression):
-
-> We can then transform these values so that they add up to $1$ by dividing each by their sum.
-
 ## Answer Key — Part A
 
 ### A1. Vectors
 
-A vector is a fixed-length array whose elements are scalars.
+A vector is a fixed-length array whose entries are scalars.
 
 Source receipt:
 
@@ -110,14 +110,9 @@ A self-check passes an item only when every listed source-derived term appears i
 
 > For example, if we were training a model to predict the risk of a loan defaulting, we might associate each applicant with a vector whose components correspond to quantities like their income, length of employment, or number of previous defaults.
 
-- Item 4 must mention: `denote`, `vectors`, `bold`, `lowercase`, `letters`
-  Verbatim source span (`d2l-linear-algebra`):
-
-> We denote vectors by bold lowercase letters, (e.g., $\mathbf{x}$, $\mathbf{y}$, and $\mathbf{z}$).
-
 ### A2. Dot Product
 
-The dot product of two vectors sums the products of elements at corresponding positions.
+The dot product sums products of corresponding elements from two vectors.
 
 Source receipt:
 
@@ -150,7 +145,7 @@ A self-check passes an item only when every listed source-derived term appears i
 
 ### A3. Matrix–Vector Product
 
-A matrix–vector product contains one dot product between the input vector and each row of the matrix.
+A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
 
 Source receipt:
 
@@ -180,28 +175,28 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `matrix`, `vector`, `product`, `simply`, `column`, `length`
+- Item 1 must mention: `matrix`, `vector`, `product`, `simply`, `column`, `length`, `whose`, `element`, `dot`
   Verbatim source span (`d2l-linear-algebra`):
 
-> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$
+> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
 
-- Item 2 must mention: `whose`, `element`, `dot`, `product`
-  Verbatim source span (`d2l-linear-algebra`):
-
-> whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
-
-- Item 3 must mention: `note`, `column`, `dimension`, `length`, `along`, `axis`
+- Item 2 must mention: `note`, `column`, `dimension`, `length`, `along`, `axis`
   Verbatim source span (`d2l-linear-algebra`):
 
 > Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length).
 
+- Item 3 must mention: `multiplication`, `matrix`, `transformation`, `projects`, `vectors`
+  Verbatim source span (`d2l-linear-algebra`):
+
+> We can think of multiplication with a matrix $\mathbf{A}\in \mathbb{R}^{m \times n}$ as a transformation that projects vectors from $\mathbb{R}^{n}$ to $\mathbb{R}^{m}$.
+
 ### A4. Softmax
 
-Softmax exponentiates scores and normalizes them into values that sum to one.
+Softmax exponentiates a collection of outputs and normalizes them into values that sum to one.
 
 Source receipt:
 
-> We can then transform these values so that they add up to $1$ by dividing each by their sum.
+> Putting these two pieces together gives us the softmax function: $$\hat{\mathbf{y}} = \mathrm{softmax}(\mathbf{o}) \quad \textrm{where}\quad \hat{y}_i = \frac{\exp(o_i)}{\sum_j \exp(o_j)}.$$
 
 Source ID: d2l-softmax-regression  
 Title: Dive into Deep Learning — 4.1 Softmax Regression  
@@ -218,19 +213,14 @@ A self-check passes an item only when every listed source-derived term appears i
 
 > Putting these two pieces together gives us the softmax function: $$\hat{\mathbf{y}} = \mathrm{softmax}(\mathbf{o}) \quad \textrm{where}\quad \hat{y}_i = \frac{\exp(o_i)}{\sum_j \exp(o_j)}.$$
 
-- Item 2 must mention: `transform`, `values`, `add`, `dividing`, `sum`, `process`, `called`, `normalization`
-  Verbatim source span (`d2l-softmax-regression`):
-
-> We can then transform these values so that they add up to $1$ by dividing each by their sum. This process is called normalization.
-
-- Item 3 must mention: `note`, `largest`, `coordinate`, `corresponds`, `likely`, `class`, `according`
+- Item 2 must mention: `note`, `largest`, `coordinate`, `corresponds`, `likely`, `class`, `according`
   Verbatim source span (`d2l-softmax-regression`):
 
 > Note that the largest coordinate of $\mathbf{o}$ corresponds to the most likely class according to $\hat{\mathbf{y}}$.
 
 ### A5. Queries, Keys, and Values
 
-Attention can be framed using a query applied to a collection of key–value pairs.
+An attention database can be represented as key–value pairs that are accessed using a query.
 
 Source receipt:
 
@@ -246,25 +236,25 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 
 A self-check passes an item only when every listed source-derived term appears in the answer.
 
-- Item 1 must mention: `denote`, `database`, `tuples`, `keys`, `values`, `moreover`, `query`
+- Item 1 must mention: `denote`, `database`, `tuples`, `keys`, `values`
   Verbatim source span (`d2l-queries-keys-values`):
 
-> denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values. Moreover, denote by $\mathbf{q}$ a query.
+> denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values.
 
-- Item 2 must mention: `define`, `attention`, `scalar`, `weights`
+- Item 2 must mention: `scalar`, `attention`, `weights`
   Verbatim source span (`d2l-queries-keys-values`):
 
-> Then we can define the attention over $\mathcal{D}$ as $$\textrm{Attention}(\mathbf{q}, \mathcal{D}) \stackrel{\textrm{def}}{=} \sum_{i=1}^m \alpha(\mathbf{q}, \mathbf{k}_i) \mathbf{v}_i,$$ where $\alpha(\mathbf{q}, \mathbf{k}_i) \in \mathbb{R}$ ($i = 1, \ldots, m$) are scalar attention weights.
+> where $\alpha(\mathbf{q}, \mathbf{k}_i) \in \mathbb{R}$ ($i = 1, \ldots, m$) are scalar attention weights.
 
-- Item 3 must mention: `name`, `attention`, `derives`, `fact`, `operation`, `pays`, `particular`, `terms`, `weight`, `significant`, `large`
+- Item 3 must mention: `attention`, `generates`, `linear`, `combination`, `values`, `contained`, `database`
+  Verbatim source span (`d2l-queries-keys-values`):
+
+> As such, the attention over $\mathcal{D}$ generates a linear combination of values contained in the database.
+
+- Item 4 must mention: `name`, `attention`, `derives`, `fact`, `operation`, `pays`, `particular`, `terms`, `weight`, `significant`, `large`
   Verbatim source span (`d2l-queries-keys-values`):
 
 > The name attention derives from the fact that the operation pays particular attention to the terms for which the weight $\alpha$ is significant (i.e., large).
-
-- Item 4 must mention: `weights`, `form`, `convex`, `combination`, `common`, `setting`, `deep`, `learning`
-  Verbatim source span (`d2l-queries-keys-values`):
-
-> The weights $\alpha(\mathbf{q}, \mathbf{k}_i)$ form a convex combination, i.e., $\sum_i \alpha(\mathbf{q}, \mathbf{k}_i) = 1$ and $\alpha(\mathbf{q}, \mathbf{k}_i) \geq 0$ for all $i$. This is the most common setting in deep learning.
 
 ### A6. Attention Pooling
 
@@ -289,14 +279,19 @@ A self-check passes an item only when every listed source-derived term appears i
 
 > The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
 
-- Item 2 must mention: `one`, `benefits`, `attention`, `mechanism`, `quite`, `intuitive`, `particularly`, `weights`, `nonnegative`, `sum`, `case`, `interpret`, `large`, `way`, `model`, `select`, `components`, `relevance`, `while`, `good`, `intuition`, `important`, `remember`
+- Item 2 must mention: `case`, `interpret`, `large`, `weights`, `way`, `model`, `select`, `components`, `relevance`, `while`, `good`, `intuition`, `important`, `remember`
   Verbatim source span (`d2l-queries-keys-values`):
 
-> One of the benefits of the attention mechanism is that it can be quite intuitive, particularly when the weights are nonnegative and sum to $1$. In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
+> In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
+
+- Item 3 must mention: `convenient`, `fact`, `attention`, `operate`, `arbitrarily`, `large`, `databases`, `without`, `need`, `change`, `way`, `pooling`, `operation`, `performed`
+  Verbatim source span (`d2l-queries-keys-values`):
+
+> Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed.
 
 ### A7. Self-Attention
 
-Self-attention lets every token attend to every other token in the same sequence.
+Self-attention lets every token attend to the other tokens in the same sequence.
 
 Source receipt:
 
@@ -322,10 +317,10 @@ A self-check passes an item only when every listed source-derived term appears i
 
 > Given a sequence of input tokens $\mathbf{x}_1, \ldots, \mathbf{x}_n$ where any $\mathbf{x}_i \in \mathbb{R}^d$ ($1 \leq i \leq n$), its self-attention outputs a sequence of the same length $\mathbf{y}_1, \ldots, \mathbf{y}_n$
 
-- Item 3 must mention: `using`, `multi-head`, `attention`, `following`, `code`, `snippet`, `computes`, `self-attention`, `tensor`, `shape`, `batch`, `size`, `number`, `time`, `steps`, `sequence`, `length`, `tokens`, `output`
+- Item 3 must mention: `according`, `definition`, `attention`, `pooling`
   Verbatim source span (`d2l-self-attention`):
 
-> Using multi-head attention, the following code snippet computes the self-attention of a tensor with shape (batch size, number of time steps or sequence length in tokens, $d$). The output tensor has the same shape.
+> where $$\mathbf{y}_i = f(\mathbf{x}_i, (\mathbf{x}_1, \mathbf{x}_1), \ldots, (\mathbf{x}_n, \mathbf{x}_n)) \in \mathbb{R}^d$$ according to the definition of attention pooling in .
 
 ### A8. Positional Encoding
 
@@ -355,14 +350,19 @@ A self-check passes an item only when every listed source-derived term appears i
 
 > These inputs are called positional encodings, and they can either be learned or fixed a priori.
 
-- Item 3 must mention: `positional`, `embedding`, `matrix`, `rows`, `correspond`, `positions`, `within`, `sequence`, `columns`, `represent`, `different`, `encoding`, `dimensions`
+- Item 3 must mention: `describe`, `simple`, `scheme`, `fixed`, `positional`, `encodings`, `based`, `sine`, `cosine`, `functions`
   Verbatim source span (`d2l-self-attention`):
 
-> In the positional embedding matrix $\mathbf{P}$, rows correspond to positions within a sequence and columns represent different positional encoding dimensions.
+> We now describe a simple scheme for fixed positional encodings based on sine and cosine functions .
+
+- Item 4 must mention: `positional`, `encoding`, `outputs`, `using`, `embedding`, `matrix`, `shape`
+  Verbatim source span (`d2l-self-attention`):
+
+> The positional encoding outputs $\mathbf{X} + \mathbf{P}$ using a positional embedding matrix $\mathbf{P} \in \mathbb{R}^{n \times d}$ of the same shape
 
 ### A9. Softmax Preserves Ordering
 
-Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
+Softmax preserves the ordering of its inputs, so the largest logit identifies the highest-probability class.
 
 Source receipt:
 
@@ -390,7 +390,7 @@ A self-check passes an item only when every listed source-derived term appears i
 
 ### A10. Vector Norm
 
-A vector norm provides a scalar measure of the vector's magnitude.
+A vector norm expresses the magnitude or size of a vector.
 
 Source receipt:
 
@@ -416,15 +416,15 @@ A self-check passes an item only when every listed source-derived term appears i
 
 > Here, we are employing a notion of size that concerns the magnitude of a vector's components (not its dimensionality).
 
-- Item 3 must mention: `norm`, `function`, `maps`, `vector`, `scalar`
+- Item 3 must mention: `euclidean`, `norm`, `learned`, `elementary`, `school`, `geometry`, `calculating`, `hypotenuse`, `right`, `triangle`, `square`, `root`, `sum`, `squares`, `vector's`, `elements`
   Verbatim source span (`d2l-linear-algebra`):
 
-> A norm is a function $\| \cdot \|$ that maps a vector to a scalar
+> The Euclidean norm that we all learned in elementary school geometry when calculating the hypotenuse of a right triangle is the square root of the sum of squares of a vector's elements.
 
-- Item 4 must mention: `functions`, `valid`, `norms`, `different`, `encode`, `notions`, `size`
+- Item 4 must mention: `definition`, `norm`, `sums`, `absolute`, `values`, `vector's`, `elements`
   Verbatim source span (`d2l-linear-algebra`):
 
-> Many functions are valid norms and different norms encode different notions of size.
+> By definition, the $\ell_1$ norm sums the absolute values of a vector's elements:
 
 ## Answer Key — Part B
 
@@ -434,10 +434,10 @@ A self-check passes an item only when every listed source-derived term appears i
 - P4 → Dot Product (`dot-product`)
 - P5 → Vector Norm (`vector-norm`)
 - P6 → Softmax Preserves Ordering (`softmax-ordering`)
-- P7 → Attention Pooling (`attention-pooling`)
-- P8 → Positional Encoding (`positional-encoding`)
-- P9 → Matrix–Vector Product (`matrix-vector-product`)
-- P10 → Softmax (`softmax`)
+- P7 → Softmax (`softmax`)
+- P8 → Attention Pooling (`attention-pooling`)
+- P9 → Positional Encoding (`positional-encoding`)
+- P10 → Matrix–Vector Product (`matrix-vector-product`)
 
 ## Source Attributions
 

@@ -4,7 +4,7 @@
 
 ## Decision
 
-`data/graph.json` is produced by the explicit command `pnpm atomize -- --out-dir data
+`data/graph.json` is produced by the explicit command `pnpm atomize --out-dir data
 --overwrite-existing` and **committed to the repo**, not gitignored. The deployed app reads the
 committed graph. `atomize` is **never** run in CI or on the request path.
 
@@ -48,11 +48,11 @@ is wrong here, for four reasons in descending order of importance:
 
 ## Rules that keep the above honest
 
-1. **`data/graph.json` is written ONLY by `pnpm atomize -- --out-dir data --overwrite-existing`.
+1. **`data/graph.json` is written ONLY by `pnpm atomize --out-dir data --overwrite-existing`.
    Never hand-edit it. Never hand-forge it.** A hand-authored graph would make the headline claim
    false. If you need a graph to develop against, use a *fixture* that is clearly named as such (see
    below). Never use a fake `data/graph.json`.
-2. **Regenerate deliberately, then commit the regenerated file:** `pnpm atomize -- --out-dir data
+2. **Regenerate deliberately, then commit the regenerated file:** `pnpm atomize --out-dir data
    --overwrite-existing && pnpm test`. Bare `pnpm atomize` is rejected because output selection is
    mandatory, and an existing artifact is rejected unless `--overwrite-existing` is present. The
    test suite (`generated data/graph.json` describe-block) runs the invariants against the committed

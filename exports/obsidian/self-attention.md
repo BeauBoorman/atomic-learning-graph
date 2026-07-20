@@ -9,15 +9,14 @@ license: "CC-BY-SA-4.0"
 license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 tags:
-  - "attention"
   - "self-attention"
-  - "sequence-encoding"
+  - "sequence-modeling"
   - "tokens"
 ---
 
 # Self-Attention
 
-Self-attention lets every token attend to every other token in the same sequence.
+Self-attention lets every token attend to the other tokens in the same sequence.
 
 ## Prerequisites
 
@@ -43,11 +42,11 @@ Self-attention produces an output sequence with the same length as the input seq
 
 ### Step 3 · deep
 
-When computed with multi-head attention, the output data has the same shape as the input data.
+For each token, self-attention uses attention pooling over the tokens in the sequence.
 
 **Source receipt — `d2l-self-attention`**
 
-> Using multi-head attention, the following code snippet computes the self-attention of a tensor with shape (batch size, number of time steps or sequence length in tokens, $d$). The output tensor has the same shape.
+> where $$\mathbf{y}_i = f(\mathbf{x}_i, (\mathbf{x}_1, \mathbf{x}_1), \ldots, (\mathbf{x}_n, \mathbf{x}_n)) \in \mathbb{R}^d$$ according to the definition of attention pooling in .
 
 ## Source
 

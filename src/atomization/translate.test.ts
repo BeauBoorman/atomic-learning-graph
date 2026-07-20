@@ -55,7 +55,7 @@ const oneConceptGraph = (): LearningGraph => {
 
 describe("Phase 3 lesson translation", () => {
   it("pins the claim-anchored prompt and strict schema without a concept-level tier", () => {
-    expect(PROMPT_VERSION).toBe("atomizer-v4-full-spine-one-claim-steps");
+    expect(PROMPT_VERSION).toBe("atomizer-v5-graph-defined-vocabulary");
     expect(TRANSLATE_INSTRUCTIONS).toContain("You are a translator, not an author.");
     expect(TRANSLATE_INSTRUCTIONS).toContain("VERBATIM, character-for-character");
     expect(TRANSLATE_INSTRUCTIONS).toContain("specific load-bearing claim");
@@ -74,6 +74,9 @@ describe("Phase 3 lesson translation", () => {
     expect(TRANSLATE_INSTRUCTIONS).toContain('necessity (such as "without it, X would be impossible")');
     expect(TRANSLATE_INSTRUCTIONS).toContain("PRESERVE the source's hedges");
     expect(TRANSLATE_INSTRUCTIONS).toContain("Faithfulness to the cited span beats fluency");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("GRAPH_DEFINED_CONCEPTS");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("defines the term inline in plain language");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("multi-head attention");
     expect(lessonSchema).toMatchObject({
       type: "object",
       additionalProperties: false,
@@ -136,6 +139,8 @@ describe("Phase 3 lesson translation", () => {
     for (const call of client.calls) {
       expect(call.options).toEqual({ forceStrict: true, maxOutputTokens: 3000 });
     }
+    expect(client.calls[0]?.input).toContain("GRAPH_DEFINED_CONCEPTS=");
+    expect(client.calls[0]?.input).toContain('"id":"vectors"');
   });
 
   it("drops an ungrounded step after one repair and restores the grounded two-step floor", async () => {

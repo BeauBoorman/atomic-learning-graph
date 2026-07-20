@@ -12,7 +12,6 @@ tags:
   - "positional-encoding"
   - "self-attention"
   - "sequence-order"
-  - "token-representations"
 ---
 
 # Positional Encoding
@@ -27,7 +26,7 @@ Positional encodings provide token-order information to models as additional tok
 
 ### Step 1 · core
 
-The main way to preserve token order is to give the model extra input linked to each token.
+The usual way to preserve token order is to give the model an extra input associated with each token.
 
 **Source receipt — `d2l-self-attention`**
 
@@ -43,11 +42,19 @@ These extra inputs are called positional encodings, and they may be learned or s
 
 ### Step 3 · deep
 
-In the positional encoding matrix, each row matches a position in the sequence, while each column holds a different encoding dimension.
+One fixed positional encoding scheme uses sine and cosine functions.
 
 **Source receipt — `d2l-self-attention`**
 
-> In the positional embedding matrix $\mathbf{P}$, rows correspond to positions within a sequence and columns represent different positional encoding dimensions.
+> We now describe a simple scheme for fixed positional encodings based on sine and cosine functions .
+
+### Step 4 · deep
+
+The positional encoding is added to the input representation using a positional embedding matrix of the same shape.
+
+**Source receipt — `d2l-self-attention`**
+
+> The positional encoding outputs $\mathbf{X} + \mathbf{P}$ using a positional embedding matrix $\mathbf{P} \in \mathbb{R}^{n \times d}$ of the same shape
 
 ## Source
 

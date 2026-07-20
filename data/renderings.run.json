@@ -1,29 +1,6 @@
 {
   "model": "gpt-5.6-sol",
-  "renderingPromptVersion": "renderings-v2-one-claim-per-step",
+  "renderingPromptVersion": "renderings-v3-graph-defined-vocabulary",
   "strictStructuredOutputs": true,
-  "renderingsSha256": "0c50cb7ddfdefe8083b9337af8c08dbc9f7b5231ffbe8199cb4cbf83deab83ab",
-  "responseIds": [
-    "resp_035aba8aaca10dd7006a5bd3348bb081949b7eeef814ad193a",
-    "resp_0b4f1ac5e24648e5006a5bd337672881938988034c888c0c1a",
-    "resp_0c0e0ce48609d630006a5bd33cf0248197ab18034c1e538512",
-    "resp_0a39fad12162495a006a5bd34131b08196ae5c54fa94c73346",
-    "resp_0dfede964db60f22006a5bd34778f081949371a83777e7170a",
-    "resp_0a9fec1573bbe354006a5bd34bafe08197a447f6bb14e9926a",
-    "resp_0abd133a7a26e5ab006a5bd3505d6c819498694f8b7c3c823f",
-    "resp_079f8b6374c947a9006a5bd3550c48819788096074653cca0b",
-    "resp_0d0d7b584c1b423f006a5bd359370c8196b06215f46ce5738e",
-    "resp_0e1344340c52ddff006a5bd35ea9c4819088661ae4590071ea",
-    "resp_0e10b397f604c0c2006a5bd363bfd4819081060023f8644142",
-    "resp_0caeee6833286513006a5bd3697ac48197bfe28f999ccc1dba",
-    "resp_072056121cdee0c6006a5bd3705adc819096a09438fcb7646f",
-    "resp_00611a8f9301563e006a5bd373fd9081968ca55d8ef94b92d6",
-    "resp_09f94d678dccde96006a5bd379d13c81948b3ba68dbe7d4473",
-    "resp_0ec7f2b0216bcc30006a5bd37cf2f881949c7950658fd8636c",
-    "resp_06391c199916f180006a5bd380770c819591c103d326ee26c1",
-    "resp_0eaa1a66f1e127ee006a5bd3845cb081949eafd5d313fcb385",
-    "resp_03e3898d39849b70006a5bd388d3788193b3ed4f90091dee09",
-    "resp_0fc6ef7af590be9d006a5bd38c83248196acac33260e09ab19",
-    "resp_06eaa6d15d095775006a5bd392ccbc8197b5053901b96ad6f9"
-  ]
+  "renderingsSha256": "3377a0560105f45cb198086baefbf52f5198f39ff2dfdc86a54ddb59949a9852"
 }

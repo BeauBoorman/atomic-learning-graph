@@ -10,24 +10,23 @@ license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 2.3 Linear Algebra by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 tags:
   - "dot-product"
-  - "inner-product"
   - "linear-algebra"
   - "vectors"
 ---
 
 # Dot Product
 
-The dot product of two vectors sums the products of elements at corresponding positions.
+The dot product sums products of corresponding elements from two vectors.
 
 ## Prerequisites
 
 - [[vectors]]
 
-## Lesson: Multiply Matching Numbers, Then Add
+## Lesson: Multiply Matching Entries, Then Add
 
 ### Step 1 · core
 
-For two vectors—ordered lists of numbers—the dot product multiplies numbers in matching positions and adds those products together.
+The dot product of two vectors is found by multiplying entries in the same position and adding those products.
 
 **Source receipt — `d2l-linear-algebra`**
 
@@ -35,7 +34,7 @@ For two vectors—ordered lists of numbers—the dot product multiplies numbers 
 
 ### Step 2 · deep
 
-A dot product can represent a weighted sum, where each value is multiplied by its assigned weight.
+A weighted sum can be written as the dot product of a vector of values and a vector of weights.
 
 **Source receipt — `d2l-linear-algebra`**
 
@@ -43,7 +42,7 @@ A dot product can represent a weighted sum, where each value is multiplied by it
 
 ### Step 3 · deep
 
-If the weights are nonnegative and add up to 1, the dot product represents a weighted average.
+If the weights are nonnegative and add up to 1, the dot product gives a weighted average.
 
 **Source receipt — `d2l-linear-algebra`**
 

@@ -20,7 +20,7 @@ describe("generated renderings run log", () => {
       renderingPromptVersion?: string;
       strictStructuredOutputs?: boolean;
     };
-    expect(run.renderingPromptVersion).toBe("renderings-v2-one-claim-per-step");
+    expect(run.renderingPromptVersion).toBe("renderings-v3-graph-defined-vocabulary");
     expect(run.strictStructuredOutputs).toBe(true);
   });
   it("committed set is non-empty and covers at least one concept with an alternate", () => {

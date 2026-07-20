@@ -2,8 +2,8 @@
  * Offline atomization cost estimates.
  *
  * These constants intentionally approximate a complete multi-call course build rather than one
- * prompt. The committed calibration receipt (`data/graph.run.json`) records 26,617 billed input
- * tokens, 10,254 billed output tokens, 36,871 total tokens, and 10 concepts. No tokenizer or
+ * prompt. The committed calibration receipt (`data/graph.run.json`) records 30,410 billed input
+ * tokens, 10,245 billed output tokens, 40,655 total tokens, and 10 concepts. No tokenizer or
  * model is called.
  */
 

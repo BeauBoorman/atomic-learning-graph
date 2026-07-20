@@ -100,6 +100,9 @@ describe("build-time alternate renderings", () => {
       expect(prompt).toContain("SPLIT it into two steps");
       expect(prompt).toContain("each with its own verbatim grounding quote");
       expect(prompt).toContain("Never attach one quote to a step that makes two separate claims");
+      expect(prompt).toContain("GRAPH_DEFINED_CONCEPTS");
+      expect(prompt).toContain("defines the term inline in plain language");
+      expect(prompt).toContain("multi-head attention");
     }
     expect(why).toContain("why does this concept exist");
     expect(how).toContain("what actually happens, step by step");
@@ -121,6 +124,8 @@ describe("build-time alternate renderings", () => {
       expect(call.schemaName).toMatch(/^rendering_(?:why-it-exists|how-it-works)$/u);
       expect(call.options).toEqual({ forceStrict: true, maxOutputTokens: 3000 });
       expect(call.input).toContain(fixtureGraph.sources[0]!.text);
+      expect(call.input).toContain("GRAPH_DEFINED_CONCEPTS=");
+      expect(call.input).toContain('"id":"vectors"');
     }
   });
 
@@ -191,7 +196,7 @@ describe("build-time alternate renderings", () => {
       const run = JSON.parse(readFileSync(runLogPath, "utf8")) as Record<string, unknown>;
       expect(run).toMatchObject({
         model: "fake-model",
-        renderingPromptVersion: "renderings-v2-one-claim-per-step",
+        renderingPromptVersion: "renderings-v3-graph-defined-vocabulary",
         strictStructuredOutputs: true,
       });
       expect(run).toHaveProperty("renderingsSha256");
@@ -202,7 +207,7 @@ describe("build-time alternate renderings", () => {
   });
 
   it("versions the strengthened one-claim-per-step rendering contract", () => {
-    expect(RENDERING_PROMPT_VERSION).toBe("renderings-v2-one-claim-per-step");
+    expect(RENDERING_PROMPT_VERSION).toBe("renderings-v3-graph-defined-vocabulary");
   });
 
   it("drops an ungrounded step while keeping the remaining grounded rendering", async () => {

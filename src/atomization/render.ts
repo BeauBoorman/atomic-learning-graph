@@ -24,7 +24,7 @@ import {
   type TranslationRequestOptions,
 } from "./translate";
 
-export const RENDERING_PROMPT_VERSION = "renderings-v2-one-claim-per-step";
+export const RENDERING_PROMPT_VERSION = "renderings-v3-graph-defined-vocabulary";
 export const RENDERINGS_PATH = resolve(OER_DIR, "..", "renderings.json");
 export const RENDERINGS_RUN_PATH = resolve(OER_DIR, "..", "renderings.run.json");
 
@@ -68,7 +68,7 @@ export async function generateRenderings(
         // Supplying the complete licensed source keeps question, not context truncation, as the axis.
         const raw = await client.request(
           renderInstructions(format),
-          translationInput(concept, source, source.text),
+          translationInput(concept, source, source.text, graph.concepts),
           lessonSchema,
           `rendering_${format}`,
           requestOptions,

@@ -10,14 +10,13 @@ license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
 modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 2.3 Linear Algebra by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 tags:
   - "linear-algebra"
-  - "magnitude"
   - "norms"
   - "vectors"
 ---
 
 # Vector Norm
 
-A vector norm provides a scalar measure of the vector's magnitude.
+A vector norm expresses the magnitude or size of a vector.
 
 ## Prerequisites
 
@@ -35,7 +34,7 @@ A vector norm tells us how big a vector is.
 
 ### Step 2 · core
 
-It measures the magnitude of the vector’s components, not how many components it has.
+This size refers to the magnitude of the vector’s entries, not how many entries it has.
 
 **Source receipt — `d2l-linear-algebra`**
 
@@ -43,19 +42,19 @@ It measures the magnitude of the vector’s components, not how many components 
 
 ### Step 3 · core
 
-A norm is a function that turns a vector into a single number, called a scalar.
+The ℓ2 norm is the square root of the sum of the squares of a vector’s entries.
 
 **Source receipt — `d2l-linear-algebra`**
 
-> A norm is a function $\| \cdot \|$ that maps a vector to a scalar
+> The Euclidean norm that we all learned in elementary school geometry when calculating the hypotenuse of a right triangle is the square root of the sum of squares of a vector's elements.
 
 ### Step 4 · deep
 
-Different valid norms can represent different ideas of size.
+The ℓ1 norm adds the absolute values of a vector’s entries.
 
 **Source receipt — `d2l-linear-algebra`**
 
-> Many functions are valid norms and different norms encode different notions of size.
+> By definition, the $\ell_1$ norm sums the absolute values of a vector's elements:
 
 ## Source
 

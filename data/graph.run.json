@@ -1,47 +1,22 @@
 {
   "model": "gpt-5.6-sol",
   "requestedModel": "gpt-5.6-sol",
-  "promptVersion": "atomizer-v4-full-spine-one-claim-steps",
+  "promptVersion": "atomizer-v5-graph-defined-vocabulary",
   "analogyPromptVersion": "atomizer-v2-analogies-six-passions",
   "strictStructuredOutputs": true,
   "manifestSha256": "02498e4541c214d5f75d7e8e3f41531491e4c0614b11e1eb003faa3d35566a20",
-  "graphSha256": "1672b7d6bfc53438ab9a4229d3e64bdc25f1a32f3129833ffe0afa84e133287a",
+  "graphSha256": "d07c22ba489aabd6d252e9678c2487e8c548269d7c1393f12cf7629f95b34855",
   "usageTokens": {
-    "input": 26617,
-    "output": 10254,
-    "total": 36871
+    "input": 30410,
+    "output": 10245,
+    "total": 40655
   },
-  "costUsd": 0.440705,
-  "costPerConcept": 0.0440705,
+  "costUsd": 0.4594,
+  "costPerConcept": 0.045939999999999995,
   "convergence": [
     {
       "attempt": 1,
       "issues": []
     }
-  ],
-  "responseIds": [
-    "resp_0e07b5c819ebf8f7006a5bd2470da48194b99aeb1b8ab7e5fe",
-    "resp_0d49ab8f7bbc1be6006a5bd2481e608197870e8533a27df299",
-    "resp_0d2af9f8aaf346d0006a5bd25a78648195a6248aaa2778a706",
-    "resp_05239e7253afd77d006a5bd26b6c4081949a59f7d8031e9f4a",
-    "resp_04dcbacf43cfe0f2006a5bd27011848190803dd0c498320070",
-    "resp_002f4945a12714b3006a5bd2745acc8195be450c70ec210a99",
-    "resp_035c3b1eb31d258f006a5bd27986648196940819b436d5fa91",
-    "resp_0d4bab9e607aaf94006a5bd27cd1a0819589943c0d635f9084",
-    "resp_00b026dc0c6a3e20006a5bd28323ec8190ba8eadcee01c817f",
-    "resp_05aa7a0253d61875006a5bd2886d448194a35b516bb6243c70",
-    "resp_044ada0f8b830f49006a5bd28f466481938c82634f1b34cccf",
-    "resp_01b875fa409dc1d7006a5bd291f448819690c7579ff375b9ef",
-    "resp_0d4b5f6474374b2f006a5bd2957be481908d00418859eb04c2",
-    "resp_06e1fe52685f4110006a5bd299b9908193af2315a4854dc0ac",
-    "resp_0405086dd22bd827006a5bd2a3d05881948f91bf3b5dbc06e1",
-    "resp_0eaaea0f5af2ff77006a5bd2aef5448194a47b11076aba7a12",
-    "resp_098416c2ca2aea29006a5bd2bbb5c481948a822120870d4222",
-    "resp_0902ff4b980b51f1006a5bd2c80ed8819586fc3b7bd7c63356",
-    "resp_07f5cb7a64ca56e3006a5bd2d83ef88195a9c7be3b250d872f",
-    "resp_0abbe2508257cd18006a5bd2e298b88195ad08b73aa5648bf0",
-    "resp_0f6cef23d64bd0c5006a5bd2ed68bc81938d9aad5a67fff874",
-    "resp_0b4b240f294d1744006a5bd2f6c73481939063dd3151d9b372",
-    "resp_0e8db7b761369e40006a5bd3079cc48194abf0547a6ec4c47b"
   ]
 }

@@ -2,29 +2,34 @@
   "advisoryOnly": true,
   "warnings": [
     {
-      "conceptId": "matrix-vector-product",
-      "summary": "A matrix–vector product contains one dot product between the input vector and each row of the matrix.",
-      "signal": "coordinating-and-or",
-      "reason": "summary reads as an enumeration: A matrix–vector product contains one dot product between the input vector and each row of the matrix.",
-      "confidence": "high"
-    },
-    {
-      "conceptId": "dot-product",
-      "grade": 10,
-      "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10"
-    },
-    {
       "conceptId": "positional-encoding",
-      "grade": 11.08,
+      "grade": 11.34,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 11.08"
+      "reason": "lesson readability is estimated at US grade 11.34"
     },
     {
       "conceptId": "self-attention",
-      "grade": 10.38,
+      "grade": 10.96,
       "confidence": "low",
-      "reason": "lesson readability is estimated at US grade 10.38"
+      "reason": "lesson readability is estimated at US grade 10.96"
+    },
+    {
+      "conceptId": "softmax",
+      "grade": 10.52,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 10.52"
+    },
+    {
+      "conceptId": "softmax-ordering",
+      "grade": 11.91,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 11.91"
+    },
+    {
+      "conceptId": "vectors",
+      "grade": 11.11,
+      "confidence": "low",
+      "reason": "lesson readability is estimated at US grade 11.11"
     }
   ]
 }

@@ -9,7 +9,13 @@ import type {
 import { groundedQuote } from "./grounding";
 import { convergeLessonCitations } from "./repair";
 
-export const PROMPT_VERSION = "atomizer-v4-full-spine-one-claim-steps";
+export const PROMPT_VERSION = "atomizer-v5-graph-defined-vocabulary";
+
+export const GRAPH_VOCABULARY_CONSTRAINT =
+  "Each lesson step may use technical vocabulary only when either (a) the term names a concept " +
+  "listed in GRAPH_DEFINED_CONCEPTS, so the graph defines it elsewhere, or (b) the same step " +
+  "defines the term inline in plain language. Never reach for undefined technical vocabulary " +
+  'such as "multi-head attention."';
 
 export type JsonObject = Record<string, unknown>;
 
@@ -29,7 +35,7 @@ export interface TranslationClient {
 }
 
 export const TRANSLATE_INSTRUCTIONS = `You are a translator, not an author. Rewrite ONE concept from the SOURCE excerpt below into plain language an average adult can read (US grade 8–10). Rules:
-1. Produce 2–4 ordered \`steps\`, each one short page (1–2 sentences, ≤~45 words). Each step must make exactly ONE load-bearing claim. If one proposed step would need two different source spans to ground it, SPLIT it into two steps, each with its own verbatim grounding quote. Never attach one quote to a step that makes two separate claims. Everyday words; define any unavoidable technical term inline in plain words.
+1. Produce 2–4 ordered \`steps\`, each one short page (1–2 sentences, ≤~45 words). Each step must make exactly ONE load-bearing claim. If one proposed step would need two different source spans to ground it, SPLIT it into two steps, each with its own verbatim grounding quote. Never attach one quote to a step that makes two separate claims. Everyday words. ${GRAPH_VOCABULARY_CONSTRAINT}
 2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The quoted span MUST contain the specific load-bearing claim made by the step. A span that is merely topically related but does not state that claim is a FAILURE. If you cannot ground a step in a verbatim span, DROP that step.
 3. If the step's claim is not fully supported inside ONE contiguous span, TRIM the step's wording to exactly what the chosen span supports, or choose the single span that carries the CORE claim. Prefer trimming the claim over attaching a weak quote.
 4. Do NOT add qualifications, causal links, temporal ordering (such as "earlier"), or necessity (such as "without it, X would be impossible") that the cited span does not state. PRESERVE the source's hedges, including words such as "often", "typically", "roughly", and "intuition". Faithfulness to the cited span beats fluency.
@@ -47,7 +53,7 @@ const RENDERING_QUESTIONS: Record<AlternateFormat, string> = {
 
 export function renderInstructions(format: AlternateFormat): string {
   return `You are a translator, not an author. Rewrite ONE concept from the SOURCE excerpt below into plain language an average adult can read (US grade 8–10). ${RENDERING_QUESTIONS[format]} Rules:
-1. Produce 2–4 ordered \`steps\`, each one short page (1–2 sentences, ≤~45 words). Each step must make exactly ONE load-bearing claim. If one proposed step would need two different source spans to ground it, SPLIT it into two steps, each with its own verbatim grounding quote. Never attach one quote to a step that makes two separate claims. Everyday words; define any unavoidable technical term inline in plain words.
+1. Produce 2–4 ordered \`steps\`, each one short page (1–2 sentences, ≤~45 words). Each step must make exactly ONE load-bearing claim. If one proposed step would need two different source spans to ground it, SPLIT it into two steps, each with its own verbatim grounding quote. Never attach one quote to a step that makes two separate claims. Everyday words. ${GRAPH_VOCABULARY_CONSTRAINT}
 2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The quoted span MUST contain the specific load-bearing claim made by the step; a span that is merely topically related but does not state that claim is a FAILURE. If the step's claim is not fully supported inside one contiguous span, TRIM the step's wording to exactly what the span supports (prefer trimming over attaching a weak quote). If you cannot ground a step in a verbatim span, DROP that step.
 3. Do NOT add qualifications, causal links, temporal ordering (such as "earlier"), or necessity (such as "without it, X would be impossible") that the cited span does not state. PRESERVE the source's hedges, including words such as "often", "typically", "roughly", and "intuition". Faithfulness to the cited span beats fluency. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.
 4. Mark each step \`stepTier\`: \`"core"\` if it is essential to answer the question (shown on the quick path), \`"deep"\` if it is enrichment.
@@ -226,10 +232,21 @@ const requestOptions: TranslationRequestOptions = {
   maxOutputTokens: 3000,
 };
 
-export function translationInput(concept: Concept, source: Source, excerpt: string): string {
+export function translationInput(
+  concept: Concept,
+  source: Source,
+  excerpt: string,
+  graphConcepts: readonly Concept[] = [concept],
+): string {
+  const graphDefinedConcepts = graphConcepts.map(({ id, title, summary }) => ({
+    id,
+    title,
+    summary,
+  }));
   return `CONCEPT_ID=${concept.id}
 CONCEPT_TITLE=${concept.title}
 CONCEPT_SUMMARY=${concept.summary}
+GRAPH_DEFINED_CONCEPTS=${JSON.stringify(graphDefinedConcepts)}
 SOURCE_ID=${source.id}
 VALIDATED_ANCHOR=${concept.provenance.quotedText}
 SOURCE excerpt:
@@ -255,7 +272,7 @@ export async function translateAndConvergeLessons(
     try {
       const raw = await client.request(
         TRANSLATE_INSTRUCTIONS,
-        translationInput(concept, source, excerpt),
+        translationInput(concept, source, excerpt, candidate.concepts),
         lessonSchema,
         "lesson_translation",
         requestOptions,

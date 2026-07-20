@@ -17,45 +17,45 @@ tags:
 
 # Queries, Keys, and Values
 
-Attention can be framed using a query applied to a collection of key–value pairs.
+An attention database can be represented as key–value pairs that are accessed using a query.
 
 ## Prerequisites
 
 - [[softmax]]
 
-## Lesson: How attention uses queries, keys, and values
+## Lesson: Using a Query with Keys and Values
 
 ### Step 1 · core
 
-Think of the data as a collection of key–value pairs, and call the item used to search or compare against them the query.
+Think of the data as a collection of key–value pairs.
 
 **Source receipt — `d2l-queries-keys-values`**
 
-> denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values. Moreover, denote by $\mathbf{q}$ a query.
+> denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values.
 
 ### Step 2 · core
 
-Attention gives each value a numeric weight based on its key and the query, then adds the weighted values together.
+A query is used to assign an attention weight to each key.
 
 **Source receipt — `d2l-queries-keys-values`**
 
-> Then we can define the attention over $\mathcal{D}$ as $$\textrm{Attention}(\mathbf{q}, \mathcal{D}) \stackrel{\textrm{def}}{=} \sum_{i=1}^m \alpha(\mathbf{q}, \mathbf{k}_i) \mathbf{v}_i,$$ where $\alpha(\mathbf{q}, \mathbf{k}_i) \in \mathbb{R}$ ($i = 1, \ldots, m$) are scalar attention weights.
+> where $\alpha(\mathbf{q}, \mathbf{k}_i) \in \mathbb{R}$ ($i = 1, \ldots, m$) are scalar attention weights.
 
 ### Step 3 · core
 
-A value receives more attention when its weight is large.
+Attention pooling combines the stored values into a weighted sum.
+
+**Source receipt — `d2l-queries-keys-values`**
+
+> As such, the attention over $\mathcal{D}$ generates a linear combination of values contained in the database.
+
+### Step 4 · deep
+
+A larger weight means the operation pays more attention to that value.
 
 **Source receipt — `d2l-queries-keys-values`**
 
 > The name attention derives from the fact that the operation pays particular attention to the terms for which the weight $\alpha$ is significant (i.e., large).
-
-### Step 4 · deep
-
-In the most common deep-learning setup, every weight is nonnegative and all the weights add up to 1.
-
-**Source receipt — `d2l-queries-keys-values`**
-
-> The weights $\alpha(\mathbf{q}, \mathbf{k}_i)$ form a convex combination, i.e., $\sum_i \alpha(\mathbf{q}, \mathbf{k}_i) = 1$ and $\alpha(\mathbf{q}, \mathbf{k}_i) \geq 0$ for all $i$. This is the most common setting in deep learning.
 
 ## Source
 

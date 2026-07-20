@@ -141,8 +141,8 @@ The model still proposes the grounded content inside those ten slots: titles, su
 ten concept-level quote selections, all lesson steps, and all analogies. The graph and citations then
 face deterministic gates; analogies remain optional illustrations.
 
-The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (21 core,
-10 deep) and **186 optional analogies** across 6 passions, plus the complete text of the four
+The shipped artifact: **10 concepts, 9 prerequisite relationships, 31 cited lesson steps** (19 core,
+12 deep) and **186 optional analogies** across 6 passions, plus the complete text of the four
 pinned sources, embedded so the receipt can be verified in the browser with no request.
 
 ## Appendix: compilation mechanics
@@ -207,7 +207,7 @@ guarantees travel — not the headline.
 
 - **A build receipt.** The compile records a machine-checkable receipt in
   [`data/graph.run.json`](data/graph.run.json): the source corpus and pin, the model, token usage,
-  cost, and the graph's sha256 (`1672b7d6…`) that `src/atomization/graph-run.test.ts` recomputes. It
+  cost, and the graph's sha256 (`d07c22ba…`) that `src/atomization/graph-run.test.ts` recomputes. It
   distinguishes the human-specified structure from the model-generated prose, and records that the
   browser makes zero model calls.
 - **Six learning-content exports, attribution-clean.** The one graph emits six learning-content
@@ -277,8 +277,8 @@ forgetting-curve engine — we hand clean, cited cards to one that is already tr
   own OpenAI, Anthropic, or compatible key. The key lives in memory only, never written to disk.
   Building makes paid model calls at compile time; once the build converges, the downloaded reader
   runs offline with the same guarantees as the demo reader — no key, no network, no model call.
-- **Cost is stated, not hidden.** The demo graph cost **$0.44** to compile (~**$0.044** per concept,
-  36,871 tokens). `src/cost/estimator.ts` is a pure, no-network estimator surfaced in both the reader
+- **Cost is stated, not hidden.** The demo graph cost **$0.4594** to compile (~**$0.046** per concept,
+  40,655 tokens). `src/cost/estimator.ts` is a pure, no-network estimator surfaced in both the reader
   and the builder.
 
 ## Verify and rebuild
@@ -326,7 +326,7 @@ Atomization is a separate build-time operation and requires `OPENAI_API_KEY`. Ou
 explicit; a run cannot silently replace the committed demo graph:
 
 ```bash
-pnpm atomize -- --out-dir .artifacts/d2l
+pnpm atomize --out-dir .artifacts/d2l
 ```
 
 The syntactic atomicity advisory remains the default. An explicit opt-in adds the build-time GPT-5.6
@@ -334,14 +334,14 @@ semantic judge to `atomicity-report.json`; it costs one additional model call pe
 change convergence or the command's exit code:
 
 ```bash
-pnpm atomize -- --out-dir .artifacts/d2l-judged --atomicity-judge
+pnpm atomize --out-dir .artifacts/d2l-judged --atomicity-judge
 ```
 
 An existing `graph.json`, `graph.run.json`, or `atomicity-report.json` makes the run fail closed.
 Replacing the committed demo artifacts therefore requires an unmistakable, deliberate command:
 
 ```bash
-pnpm atomize -- --out-dir data --overwrite-existing
+pnpm atomize --out-dir data --overwrite-existing
 pnpm test
 ```
 
@@ -423,9 +423,9 @@ Honest limits, stated up front:
 
 - **Readability is advisory, not solved.** `READABILITY_HARD_FLOOR` is US grade **16** and only
   *throws* above that; grade **10** is an advisory that warns without blocking. The committed
-  [`data/atomicity-report.json`](data/atomicity-report.json) records the real result: **3 of 10
+  [`data/atomicity-report.json`](data/atomicity-report.json) records the real result: **5 of 10
   concepts carry a low-confidence advisory**, and the default goal (`self-attention`) is estimated at
-  grade **10.38** (the worst is `positional-encoding` at 11.08). The floor is a build gate against runaway prose, not a promise of grade-8 English.
+  grade **10.96** (the worst is `softmax-ordering` at 11.91). The floor is a build gate against runaway prose, not a promise of grade-8 English.
   Tightening it is a re-translation, not a config change.
 - **The graph is small and the domain is narrow.** 10 concepts across four source sections (three chapters). The pitch is the
   substrate and the provenance, not coverage. The demo course is the math substrate under one LLM
@@ -436,7 +436,7 @@ Honest limits, stated up front:
   broader corpus and an explicit `--no-spine` run are the next relationship-mesh experiment, not a
   promised outcome or new graph architecture.
 - **Two alternate formats ship; infinite generation does not.** The bundle embeds 20 validated
-  alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 63 cited
+  alternate renderings (`why-it-exists` and `how-it-works` for each of 10 concepts) with 64 cited
   steps. Their citations and run-log hash are gated. On-demand renderings remain in
   [ROADMAP.md](ROADMAP.md); the learned atomicity judge is opt-in advisory evidence, not a gate.
 

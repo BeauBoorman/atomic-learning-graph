@@ -10,25 +10,25 @@ Follow these concepts in prerequisite order. Every concept and lesson step carri
 
 Goal: [[id:self-attention][Self-Attention]]
 
-1. [[id:vectors][Vectors]] — A vector is a fixed-length array whose elements are scalars.
+1. [[id:vectors][Vectors]] — A vector is a fixed-length array whose entries are scalars.
 
-2. [[id:dot-product][Dot Product]] — The dot product of two vectors sums the products of elements at corresponding positions.
+2. [[id:dot-product][Dot Product]] — The dot product sums products of corresponding elements from two vectors.
 
-3. [[id:matrix-vector-product][Matrix–Vector Product]] — A matrix–vector product contains one dot product between the input vector and each row of the matrix.
+3. [[id:matrix-vector-product][Matrix–Vector Product]] — A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
 
-4. [[id:softmax][Softmax]] — Softmax exponentiates scores and normalizes them into values that sum to one.
+4. [[id:softmax][Softmax]] — Softmax exponentiates a collection of outputs and normalizes them into values that sum to one.
 
-5. [[id:qkv][Queries, Keys, and Values]] — Attention can be framed using a query applied to a collection of key–value pairs.
+5. [[id:qkv][Queries, Keys, and Values]] — An attention database can be represented as key–value pairs that are accessed using a query.
 
 6. [[id:attention-pooling][Attention Pooling]] — Attention pooling combines values linearly using weights determined by query–key compatibility.
 
-7. [[id:self-attention][Self-Attention]] — Self-attention lets every token attend to every other token in the same sequence.
+7. [[id:self-attention][Self-Attention]] — Self-attention lets every token attend to the other tokens in the same sequence.
 
 8. [[id:positional-encoding][Positional Encoding]] — Positional encodings provide token-order information to models as additional token-associated inputs.
 
-9. [[id:softmax-ordering][Softmax Preserves Ordering]] — Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
+9. [[id:softmax-ordering][Softmax Preserves Ordering]] — Softmax preserves the ordering of its inputs, so the largest logit identifies the highest-probability class.
 
-10. [[id:vector-norm][Vector Norm]] — A vector norm provides a scalar measure of the vector's magnitude.
+10. [[id:vector-norm][Vector Norm]] — A vector norm expresses the magnitude or size of a vector.
 
 * Vectors
 :PROPERTIES:
@@ -36,7 +36,7 @@ Goal: [[id:self-attention][Self-Attention]]
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#vectors
 :END:
 
-A vector is a fixed-length array whose elements are scalars.
+A vector is a fixed-length array whose entries are scalars.
 
 ** Source
 
@@ -48,11 +48,11 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 For current purposes, you can think of a vector as a fixed-length array of scalars.
 #+end_quote
 
-** Lesson: Vectors
+** Lesson: Vectors as Lists of Numbers
 
 *** Step 1 (core)
 
-A vector is a fixed-length array of scalars, which are single-number values.
+A vector is a fixed-length list of individual numbers, called scalars.
 
 Source: d2l-linear-algebra
 
@@ -62,7 +62,7 @@ For current purposes, you can think of a vector as a fixed-length array of scala
 
 *** Step 2 (core)
 
-The scalars in a vector are called its elements; they may also be called entries or components.
+The numbers in a vector are called its elements, entries, or components.
 
 Source: d2l-linear-algebra
 
@@ -72,22 +72,12 @@ As with their code counterparts, we call these scalars the elements of the vecto
 
 *** Step 3 (deep)
 
-In real-world datasets, a vector’s values can represent meaningful quantities, such as a loan applicant’s income or employment length.
+When a vector represents a real-world example, each component can correspond to a meaningful quantity, such as a loan applicant’s income or employment length.
 
 Source: d2l-linear-algebra
 
 #+begin_quote
 For example, if we were training a model to predict the risk of a loan defaulting, we might associate each applicant with a vector whose components correspond to quantities like their income, length of employment, or number of previous defaults.
-#+end_quote
-
-*** Step 4 (deep)
-
-Vectors are written as bold lowercase letters, such as x, y, and z.
-
-Source: d2l-linear-algebra
-
-#+begin_quote
-We denote vectors by bold lowercase letters, (e.g., $\mathbf{x}$, $\mathbf{y}$, and $\mathbf{z}$).
 #+end_quote
 
 * Dot Product
@@ -96,7 +86,7 @@ We denote vectors by bold lowercase letters, (e.g., $\mathbf{x}$, $\mathbf{y}$, 
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#dot-product
 :END:
 
-The dot product of two vectors sums the products of elements at corresponding positions.
+The dot product sums products of corresponding elements from two vectors.
 
 ** Prerequisites
 - [[id:vectors]]
@@ -111,11 +101,11 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 Given two vectors $\mathbf{x}, \mathbf{y} \in \mathbb{R}^d$, their dot product $\mathbf{x}^\top \mathbf{y}$ (also known as inner product, $\langle \mathbf{x}, \mathbf{y}  \rangle$) is a sum over the products of the elements at the same position: $\mathbf{x}^\top \mathbf{y} = \sum_{i=1}^{d} x_i y_i$.
 #+end_quote
 
-** Lesson: Multiply Matching Numbers, Then Add
+** Lesson: Multiply Matching Entries, Then Add
 
 *** Step 1 (core)
 
-For two vectors—ordered lists of numbers—the dot product multiplies numbers in matching positions and adds those products together.
+The dot product of two vectors is found by multiplying entries in the same position and adding those products.
 
 Source: d2l-linear-algebra
 
@@ -125,7 +115,7 @@ The dot product of two vectors is a sum over the products of the elements at the
 
 *** Step 2 (deep)
 
-A dot product can represent a weighted sum, where each value is multiplied by its assigned weight.
+A weighted sum can be written as the dot product of a vector of values and a vector of weights.
 
 Source: d2l-linear-algebra
 
@@ -135,7 +125,7 @@ the weighted sum of the values in $\mathbf{x}$ according to the weights $\mathbf
 
 *** Step 3 (deep)
 
-If the weights are nonnegative and add up to 1, the dot product represents a weighted average.
+If the weights are nonnegative and add up to 1, the dot product gives a weighted average.
 
 Source: d2l-linear-algebra
 
@@ -149,7 +139,7 @@ When the weights are nonnegative and sum to $1$, i.e., $\left(\sum_{i=1}^{n} {w_
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#matrix-vector-product
 :END:
 
-A matrix–vector product contains one dot product between the input vector and each row of the matrix.
+A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
 
 ** Prerequisites
 - [[id:dot-product]]
@@ -182,32 +172,32 @@ $$
 
 *** Step 1 (core)
 
-The result of multiplying matrix A by vector x is a column vector with m entries.
+Multiplying matrix A by vector x produces a column vector of length m. Each entry is the dot product of one row of A with x.
 
 Source: d2l-linear-algebra
 
 #+begin_quote
-The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$
+The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
 #+end_quote
 
 *** Step 2 (core)
 
-Each entry in the result is the dot product—the sum of paired values multiplied together—of x and the matching row of A.
-
-Source: d2l-linear-algebra
-
-#+begin_quote
-whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
-#+end_quote
-
-*** Step 3 (core)
-
-For the multiplication to work, the number of columns in A must equal the number of entries in x.
+The number of columns in A must equal the length of x.
 
 Source: d2l-linear-algebra
 
 #+begin_quote
 Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length).
+#+end_quote
+
+*** Step 3 (deep)
+
+Multiplying by a matrix can be viewed as a transformation that maps a vector with n entries to one with m entries.
+
+Source: d2l-linear-algebra
+
+#+begin_quote
+We can think of multiplication with a matrix $\mathbf{A}\in \mathbb{R}^{m \times n}$ as a transformation that projects vectors from $\mathbb{R}^{n}$ to $\mathbb{R}^{m}$.
 #+end_quote
 
 * Softmax
@@ -216,7 +206,7 @@ Note that the column dimension of A (its length along axis 1) must be the same a
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md#softmax
 :END:
 
-Softmax exponentiates scores and normalizes them into values that sum to one.
+Softmax exponentiates a collection of outputs and normalizes them into values that sum to one.
 
 ** Prerequisites
 - [[id:dot-product]]
@@ -228,14 +218,14 @@ Source: d2l-softmax-regression
 URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md
 
 #+begin_quote
-We can then transform these values so that they add up to $1$ by dividing each by their sum.
+Putting these two pieces together gives us the softmax function: $$\hat{\mathbf{y}} = \mathrm{softmax}(\mathbf{o}) \quad \textrm{where}\quad \hat{y}_i = \frac{\exp(o_i)}{\sum_j \exp(o_j)}.$$
 #+end_quote
 
-** Lesson: Turning scores into values that add up to one
+** Lesson: Turning scores into normalized values
 
 *** Step 1 (core)
 
-Softmax first applies the exponential function to each score, then divides each result by the sum of all the exponentiated scores.
+Softmax exponentiates each input, then divides it by the sum of all the exponentiated inputs.
 
 Source: d2l-softmax-regression
 
@@ -243,19 +233,9 @@ Source: d2l-softmax-regression
 Putting these two pieces together gives us the softmax function: $$\hat{\mathbf{y}} = \mathrm{softmax}(\mathbf{o}) \quad \textrm{where}\quad \hat{y}_i = \frac{\exp(o_i)}{\sum_j \exp(o_j)}.$$
 #+end_quote
 
-*** Step 2 (core)
+*** Step 2 (deep)
 
-Dividing each value by their sum makes the resulting values add up to 1. This is called normalization.
-
-Source: d2l-softmax-regression
-
-#+begin_quote
-We can then transform these values so that they add up to $1$ by dividing each by their sum. This process is called normalization.
-#+end_quote
-
-*** Step 3 (deep)
-
-The largest original score corresponds to the class that softmax considers most likely.
+The largest input corresponds to the class that softmax rates as most likely.
 
 Source: d2l-softmax-regression
 
@@ -269,7 +249,7 @@ Note that the largest coordinate of $\mathbf{o}$ corresponds to the most likely 
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/queries-keys-values.md#qkv
 :END:
 
-Attention can be framed using a query applied to a collection of key–value pairs.
+An attention database can be represented as key–value pairs that are accessed using a query.
 
 ** Prerequisites
 - [[id:softmax]]
@@ -284,46 +264,46 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 For now, simply consider the following: denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values.
 #+end_quote
 
-** Lesson: How attention uses queries, keys, and values
+** Lesson: Using a Query with Keys and Values
 
 *** Step 1 (core)
 
-Think of the data as a collection of key–value pairs, and call the item used to search or compare against them the query.
+Think of the data as a collection of key–value pairs.
 
 Source: d2l-queries-keys-values
 
 #+begin_quote
-denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values. Moreover, denote by $\mathbf{q}$ a query.
+denote by $\mathcal{D} \stackrel{\textrm{def}}{=} \{(\mathbf{k}_1, \mathbf{v}_1), \ldots (\mathbf{k}_m, \mathbf{v}_m)\}$ a database of $m$ tuples of keys and values.
 #+end_quote
 
 *** Step 2 (core)
 
-Attention gives each value a numeric weight based on its key and the query, then adds the weighted values together.
+A query is used to assign an attention weight to each key.
 
 Source: d2l-queries-keys-values
 
 #+begin_quote
-Then we can define the attention over $\mathcal{D}$ as $$\textrm{Attention}(\mathbf{q}, \mathcal{D}) \stackrel{\textrm{def}}{=} \sum_{i=1}^m \alpha(\mathbf{q}, \mathbf{k}_i) \mathbf{v}_i,$$ where $\alpha(\mathbf{q}, \mathbf{k}_i) \in \mathbb{R}$ ($i = 1, \ldots, m$) are scalar attention weights.
+where $\alpha(\mathbf{q}, \mathbf{k}_i) \in \mathbb{R}$ ($i = 1, \ldots, m$) are scalar attention weights.
 #+end_quote
 
 *** Step 3 (core)
 
-A value receives more attention when its weight is large.
+Attention pooling combines the stored values into a weighted sum.
+
+Source: d2l-queries-keys-values
+
+#+begin_quote
+As such, the attention over $\mathcal{D}$ generates a linear combination of values contained in the database.
+#+end_quote
+
+*** Step 4 (deep)
+
+A larger weight means the operation pays more attention to that value.
 
 Source: d2l-queries-keys-values
 
 #+begin_quote
 The name attention derives from the fact that the operation pays particular attention to the terms for which the weight $\alpha$ is significant (i.e., large).
-#+end_quote
-
-*** Step 4 (deep)
-
-In the most common deep-learning setup, every weight is nonnegative and all the weights add up to 1.
-
-Source: d2l-queries-keys-values
-
-#+begin_quote
-The weights $\alpha(\mathbf{q}, \mathbf{k}_i)$ form a convex combination, i.e., $\sum_i \alpha(\mathbf{q}, \mathbf{k}_i) = 1$ and $\alpha(\mathbf{q}, \mathbf{k}_i) \geq 0$ for all $i$. This is the most common setting in deep learning.
 #+end_quote
 
 * Attention Pooling
@@ -351,7 +331,7 @@ The attention mechanism computes a linear combination over values $\mathbf{v}_\m
 
 *** Step 1 (core)
 
-Attention pooling makes a weighted linear combination of values. Each weight comes from how compatible the query is with a key.
+Attention pooling makes a linear combination of values. Its weights come from how compatible the query is with each key.
 
 Source: d2l-queries-keys-values
 
@@ -366,7 +346,17 @@ When the weights are nonnegative and add up to 1, large weights can be viewed as
 Source: d2l-queries-keys-values
 
 #+begin_quote
-One of the benefits of the attention mechanism is that it can be quite intuitive, particularly when the weights are nonnegative and sum to $1$. In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
+In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
+#+end_quote
+
+*** Step 3 (deep)
+
+Attention pooling can work with databases of any size without changing how the operation is performed.
+
+Source: d2l-queries-keys-values
+
+#+begin_quote
+Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed.
 #+end_quote
 
 * Self-Attention
@@ -375,7 +365,7 @@ One of the benefits of the attention mechanism is that it can be quite intuitive
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_attention-mechanisms-and-transformers/self-attention-and-positional-encoding.md#self-attention
 :END:
 
-Self-attention lets every token attend to every other token in the same sequence.
+Self-attention lets every token attend to the other tokens in the same sequence.
 
 ** Prerequisites
 - [[id:qkv]]
@@ -414,12 +404,12 @@ Given a sequence of input tokens $\mathbf{x}_1, \ldots, \mathbf{x}_n$ where any 
 
 *** Step 3 (deep)
 
-When computed with multi-head attention, the output data has the same shape as the input data.
+For each token, self-attention uses attention pooling over the tokens in the sequence.
 
 Source: d2l-self-attention
 
 #+begin_quote
-Using multi-head attention, the following code snippet computes the self-attention of a tensor with shape (batch size, number of time steps or sequence length in tokens, $d$). The output tensor has the same shape.
+where $$\mathbf{y}_i = f(\mathbf{x}_i, (\mathbf{x}_1, \mathbf{x}_1), \ldots, (\mathbf{x}_n, \mathbf{x}_n)) \in \mathbb{R}^d$$ according to the definition of attention pooling in .
 #+end_quote
 
 * Positional Encoding
@@ -447,7 +437,7 @@ The dominant approach for preserving information about the order of tokens is to
 
 *** Step 1 (core)
 
-The main way to preserve token order is to give the model extra input linked to each token.
+The usual way to preserve token order is to give the model an extra input associated with each token.
 
 Source: d2l-self-attention
 
@@ -467,12 +457,22 @@ These inputs are called positional encodings, and they can either be learned or 
 
 *** Step 3 (deep)
 
-In the positional encoding matrix, each row matches a position in the sequence, while each column holds a different encoding dimension.
+One fixed positional encoding scheme uses sine and cosine functions.
 
 Source: d2l-self-attention
 
 #+begin_quote
-In the positional embedding matrix $\mathbf{P}$, rows correspond to positions within a sequence and columns represent different positional encoding dimensions.
+We now describe a simple scheme for fixed positional encodings based on sine and cosine functions .
+#+end_quote
+
+*** Step 4 (deep)
+
+The positional encoding is added to the input representation using a positional embedding matrix of the same shape.
+
+Source: d2l-self-attention
+
+#+begin_quote
+The positional encoding outputs $\mathbf{X} + \mathbf{P}$ using a positional embedding matrix $\mathbf{P} \in \mathbb{R}^{n \times d}$ of the same shape
 #+end_quote
 
 * Softmax Preserves Ordering
@@ -481,7 +481,7 @@ In the positional embedding matrix $\mathbf{P}$, rows correspond to positions wi
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_linear-classification/softmax-regression.md#softmax-ordering
 :END:
 
-Softmax preserves score ordering, so the largest input score identifies the class with the highest output probability.
+Softmax preserves the ordering of its inputs, so the largest logit identifies the highest-probability class.
 
 ** Prerequisites
 - [[id:softmax]]
@@ -496,11 +496,11 @@ URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272
 Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability.
 #+end_quote
 
-** Lesson: Softmax Keeps Scores in the Same Order
+** Lesson: Softmax Keeps Values in the Same Order
 
 *** Step 1 (core)
 
-Softmax keeps its input scores in the same order.
+Softmax preserves the ordering of its input values.
 
 Source: d2l-softmax-regression
 
@@ -510,7 +510,7 @@ the softmax operation preserves the ordering among its arguments
 
 *** Step 2 (core)
 
-So you can identify the class with the highest probability without calculating softmax.
+You can identify the class with the highest probability without calculating softmax.
 
 Source: d2l-softmax-regression
 
@@ -524,7 +524,7 @@ we do not need to compute the softmax to determine which class has been assigned
 :ROAM_REFS: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md#vector-norm
 :END:
 
-A vector norm provides a scalar measure of the vector's magnitude.
+A vector norm expresses the magnitude or size of a vector.
 
 ** Prerequisites
 - [[id:vectors]]
@@ -553,7 +553,7 @@ Informally, the norm of a vector tells us how big it is.
 
 *** Step 2 (core)
 
-It measures the magnitude of the vector’s components, not how many components it has.
+This size refers to the magnitude of the vector’s entries, not how many entries it has.
 
 Source: d2l-linear-algebra
 
@@ -563,22 +563,22 @@ Here, we are employing a notion of size that concerns the magnitude of a vector'
 
 *** Step 3 (core)
 
-A norm is a function that turns a vector into a single number, called a scalar.
+The ℓ2 norm is the square root of the sum of the squares of a vector’s entries.
 
 Source: d2l-linear-algebra
 
 #+begin_quote
-A norm is a function $\| \cdot \|$ that maps a vector to a scalar
+The Euclidean norm that we all learned in elementary school geometry when calculating the hypotenuse of a right triangle is the square root of the sum of squares of a vector's elements.
 #+end_quote
 
 *** Step 4 (deep)
 
-Different valid norms can represent different ideas of size.
+The ℓ1 norm adds the absolute values of a vector’s entries.
 
 Source: d2l-linear-algebra
 
 #+begin_quote
-Many functions are valid norms and different norms encode different notions of size.
+By definition, the $\ell_1$ norm sums the absolute values of a vector's elements:
 #+end_quote
 
 * Source Attributions
