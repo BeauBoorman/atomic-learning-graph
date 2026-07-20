@@ -16,25 +16,25 @@ Follow the concepts below in prerequisite order. Every concept and lesson step c
 
 ## Learning path
 
-1. [[Concepts/vectors|Vectors]] — A vector is a fixed-length array whose entries are scalars.
+1. [[Concepts/vectors|Vectors]] — A vector is a fixed-length array whose elements are scalars.
 
-2. [[Concepts/dot-product|Dot Product]] — The dot product sums products of corresponding elements from two vectors.
+2. [[Concepts/dot-product|Dot Product]] — The dot product sums the products of corresponding elements in two vectors.
 
-3. [[Concepts/matrix-vector-product|Matrix–Vector Product]] — A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
+3. [[Concepts/matrix-vector-product|Matrix–Vector Product]] — A matrix–vector product produces a vector whose elements are dot products between matrix rows and the input vector.
 
-4. [[Concepts/softmax|Softmax]] — Softmax exponentiates a collection of outputs and normalizes them into values that sum to one.
+4. [[Concepts/softmax|Softmax]] — Softmax converts model outputs into a normalized probability distribution by exponentiating and dividing by the sum.
 
-5. [[Concepts/qkv|Queries, Keys, and Values]] — An attention database can be represented as key–value pairs that are accessed using a query.
+5. [[Concepts/qkv|Queries, Keys, and Values]] — Attention uses a query to determine compatibility with keys associated with stored values.
 
-6. [[Concepts/attention-pooling|Attention Pooling]] — Attention pooling combines values linearly using weights determined by query–key compatibility.
+6. [[Concepts/attention-pooling|Attention Pooling]] — Attention pooling generates a linear combination of values in a key–value database.
 
-7. [[Concepts/self-attention|Self-Attention]] — Self-attention lets every token attend to the other tokens in the same sequence.
+7. [[Concepts/self-attention|Self-Attention]] — Self-attention lets every token attend to every other token in the same sequence.
 
 8. [[Concepts/positional-encoding|Positional Encoding]] — Positional encodings provide token-order information to models as additional token-associated inputs.
 
-9. [[Concepts/softmax-ordering|Softmax Preserves Ordering]] — Softmax preserves the ordering of its inputs, so the largest logit identifies the highest-probability class.
+9. [[Concepts/softmax-ordering|Softmax Preserves Ordering]] — Softmax preserves the ordering of its inputs, so the largest input identifies the highest-probability class.
 
-10. [[Concepts/vector-norm|Vector Norm]] — A vector norm expresses the magnitude or size of a vector.
+10. [[Concepts/vector-norm|Vector Norm]] — A vector norm measures the magnitude or size of a vector.
 
 ## Sources
 

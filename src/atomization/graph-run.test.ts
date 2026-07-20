@@ -27,7 +27,7 @@ describe("generated graph run log", () => {
       promptVersion?: string;
       strictStructuredOutputs?: boolean;
     };
-    expect(run.promptVersion).toBe("atomizer-v5-graph-defined-vocabulary");
+    expect(run.promptVersion).toBe("atomizer-v7-moonshot-beginner-teacher");
     expect(run.strictStructuredOutputs).toBe(true);
   });
 });

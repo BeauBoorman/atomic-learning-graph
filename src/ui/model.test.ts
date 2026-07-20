@@ -89,23 +89,23 @@ describe("UI learning model", () => {
   // read" coincide there. On the real graph `vectors` has two, and the same call opens a
   // fresh course at "Page 3 of 9", 22%, on the wrong lesson. Test the real graph.
   it("counts a page complete only when its page key is recorded", () => {
-    expect(courseFor(graph, "self-attention", "quick", [])).toHaveLength(9);
+    expect(courseFor(graph, "self-attention", "quick", [])).toHaveLength(20);
 
     const fresh = deriveProgress(graph, "self-attention", "quick", []);
-    expect(fresh).toMatchObject({ completeCount: 0, total: 9, percent: 0, complete: false });
+    expect(fresh).toMatchObject({ completeCount: 0, total: 20, percent: 0, complete: false });
     expect(fresh.remaining[0]).toEqual({ conceptId: "vectors", stepIndex: 0 });
 
-    // The killer assertion, checked by re-running the old code: with known=["vectors"] in
-    // localStorage — reachable in one clean session by finishing vectors under ANY other goal —
-    // the old form pruned BOTH vectors pages out of the course and returned completeCount 2,
-    // remaining[0] = dot-product:0. That is "Page 3 of 9", 22%, opening on the wrong lesson
-    // with nothing read. There is no progress-derived `known` channel left for that to leak
-    // through; the explicit declaration argument for this course is still empty.
+    // The killer assertion, checked by re-running the old code: with known=[\"vectors:0\"] in
+    // localStorage — reachable in one clean session by finishing the first vectors page under
+    // ANY other goal — the old form pruned BOTH vectors pages out of the course and returned
+    // completeCount 2, remaining[0] = dot-product:0. That is \"Page 3 of 20\", 15%, opening on
+    // the wrong lesson with nothing read. There is no progress-derived `known` channel left for
+    // that to leak through; the explicit declaration argument for this course is still empty.
     const afterOne = deriveProgress(graph, "self-attention", "quick", ["vectors:0"]);
-    expect(afterOne).toMatchObject({ completeCount: 1, total: 9 });
+
+    expect(afterOne).toMatchObject({ completeCount: 1, total: 20 });
     expect(afterOne.remaining[0]).toEqual({ conceptId: "vectors", stepIndex: 1 });
   });
-
   it("starts after explicitly declared prerequisites and builds a shorter fixed course", () => {
     const fromScratch = deriveProgress(graph, "self-attention", "quick", [], []);
     const declaredKnown = ["vectors", "dot-product"];
@@ -123,7 +123,7 @@ describe("UI learning model", () => {
     );
     expect(afterOnePage.pages).toEqual(fresh.pages);
     expect(afterOnePage.total).toBe(fresh.total);
-    expect(afterOnePage.remaining[0]).toEqual({ conceptId: "qkv", stepIndex: 0 });
+    expect(afterOnePage.remaining[0]).toEqual({ conceptId: "softmax", stepIndex: 1 });
   });
 
   it("drops declarations that are not prerequisites of a newly selected goal", async () => {
@@ -158,9 +158,9 @@ describe("UI learning model", () => {
   });
 
   it("derives covered concepts from recorded pages, never a comprehension claim", () => {
-    // `vectors` has TWO core pages. Reading the first has not covered the concept's course pages.
+    // `vectors` has FOUR core pages. Reading the first has not covered the concept's course pages.
     expect(coveredConcepts(graph, "self-attention", "quick", ["vectors:0"])).toEqual([]);
-    expect(coveredConcepts(graph, "self-attention", "quick", ["vectors:0", "vectors:1"]))
+    expect(coveredConcepts(graph, "self-attention", "quick", ["vectors:0", "vectors:1", "vectors:2", "vectors:4"]))
       .toEqual(["vectors"]);
   });
 

@@ -20,7 +20,7 @@ const LEAK = /#{1,6}\s|:(?:begin|end)_tab:|\b(?:pytorch|mxnet|tensorflow|jax)\b/
 
 describe("sourceProse — the d2l corpus preserves source LaTeX", () => {
   it("keeps every landed lesson quote byte-exact while preserving display-math newlines", () => {
-    expect(steps.length).toBe(31);
+    expect(steps.length).toBe(52);
     expect(graph.sources.some((source) => [...source.text.matchAll(/\n/g)].length > 1)).toBe(true);
     for (const concept of graph.concepts) {
       for (const step of concept.lesson?.steps ?? []) {
@@ -34,14 +34,14 @@ describe("sourceProse — the d2l corpus preserves source LaTeX", () => {
     }
   });
 
-  it("leaks markdown into 5 of 31 rendered passages before sanitizing", () => {
+  it("leaks markdown into 4 of 52 rendered passages before sanitizing", () => {
     const leaking = steps.filter(({ id, stepIndex }) =>
       LEAK.test(resolveCitation(graph, id, stepIndex).passage),
     );
-    expect(leaking).toHaveLength(5);
+    expect(leaking).toHaveLength(4);
   });
 
-  it("leaks nothing into any of the 31 after sanitizing", () => {
+  it("leaks nothing into any of the 52 after sanitizing", () => {
     for (const { id, stepIndex } of steps) {
       const { passage, quote } = resolveCitation(graph, id, stepIndex);
       expect(sourceProse(passage), `${id}:${stepIndex} passage`).not.toMatch(LEAK);

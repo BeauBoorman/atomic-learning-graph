@@ -5,8 +5,7 @@ aliases:
 tags:
   - "concept"
   - "linear-algebra"
-  - "matrices"
-  - "vectors"
+  - "matrix-vector-multiplication"
 source: "[[Sources/d2l-linear-algebra]]"
 prerequisites:
   - "[[Concepts/dot-product]]"
@@ -17,37 +16,53 @@ modification_notice: "Adapted (translated to plain English; atomized into concep
 
 # Matrix–Vector Product
 
-A matrix–vector product produces a vector whose entries are dot products between matrix rows and the input vector.
+A matrix–vector product produces a vector whose elements are dot products between matrix rows and the input vector.
 
 ## Prerequisites
 
 - [[Concepts/dot-product|Dot Product]]
 
-## Lesson: Multiplying a Matrix by a Vector
+## Lesson: Turning Matrix Rows into a New Number List
 
 ### Step 1 · core
 
-Multiplying matrix A by vector x produces a column vector of length m. Each entry is the dot product of one row of A with x.
+This operation lets you turn one vector into another vector, possibly with a different length.
+
+**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
+
+> We can think of multiplication with a matrix $\mathbf{A}\in \mathbb{R}^{m \times n}$ as a transformation that projects vectors from $\mathbb{R}^{n}$ to $\mathbb{R}^{m}$.
+
+### Step 2 · core
+
+A matrix is a rectangle of numbers. To multiply it by a vector, take the dot product of each horizontal line, called a row, with the vector; those answers form the new vector.
 
 **Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
 > The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
 
-### Step 2 · core
+### Step 3 · core
 
-The number of columns in A must equal the length of x.
-
-**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
-
-> Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length).
-
-### Step 3 · deep
-
-Multiplying by a matrix can be viewed as a transformation that maps a vector with n entries to one with m entries.
+Try the matrix with rows [2, 1] and [3, 4], and the vector [5, 2]. The first answer is 2×5 + 1×2 = 12, and the second is 3×5 + 4×2 = 23, so the result is [12, 23].
 
 **Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
-> We can think of multiplication with a matrix $\mathbf{A}\in \mathbb{R}^{m \times n}$ as a transformation that projects vectors from $\mathbb{R}^{n}$ to $\mathbb{R}^{m}$.
+> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
+
+### Step 4 · deep
+
+Picture each row as a separate worker doing the same job with the input vector; each worker produces one number for the output vector.
+
+**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
+
+> whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
+
+### Step 5 · core
+
+Formally, let the matrix be $\mathbf{A}$, the input vector be $\mathbf{x}$, and the number of rows be $m$. Then $\mathbf{A}\mathbf{x}$ is a vector with $m$ numbers, and output number $i$ is the dot product of row $i$ with $\mathbf{x}$.
+
+**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
+
+> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
 
 ## Source
 

@@ -36,7 +36,8 @@ describe("buildRecallRubric", () => {
     if (!concept) throw new Error("generated graph lost vectors");
 
     const rubric = buildRecallRubric(concept);
-    expect(checkRecall(concept.summary, { ...rubric, items: [rubric.items[0]] })).toEqual([
+    const result = checkRecall(concept.summary, { ...rubric, items: [rubric.items[1]] });
+    expect(result).toEqual([
       { itemIndex: 0, met: true },
     ]);
   });

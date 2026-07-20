@@ -44,14 +44,14 @@ describe("Citation — the receipt, rendered", () => {
    *  are ON THE DEMO ROUTE. Passage() returns bare text with no <mark> and no error when
    *  indexOf misses, so the failure mode is a receipt that looks perfect and highlights nothing.
    *  This asserts the RENDERED OUTPUT of the real wiring, which is the only thing a judge sees. */
-  it("highlights the cited words in all 31 rendered receipts", () => {
-    expect(steps).toHaveLength(31);
+  it("highlights the cited words in all 52 rendered receipts", () => {
+    expect(steps).toHaveLength(52);
     for (const { id, stepIndex, text } of steps) {
       expect(render(id, stepIndex, text), `${id}:${stepIndex} rendered no <mark>`).toContain("<mark>");
     }
   });
 
-  it("renders no raw markdown in any of the 31", () => {
+  it("renders no raw markdown in any of the 52", () => {
     for (const { id, stepIndex, text } of steps) {
       const html = render(id, stepIndex, text);
       expect(html, `${id}:${stepIndex}`).not.toMatch(/#{1,6}\s|:(?:begin|end)_tab:/);

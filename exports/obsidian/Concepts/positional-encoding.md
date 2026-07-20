@@ -23,11 +23,11 @@ Positional encodings provide token-order information to models as additional tok
 
 - [[Concepts/self-attention|Self-Attention]]
 
-## Lesson: Adding Token Order Information
+## Lesson: Giving Each Token Its Place in Line
 
 ### Step 1 · core
 
-The usual way to preserve token order is to give the model an extra input associated with each token.
+Positional encoding helps a model keep track of the order of tokens, where a token is one piece of a sequence, such as a word.
 
 **Source receipt — [[Sources/d2l-self-attention|Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding]]**
 
@@ -35,23 +35,31 @@ The usual way to preserve token order is to give the model an extra input associ
 
 ### Step 2 · core
 
-These extra inputs are called positional encodings, and they may be learned or set in advance.
+A positional encoding is extra position information attached to each token. It may be learned during training or fixed ahead of time.
 
 **Source receipt — [[Sources/d2l-self-attention|Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding]]**
 
 > These inputs are called positional encodings, and they can either be learned or fixed a priori.
 
-### Step 3 · deep
+### Step 3 · core
 
-One fixed positional encoding scheme uses sine and cosine functions.
+Suppose a token has the number-list [4, 2], and its position has the number-list [1, 3]. Add matching entries: [4 + 1, 2 + 3] = [5, 5].
 
 **Source receipt — [[Sources/d2l-self-attention|Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding]]**
 
-> We now describe a simple scheme for fixed positional encodings based on sine and cosine functions .
+> The positional encoding outputs $\mathbf{X} + \mathbf{P}$
 
 ### Step 4 · deep
 
-The positional encoding is added to the input representation using a positional embedding matrix of the same shape.
+Picture a seating chart: each row marks one place in the sequence, while each column stores one kind of position number.
+
+**Source receipt — [[Sources/d2l-self-attention|Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding]]**
+
+> In the positional embedding matrix $\mathbf{P}$, rows correspond to positions within a sequence and columns represent different positional encoding dimensions.
+
+### Step 5 · core
+
+Precisely, let X be the grid of token numbers and P be an equally shaped grid of position numbers. The model receives X + P, found by adding numbers in matching places.
 
 **Source receipt — [[Sources/d2l-self-attention|Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding]]**
 

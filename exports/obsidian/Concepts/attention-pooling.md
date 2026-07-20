@@ -6,7 +6,6 @@ tags:
   - "attention"
   - "concept"
   - "pooling"
-  - "weighted-combinations"
 source: "[[Sources/d2l-queries-keys-values]]"
 prerequisites:
   - "[[Concepts/qkv]]"
@@ -17,40 +16,56 @@ modification_notice: "Adapted (translated to plain English; atomized into concep
 
 # Attention Pooling
 
-Attention pooling combines values linearly using weights determined by query–key compatibility.
+Attention pooling generates a linear combination of values in a key–value database.
 
 ## Prerequisites
 
 - [[Concepts/qkv|Queries, Keys, and Values]]
 
-## Lesson: Combining Values by Relevance
+## Lesson: Blending Stored Answers by Relevance
 
 ### Step 1 · core
 
-Attention pooling makes a linear combination of values. Its weights come from how compatible the query is with each key.
+Attention pooling lets you blend stored values into one useful result.
 
 **Source receipt — [[Sources/d2l-queries-keys-values|Dive into Deep Learning — 11.1 Queries, Keys, and Values]]**
 
-> The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
+> As such, the attention over $\mathcal{D}$ generates a linear combination of values contained in the database.
 
-### Step 2 · deep
+### Step 2 · core
 
-When the weights are nonnegative and add up to 1, large weights can be viewed as the model selecting relevant parts—but this is only an intuition.
-
-**Source receipt — [[Sources/d2l-queries-keys-values|Dive into Deep Learning — 11.1 Queries, Keys, and Values]]**
-
-> In this case we might interpret large weights as a way for the model to select components of relevance. While this is a good intuition, it is important to remember that it is just that, an intuition.
-
-### Step 3 · deep
-
-Attention pooling can work with databases of any size without changing how the operation is performed.
+It makes a linear combination: multiply each stored value by its weight, meaning its assigned share, and then add the results.
 
 **Source receipt — [[Sources/d2l-queries-keys-values|Dive into Deep Learning — 11.1 Queries, Keys, and Values]]**
 
-> Just as convenient is the fact that attention can operate on arbitrarily large databases without the need to change the way the attention pooling operation is performed.
+> As such, the attention over $\mathcal{D}$ generates a linear combination of values contained in the database.
+
+### Step 3 · core
+
+Suppose the stored values are 10 and 20, with weights 0.25 and 0.75. The pooled result is 0.25 × 10 + 0.75 × 20 = 2.5 + 15 = 17.5.
+
+**Source receipt — [[Sources/d2l-queries-keys-values|Dive into Deep Learning — 11.1 Queries, Keys, and Values]]**
+
+> As such, the attention over $\mathcal{D}$ generates a linear combination of values contained in the database.
+
+### Step 4 · deep
+
+Picture mixing drinks: when every stored value gets the same-sized scoop, attention pooling simply finds their average.
+
+**Source receipt — [[Sources/d2l-queries-keys-values|Dive into Deep Learning — 11.1 Queries, Keys, and Values]]**
+
+> All weights are equal, i.e., $\alpha(\mathbf{q}, \mathbf{k}_i) = \frac{1}{m}$ for all $i$. This amounts to averaging across the entire database, also called average pooling in deep learning.
+
+### Step 5 · core
+
+In the most common deep-learning version, every weight is zero or greater, and all the weights add up to 1.
+
+**Source receipt — [[Sources/d2l-queries-keys-values|Dive into Deep Learning — 11.1 Queries, Keys, and Values]]**
+
+> The weights $\alpha(\mathbf{q}, \mathbf{k}_i)$ form a convex combination, i.e., $\sum_i \alpha(\mathbf{q}, \mathbf{k}_i) = 1$ and $\alpha(\mathbf{q}, \mathbf{k}_i) \geq 0$ for all $i$. This is the most common setting in deep learning.
 
 ## Source
 
 Adapted from [[Sources/d2l-queries-keys-values|Dive into Deep Learning — 11.1 Queries, Keys, and Values]].
 
-> The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
+> As such, the attention over $\mathcal{D}$ generates a linear combination of values contained in the database.

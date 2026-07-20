@@ -245,6 +245,7 @@ interface CourseScreenProps {
   onSelfExplanationChange?: (promptId: string, answer: string) => void;
   onNext: () => void;
   onRestart: () => void;
+  onGoalChange: (goalId: ConceptId) => void;
 }
 
 /** Pure course boundary used by the progress regression test. */
@@ -261,6 +262,7 @@ export function CourseScreen({
   onSelfExplanationChange = () => undefined,
   onNext,
   onRestart,
+  onGoalChange,
 }: CourseScreenProps) {
   if (progress.complete) {
     const recap = courseSelfExplanationPrompts(graph, progress.pages).flatMap((entry) => {
@@ -276,6 +278,7 @@ export function CourseScreen({
         route={uniqueConcepts(progress.pages)}
         selfExplanations={recap}
         onRestart={onRestart}
+        onGoalChange={onGoalChange}
       />
     );
   }
@@ -618,6 +621,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
           onSelfExplanationChange={handleSelfExplanationChange}
           onNext={handleNext}
           onRestart={startOver}
+          onGoalChange={updateGoal}
         />
       ) : (
         <>

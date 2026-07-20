@@ -6,7 +6,6 @@ tags:
   - "concept"
   - "linear-algebra"
   - "norms"
-  - "vectors"
 source: "[[Sources/d2l-linear-algebra]]"
 prerequisites:
   - "[[Concepts/vectors]]"
@@ -17,17 +16,17 @@ modification_notice: "Adapted (translated to plain English; atomized into concep
 
 # Vector Norm
 
-A vector norm expresses the magnitude or size of a vector.
+A vector norm measures the magnitude or size of a vector.
 
 ## Prerequisites
 
 - [[Concepts/vectors|Vectors]]
 
-## Lesson: How Big a Vector Is
+## Lesson: Turning a Number List into Its Length
 
 ### Step 1 · core
 
-A vector norm tells us how big a vector is.
+A norm gives you one number that tells you how big a vector is.
 
 **Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
@@ -35,15 +34,15 @@ A vector norm tells us how big a vector is.
 
 ### Step 2 · core
 
-This size refers to the magnitude of the vector’s entries, not how many entries it has.
+A norm is a rule that takes a vector—a fixed list of numbers—and returns a scalar, meaning one ordinary number.
 
 **Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
-> Here, we are employing a notion of size that concerns the magnitude of a vector's components (not its dimensionality).
+> A norm is a function $\| \cdot \|$ that maps a vector to a scalar
 
 ### Step 3 · core
 
-The ℓ2 norm is the square root of the sum of the squares of a vector’s entries.
+For the vector [3, 4], square each number, add, and take the square root: 3² + 4² = 9 + 16 = 25, and √25 = 5. So its ℓ₂ norm is 5.
 
 **Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
@@ -51,11 +50,19 @@ The ℓ2 norm is the square root of the sum of the squares of a vector’s entri
 
 ### Step 4 · deep
 
-The ℓ1 norm adds the absolute values of a vector’s entries.
+Picture walking 3 blocks east and 4 blocks north: the ℓ₂ norm is like the straight-line length from where you started to where you ended.
 
 **Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
-> By definition, the $\ell_1$ norm sums the absolute values of a vector's elements:
+> For instance, the $\ell_2$ norm measures the (Euclidean) length of a vector.
+
+### Step 5 · core
+
+Precisely, if xᵢ means the number in position i and n means how many numbers there are, then ‖x‖₂ means: square all n numbers, add the squares, and take the square root.
+
+**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
+
+> Formally, this is called the $\ell_2$ norm and expressed as ($$\|\mathbf{x}\|_2 = \sqrt{\sum_{i=1}^n x_i^2}.$$)
 
 ## Source
 

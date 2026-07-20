@@ -12,16 +12,16 @@
     "provenance": "human-specified",
     "concepts": 10,
     "prerequisiteEdges": 9,
-    "citedLessonSteps": 31
+    "citedLessonSteps": 52
   },
   "generation": {
     "lessonProse": "gpt-5.6-sol",
-    "promptVersion": "atomizer-v5-graph-defined-vocabulary",
+    "promptVersion": "atomizer-v7-moonshot-beginner-teacher",
     "runtimeModelCalls": 0
   },
   "verification": {
     "sourceQuotes": "deterministically-grounded",
-    "graphHash": "d07c22ba489aabd6d252e9678c2487e8c548269d7c1393f12cf7629f95b34855",
+    "graphHash": "2bf3b9de2f661f7f5bd2536d30a4db02a63c7272c61afbaa070378c30e808690",
     "manifestHash": "02498e4541c214d5f75d7e8e3f41531491e4c0614b11e1eb003faa3d35566a20",
     "semanticReview": {
       "kind": "advisory",

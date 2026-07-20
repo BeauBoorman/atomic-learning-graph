@@ -62,6 +62,7 @@ describe("Phase 5 learning flow", () => {
         progress={progress}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -91,6 +92,7 @@ describe("Phase 5 learning flow", () => {
         progress={progress}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -109,6 +111,7 @@ describe("Phase 5 learning flow", () => {
       progress,
       onNext: () => undefined,
       onRestart: () => undefined,
+      onGoalChange: () => undefined,
     };
 
     expect(renderToStaticMarkup(<CourseScreen {...props} renderings={{ renderings: [] }} />))
@@ -128,6 +131,7 @@ describe("Phase 5 learning flow", () => {
         progress={progress}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -198,6 +202,7 @@ describe("Phase 5 learning flow", () => {
         onSelfExplanationChange={() => undefined}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -268,6 +273,7 @@ describe("Phase 5 learning flow", () => {
       theme: "light" as const,
       onNext: () => undefined,
       onRestart: () => undefined,
+      onGoalChange: () => undefined,
     };
     const lesson = renderToStaticMarkup(<CourseScreen {...props} progress={progress} />);
     const complete = deriveProgress(
@@ -310,6 +316,7 @@ describe("Phase 5 learning flow", () => {
         progress={complete}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -341,6 +348,7 @@ describe("Phase 5 learning flow", () => {
       progress: complete,
       onNext: () => undefined,
       onRestart: () => undefined,
+      onGoalChange: () => undefined,
     };
 
     const written = renderToStaticMarkup(
@@ -380,6 +388,7 @@ describe("Phase 5 learning flow", () => {
         progress={progress}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -401,6 +410,7 @@ describe("Phase 5 learning flow", () => {
         progress={progress}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -430,6 +440,7 @@ describe("Phase 5 learning flow", () => {
         progress={progress}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 
@@ -467,6 +478,7 @@ describe("Phase 5 learning flow", () => {
         onSelfExplanationChange={() => undefined}
         onNext={() => undefined}
         onRestart={() => undefined}
+        onGoalChange={() => undefined}
       />,
     );
 

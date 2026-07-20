@@ -7,6 +7,7 @@ interface CompletionPageProps {
   route: ConceptId[];
   selfExplanations?: Array<{ prompt: string; answer: string }>;
   onRestart: () => void;
+  onGoalChange: (goalId: ConceptId) => void;
 }
 
 export function CompletionPage({
@@ -15,16 +16,22 @@ export function CompletionPage({
   route,
   selfExplanations = [],
   onRestart,
+  onGoalChange,
 }: CompletionPageProps) {
   const concepts = new Map(graph.concepts.map((concept) => [concept.id, concept]));
   const goal = concepts.get(goalId);
   if (!goal) throw new Error(`missing completion goal: ${goalId}`);
+  const routeSet = new Set(route);
   const routeTitles = route.map((id) => {
     const concept = concepts.get(id);
     if (!concept) throw new Error(`missing completion concept: ${id}`);
     return titleFor(concept);
   });
   const writtenExplanations = selfExplanations.filter(({ answer }) => answer.trim().length > 0);
+
+  // Concepts not on this route — the rest of the graph the learner can explore.
+  const unexplored = graph.concepts.filter((concept) => !routeSet.has(concept.id));
+  const hasMore = unexplored.length > 0;
 
   return (
     <main className="completion-page" id="main-content" aria-labelledby="completion-title">
@@ -46,6 +53,25 @@ export function CompletionPage({
               </div>
             ))}
           </dl>
+        </details>
+      )}
+      {hasMore && (
+        <details className="explore-more">
+          <summary>{unexplored.length} more concept{unexplored.length === 1 ? "" : "s"} in this graph</summary>
+          <p>Pick a new goal and the route recomputes from what you already know.</p>
+          <ul className="explore-more-list">
+            {unexplored.map((concept) => (
+              <li key={concept.id}>
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() => onGoalChange(concept.id)}
+                >
+                  {titleFor(concept)}
+                </button>
+              </li>
+            ))}
+          </ul>
         </details>
       )}
       <button className="text-button" type="button" onClick={onRestart}>Start over</button>
