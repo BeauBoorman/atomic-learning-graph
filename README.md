@@ -54,7 +54,7 @@ browser bytes, not left as a promise.
 
 ## Quick start
 
-The committed reader needs **Node.js 20.19 or newer** and **pnpm 10.33.0** (the exact
+The committed reader needs **Node.js 22.18 or newer** and **pnpm 10.33.0** (the exact
 [`engines` and `packageManager`](package.json) contract). It needs no API key and makes no model
 or network request while a learner reads.
 
