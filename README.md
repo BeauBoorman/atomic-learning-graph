@@ -17,7 +17,7 @@ local builder →](#build-your-own-course)**
 
 **[Open the live demo →](https://beauboorman.github.io/atomic-learning-graph/)** — runs entirely in your browser; nothing is generated while you read.
 
-**[Watch the 60-second explainer →](https://youtu.be/cHKRaXLN2-Y)** — a plain-language tour of what it does and why. Prefer the full version? Here's the [three-minute walkthrough](https://youtu.be/PUTDXMFwbql).
+**[Watch the 60-second explainer →](https://youtu.be/CKGwKNdG6yE)** — a plain-language tour of what it does and why. Prefer the full version? Here's the [three-minute walkthrough](https://youtu.be/FZhGTl3CJTE).
 
 The whole project, in five steps:
 
