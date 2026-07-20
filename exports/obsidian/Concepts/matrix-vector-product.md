@@ -1,17 +1,18 @@
 ---
-id: "matrix-vector-product"
 title: "Matrix–Vector Product"
-source: "d2l-linear-algebra"
-source_title: "Dive into Deep Learning — 2.3 Linear Algebra"
-url: "https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md"
-author: "Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola"
-license: "CC-BY-SA-4.0"
-license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
-modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 2.3 Linear Algebra by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
+aliases:
+  - "Matrix–Vector Product"
 tags:
+  - "concept"
   - "linear-algebra"
   - "matrices"
   - "vectors"
+source: "[[Sources/d2l-linear-algebra]]"
+prerequisites:
+  - "[[Concepts/dot-product]]"
+license: "CC-BY-SA-4.0"
+license_deed: "https://creativecommons.org/licenses/by-sa/4.0/"
+modification_notice: "Adapted (translated to plain English; atomized into concept lessons) from Dive into Deep Learning — 2.3 Linear Algebra by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola, CC-BY-SA-4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
 ---
 
 # Matrix–Vector Product
@@ -20,7 +21,7 @@ A matrix–vector product produces a vector whose entries are dot products betwe
 
 ## Prerequisites
 
-- [[dot-product]]
+- [[Concepts/dot-product|Dot Product]]
 
 ## Lesson: Multiplying a Matrix by a Vector
 
@@ -28,7 +29,7 @@ A matrix–vector product produces a vector whose entries are dot products betwe
 
 Multiplying matrix A by vector x produces a column vector of length m. Each entry is the dot product of one row of A with x.
 
-**Source receipt — `d2l-linear-algebra`**
+**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
 > The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$
 
@@ -36,7 +37,7 @@ Multiplying matrix A by vector x produces a column vector of length m. Each entr
 
 The number of columns in A must equal the length of x.
 
-**Source receipt — `d2l-linear-algebra`**
+**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
 > Note that the column dimension of A (its length along axis 1) must be the same as the dimension of x (its length).
 
@@ -44,15 +45,13 @@ The number of columns in A must equal the length of x.
 
 Multiplying by a matrix can be viewed as a transformation that maps a vector with n entries to one with m entries.
 
-**Source receipt — `d2l-linear-algebra`**
+**Source receipt — [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]]**
 
 > We can think of multiplication with a matrix $\mathbf{A}\in \mathbb{R}^{m \times n}$ as a transformation that projects vectors from $\mathbb{R}^{n}$ to $\mathbb{R}^{m}$.
 
 ## Source
 
-Source: d2l-linear-algebra
-
-URL: https://github.com/d2l-ai/d2l-en/blob/b2e2ae30898a9d0126a9699ae7e441de3e272715/chapter_preliminaries/linear-algebra.md
+Adapted from [[Sources/d2l-linear-algebra|Dive into Deep Learning — 2.3 Linear Algebra]].
 
 > The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$: $$
 > \mathbf{A}\mathbf{x}
