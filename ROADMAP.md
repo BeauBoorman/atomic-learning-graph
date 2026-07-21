@@ -237,6 +237,26 @@ math-mask chunker handling matter in practice, not just in theory.
 
 ---
 
+## 15. Computed worked-example spec: arithmetic instead of prose
+
+**What:** move worked-example math from model-authored prose to a model-emitted **spec** — a structured
+payload of token values plus a weight matrix — that **code computes** and a **structural gate**
+verifies. The gate rejects any uniform weight row (uniform = averaging = not attention), making the
+averaging fallacy structurally impossible rather than advisory.
+
+**Why this is the next line of the same discipline:** the project's core rule is *the model builds the
+map; the map does not trust the model*. Citations are the first instantiation of that rule — prose
+claims are byte-anchored to a source passage the model cannot alter. Worked examples are the next
+instantiation: arithmetic claims should be computed from a spec, not narrated by the model in prose
+that a reader must take on faith. The spec is the source; the rendered example is the receipt.
+
+**What it needs:** a structured schema for the emitted spec, a deterministic renderer that turns it
+into the displayed example, and a gate that proves the weight matrix is not uniform. The gate is
+structural — it inspects the matrix, not the prose around it — so a model cannot weasel out of the
+constraint by saying "roughly equal" or "approximately uniform" in the lesson text.
+
+---
+
 **Load-bearing guarantees that survive every roadmap item:** manifest-only corpus reading;
 fail-closed license gate; quote-primary provenance with no request-time LLM; `LearningGraph.edges[]`
 as the single source of truth. These are not conveniences to trade away for a feature.

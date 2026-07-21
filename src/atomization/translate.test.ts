@@ -54,28 +54,34 @@ const oneConceptGraph = (): LearningGraph => {
 };
 
 describe("Phase 3 lesson translation", () => {
-  it("pins the claim-anchored prompt and strict schema without a concept-level tier", () => {
-    expect(PROMPT_VERSION).toBe("atomizer-v5-graph-defined-vocabulary");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("You are a translator, not an author.");
+  it("pins the moonshot beginner-teacher prompt and 4–6 step schema", () => {
+    expect(PROMPT_VERSION).toBe("atomizer-v7-moonshot-beginner-teacher");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("world-class teacher");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("Feynman");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("smart, motivated beginner");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("NO math past basic arithmetic");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("TEACHING ARC (5 mandatory steps");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("**The hook.**");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("**Plain definition.**");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("**Worked example.**");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("**Intuition / analogy.**");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("**The precise version, LAST.**");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("US grade 6-8");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("a stack of number-grids (a third-order tensor)");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("DECOUPLE TEACHING FROM CITATION");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("Write the plain explanation FIRST");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("PROOF");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("must NOT drag your wording back to textbook register");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("Never define a word with itself");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("Attention is when tokens attend to each other");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("NUMBERS are model-authored");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("NEVER attribute them to the source");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("arithmetic MUST be correct");
     expect(TRANSLATE_INSTRUCTIONS).toContain("VERBATIM, character-for-character");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("specific load-bearing claim");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("topically related");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("TRIM the step's wording");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("Prefer trimming the claim over attaching a weak quote");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("exactly ONE load-bearing claim");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("two different source spans");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("SPLIT it into two steps");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("each with its own verbatim grounding quote");
-    expect(TRANSLATE_INSTRUCTIONS).toContain(
-      "Never attach one quote to a step that makes two separate claims",
-    );
-    expect(TRANSLATE_INSTRUCTIONS).toContain("causal links");
-    expect(TRANSLATE_INSTRUCTIONS).toContain('temporal ordering (such as "earlier")');
-    expect(TRANSLATE_INSTRUCTIONS).toContain('necessity (such as "without it, X would be impossible")');
-    expect(TRANSLATE_INSTRUCTIONS).toContain("PRESERVE the source's hedges");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("Faithfulness to the cited span beats fluency");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("strikethrough");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("UNIQUE across the whole course");
+    expect(TRANSLATE_INSTRUCTIONS).toContain("Measuring a Matrix");
     expect(TRANSLATE_INSTRUCTIONS).toContain("GRAPH_DEFINED_CONCEPTS");
-    expect(TRANSLATE_INSTRUCTIONS).toContain("defines the term inline in plain language");
     expect(TRANSLATE_INSTRUCTIONS).toContain("multi-head attention");
     expect(lessonSchema).toMatchObject({
       type: "object",
@@ -84,8 +90,8 @@ describe("Phase 3 lesson translation", () => {
       properties: {
         steps: {
           type: "array",
-          minItems: 2,
-          maxItems: 4,
+          minItems: 4,
+          maxItems: 6,
         },
       },
     });
@@ -112,14 +118,24 @@ describe("Phase 3 lesson translation", () => {
           plainTitle: "Vectors in plain words",
           steps: [
             {
-              text: "A vector is a list that keeps numbers in order.",
+              text: "Hook: a vector lets you carry several related numbers as one thing.",
               stepTier: "core",
               citation: { sourceId: "s1", quotedText: QUOTES.vectors },
             },
             {
-              text: "The order lets each number keep its place.",
-              stepTier: "deep",
+              text: "Plain definition: a vector is an ordered list of numbers.",
+              stepTier: "core",
+              citation: { sourceId: "s1", quotedText: QUOTES.vectors },
+            },
+            {
+              text: "Worked example: [2, 4, 6] has three entries in order.",
+              stepTier: "core",
               citation: { sourceId: "s1", quotedText: "fabricated citation" },
+            },
+            {
+              text: "Formal: x ∈ R^n names a vector of n real numbers.",
+              stepTier: "core",
+              citation: { sourceId: "s1", quotedText: QUOTES.vectors },
             },
           ],
         };
@@ -143,20 +159,30 @@ describe("Phase 3 lesson translation", () => {
     expect(client.calls[0]?.input).toContain('"id":"vectors"');
   });
 
-  it("drops an ungrounded step after one repair and restores the grounded two-step floor", async () => {
+  it("drops an ungrounded step after one repair and restores the grounded floor", async () => {
     const client = new FakeClient((schemaName) =>
       schemaName === "lesson_translation"
         ? {
             plainTitle: "Vectors",
             steps: [
               {
-                text: "First attempted explanation.",
+                text: "Hook.",
                 stepTier: "core",
                 citation: { sourceId: "wrong-source", quotedText: "not in the source" },
               },
               {
-                text: "Second grounded explanation.",
-                stepTier: "deep",
+                text: "Plain definition.",
+                stepTier: "core",
+                citation: { sourceId: "s1", quotedText: QUOTES.vectors },
+              },
+              {
+                text: "Worked example.",
+                stepTier: "core",
+                citation: { sourceId: "s1", quotedText: QUOTES.vectors },
+              },
+              {
+                text: "Formal statement.",
+                stepTier: "core",
                 citation: { sourceId: "s1", quotedText: QUOTES.vectors },
               },
             ],
@@ -171,9 +197,7 @@ describe("Phase 3 lesson translation", () => {
       "lesson_translation",
       "lesson_citation_repair",
     ]);
-    expect(steps).toHaveLength(2);
     expect(steps.some(({ citation }) => citation.quotedText === "not in the source")).toBe(false);
-    expect(steps[1]?.citation).toEqual(translated.concepts[0]?.provenance);
     expect(invalidLessonCitations(translated)).toEqual([]);
   });
 
@@ -190,6 +214,16 @@ describe("Phase 3 lesson translation", () => {
           },
           {
             text: "Two.",
+            stepTier: "core",
+            citation: { sourceId: "s1", quotedText: QUOTES.vectors },
+          },
+          {
+            text: "Three.",
+            stepTier: "core",
+            citation: { sourceId: "s1", quotedText: QUOTES.vectors },
+          },
+          {
+            text: "Four.",
             stepTier: "deep",
             citation: { sourceId: "s1", quotedText: QUOTES.vectors },
           },

@@ -9,13 +9,14 @@ import type {
 import { groundedQuote } from "./grounding";
 import { convergeLessonCitations } from "./repair";
 
-export const PROMPT_VERSION = "atomizer-v5-graph-defined-vocabulary";
+export const PROMPT_VERSION = "atomizer-v7-moonshot-beginner-teacher";
 
 export const GRAPH_VOCABULARY_CONSTRAINT =
   "Each lesson step may use technical vocabulary only when either (a) the term names a concept " +
   "listed in GRAPH_DEFINED_CONCEPTS, so the graph defines it elsewhere, or (b) the same step " +
-  "defines the term inline in plain language. Never reach for undefined technical vocabulary " +
-  'such as "multi-head attention."';
+  "defines the term inline in plain language first. Never reach for undefined technical vocabulary " +
+  'such as "multi-head attention." When introducing a term, pattern: plain words first, term in ' +
+  'parentheses — e.g. "a stack of number-grids (a third-order tensor)".';
 
 export type JsonObject = Record<string, unknown>;
 
@@ -34,15 +35,41 @@ export interface TranslationClient {
   ): Promise<JsonObject>;
 }
 
-export const TRANSLATE_INSTRUCTIONS = `You are a translator, not an author. Rewrite ONE concept from the SOURCE excerpt below into plain language an average adult can read (US grade 8–10). Rules:
-1. Produce 2–4 ordered \`steps\`, each one short page (1–2 sentences, ≤~45 words). Each step must make exactly ONE load-bearing claim. If one proposed step would need two different source spans to ground it, SPLIT it into two steps, each with its own verbatim grounding quote. Never attach one quote to a step that makes two separate claims. Everyday words. ${GRAPH_VOCABULARY_CONSTRAINT}
-2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The quoted span MUST contain the specific load-bearing claim made by the step. A span that is merely topically related but does not state that claim is a FAILURE. If you cannot ground a step in a verbatim span, DROP that step.
-3. If the step's claim is not fully supported inside ONE contiguous span, TRIM the step's wording to exactly what the chosen span supports, or choose the single span that carries the CORE claim. Prefer trimming the claim over attaching a weak quote.
-4. Do NOT add qualifications, causal links, temporal ordering (such as "earlier"), or necessity (such as "without it, X would be impossible") that the cited span does not state. PRESERVE the source's hedges, including words such as "often", "typically", "roughly", and "intuition". Faithfulness to the cited span beats fluency.
-5. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.
-6. Mark each step \`stepTier\`: \`"core"\` if it is essential to understand the concept (shown on the quick path), \`"deep"\` if it is enrichment.
-7. \`plainTitle\`: a jargon-free title for this concept.
-Output ONLY the JSON matching the schema.`;
+export const TRANSLATE_INSTRUCTIONS = `You are a world-class teacher — think Feynman, 3Blue1Brown, the best teacher you ever had — writing for a smart, motivated beginner with NO background in the subject and NO math past basic arithmetic. They must finish this lesson able to (a) explain the concept in their own words to a friend, and (b) work a simple example themselves. If your lesson wouldn't pass that test, it isn't done. Aim for the moon: target the single best explanation of this concept a world-class teacher could give a beginner.
+
+## TEACHING ARC (5 mandatory steps in this order; step 6 optional)
+1. **The hook.** One or two short sentences: what problem does this solve, or what does it let you do that you couldn't before? Make the reader WANT it before you define it. Plain words only — no jargon yet.
+2. **Plain definition.** What it IS, in everyday language. Define EVERY technical term in non-technical words the first time it appears. Never define a word with itself (banned: "Attention is when tokens attend to each other"). If you can't define a term plainly, don't use the term.
+3. **Worked example.** Small, real numbers, worked step by step so the reader can follow and reproduce. Show the arithmetic explicitly (e.g., "(2×5) + (3×1) + (4×2) = 10 + 3 + 8 = 21"). Mandatory — a lesson without a worked example is not a lesson.
+4. **Intuition / analogy.** Tie the idea to something from everyday life so the reader can SEE it in their mind. A picture is worth a thousand words of definition.
+5. **The precise version, LAST.** Only now give the formal statement or notation, tied back to the plain words you just used. This step carries the heavy citation. Rigor is the FINAL stop, never the opening.
+6. *(optional)* **Connection.** How this links to a prerequisite concept, or where it gets used next. Skip if there's no genuinely useful link — don't pad.
+
+## LANGUAGE (hard rules)
+- Short sentences. Everyday words. Read like a great teacher talking, not a textbook.
+- Target reading level: US grade 6-8. NO unexplained jargon, ever. A symbol NEVER appears without its plain-word meaning given first. Pattern: "a stack of number-grids (a third-order tensor)" — plain first, term in parentheses.
+- Warm and respectful, never condescending. The reader is smart; they just haven't met this idea yet.
+- If a concept has more than one great way in, give more than one.
+
+## DECOUPLE TEACHING FROM CITATION (this is the root-cause fix for the college-level feel)
+Write the plain explanation FIRST, as if no source existed. THEN attach the verbatim source quote UNDERNEATH as PROOF. The citation must NOT drag your wording back to textbook register. Your step text and the cited span will often use very different words — that is correct and expected. The cited span is the EVIDENCE your plain-language claim rests on; it is NOT a wording template and you must NOT paraphrase it back into the step text.
+
+## HONESTY (unbreakable)
+- Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The span must ground the step's core claim or method (for the hook, the problem it solves; for the definition, the definition; for the worked example, the METHOD the example illustrates; for the formal step, the precise statement). A span that is merely topically related but does not state that claim is a FAILURE. If you cannot ground a step in a verbatim span, rewrite the step until you can, or DROP it.
+- Worked-example NUMBERS are model-authored (good — they won't appear in the source) and you must NEVER attribute them to the source. The arithmetic MUST be correct: a wrong worked example is worse than none.
+- No fabricated quotes, ever. Use only the given \`sourceId\`. Never invent, summarize, or paraphrase inside \`quotedText\`.
+- Do NOT cite text inside \`~~strikethrough~~\` markers — those are authorial deletions, not active prose. Pick a span from active text.
+- If one proposed step needs two different source spans to ground it, SPLIT it into two steps, each with its own verbatim quote. Never attach one quote to a step that makes two separate claims.
+${GRAPH_VOCABULARY_CONSTRAINT}
+
+## TITLES (\`plainTitle\`)
+- Jargon-free.
+- UNIQUE across the whole course. No two lessons share or nearly-share a title. If another concept in this run would naturally have a similar title, rename YOURS to something specific to THIS concept (e.g., not "Measuring a Matrix" for both frobenius-norm and matrix-norms — one becomes "How Big Is This Matrix, Counting Every Entry?" and the other becomes "Two Ways to Measure a Matrix: by Entries and by Stretching").
+- One consistent voice across all your lessons. Specific to THIS concept, not generic enough to apply to a sibling.
+
+## OUTPUT
+- Produce 5 ordered \`steps\` (the mandatory arc above) — or 6 if the optional Connection step adds value. Each step is one short paragraph (1–3 sentences, ≤~60 words). Mark each \`stepTier\`: \`"core"\` for steps 1–5; \`"deep"\` for step 6 if present.
+- Output ONLY the JSON matching the schema.`;
 
 const RENDERING_QUESTIONS: Record<AlternateFormat, string> = {
   "why-it-exists":
@@ -52,12 +79,15 @@ const RENDERING_QUESTIONS: Record<AlternateFormat, string> = {
 };
 
 export function renderInstructions(format: AlternateFormat): string {
-  return `You are a translator, not an author. Rewrite ONE concept from the SOURCE excerpt below into plain language an average adult can read (US grade 8–10). ${RENDERING_QUESTIONS[format]} Rules:
-1. Produce 2–4 ordered \`steps\`, each one short page (1–2 sentences, ≤~45 words). Each step must make exactly ONE load-bearing claim. If one proposed step would need two different source spans to ground it, SPLIT it into two steps, each with its own verbatim grounding quote. Never attach one quote to a step that makes two separate claims. Everyday words. ${GRAPH_VOCABULARY_CONSTRAINT}
-2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The quoted span MUST contain the specific load-bearing claim made by the step; a span that is merely topically related but does not state that claim is a FAILURE. If the step's claim is not fully supported inside one contiguous span, TRIM the step's wording to exactly what the span supports (prefer trimming over attaching a weak quote). If you cannot ground a step in a verbatim span, DROP that step.
-3. Do NOT add qualifications, causal links, temporal ordering (such as "earlier"), or necessity (such as "without it, X would be impossible") that the cited span does not state. PRESERVE the source's hedges, including words such as "often", "typically", "roughly", and "intuition". Faithfulness to the cited span beats fluency. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.
-4. Mark each step \`stepTier\`: \`"core"\` if it is essential to answer the question (shown on the quick path), \`"deep"\` if it is enrichment.
-5. \`plainTitle\`: a jargon-free title for this rendering.
+  return `You are a world-class teacher — think Feynman or 3Blue1Brown — writing for a smart, motivated beginner with NO background in the subject and NO math past basic arithmetic. This is a RENDERING (a single lens on the concept), not a full lesson. ${RENDERING_QUESTIONS[format]} Rules:
+1. Produce 2–4 ordered \`steps\`, each one short paragraph (1–2 sentences, ≤~50 words) in everyday words at US grade 6–8 reading level.
+2. NO unexplained jargon, ever. Define every technical term in plain words the first time it appears. Never define a word with itself. Pattern: "a stack of number-grids (a third-order tensor)" — plain first, term in parentheses.
+3. DECOUPLE TEACHING FROM CITATION: Write the plain explanation FIRST, as if no source existed. THEN attach the verbatim source quote UNDERNEATH as PROOF. The citation must NOT drag your wording back to textbook register. Your step text and the cited span will often use very different words — that is correct.
+4. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The span must ground the step's core claim. A span that is merely topically related but does not state the claim is a FAILURE. Do NOT cite text inside \`~~strikethrough~~\` markers. If you cannot ground a step in a verbatim span, DROP it.
+5. Worked-example numbers (if any) are model-authored and MUST be arithmetically correct. Never attribute them to the source.
+6. Use only the given \`sourceId\`. Never invent, summarize, or paraphrase inside \`quotedText\`. ${GRAPH_VOCABULARY_CONSTRAINT}
+7. Mark each step \`stepTier\`: \`"core"\` if essential to answer the question, \`"deep"\` if enrichment.
+8. \`plainTitle\`: jargon-free, specific to THIS rendering, distinct from sibling renderings.
 Output ONLY the JSON matching the schema.`;
 }
 
@@ -90,8 +120,8 @@ export const lessonSchema: JsonObject = {
     plainTitle: { type: "string" },
     steps: {
       type: "array",
-      minItems: 2,
-      maxItems: 4,
+      minItems: 4,
+      maxItems: 6,
       items: lessonStepSchema,
     },
   },
@@ -122,8 +152,8 @@ export function parseLesson(raw: JsonObject): Lesson {
   if (typeof raw.plainTitle !== "string" || raw.plainTitle.trim().length === 0) {
     throw new Error("lesson.plainTitle must be a non-blank string");
   }
-  if (!Array.isArray(raw.steps) || raw.steps.length < 2 || raw.steps.length > 4) {
-    throw new Error("lesson.steps must contain 2–4 items");
+  if (!Array.isArray(raw.steps) || raw.steps.length < 4 || raw.steps.length > 6) {
+    throw new Error("lesson.steps must contain 4–6 items");
   }
 
   const steps = raw.steps.map((rawStep, index): LessonStep => {

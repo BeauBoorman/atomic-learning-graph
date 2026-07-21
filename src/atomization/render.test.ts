@@ -82,27 +82,27 @@ describe("build-time alternate renderings", () => {
     expect(() => parseRenderArgs(["--omit-ids"])).toThrow(/unknown option/iu);
   });
 
-  it("keeps the grounding contract byte-identical across question formats", () => {
-    const groundingContract = `2. Each step MUST include a \`citation.quotedText\` copied VERBATIM, character-for-character, from the SOURCE excerpt — a single contiguous span, no ellipses, no edits. The quoted span MUST contain the specific load-bearing claim made by the step; a span that is merely topically related but does not state that claim is a FAILURE. If the step's claim is not fully supported inside one contiguous span, TRIM the step's wording to exactly what the span supports (prefer trimming over attaching a weak quote). If you cannot ground a step in a verbatim span, DROP that step.
-3. Do NOT add qualifications, causal links, temporal ordering (such as "earlier"), or necessity (such as "without it, X would be impossible") that the cited span does not state. PRESERVE the source's hedges, including words such as "often", "typically", "roughly", and "intuition". Faithfulness to the cited span beats fluency. Use only the given \`sourceId\`. Never invent, summarise, or paraphrase inside \`quotedText\`.`;
+  it("keeps the moonshot beginner-teacher grounding contract across question formats", () => {
     const why = renderInstructions("why-it-exists");
     const how = renderInstructions("how-it-works");
 
-    expect(why).toContain(groundingContract);
-    expect(how).toContain(groundingContract);
-    expect(why).toContain("US grade 8–10");
-    expect(how).toContain("US grade 8–10");
+    expect(why).toContain("US grade 6–8");
+    expect(how).toContain("US grade 6–8");
     expect(why).toContain("Produce 2–4 ordered");
     expect(how).toContain("Produce 2–4 ordered");
     for (const prompt of [why, how]) {
-      expect(prompt).toContain("exactly ONE load-bearing claim");
-      expect(prompt).toContain("two different source spans");
-      expect(prompt).toContain("SPLIT it into two steps");
-      expect(prompt).toContain("each with its own verbatim grounding quote");
-      expect(prompt).toContain("Never attach one quote to a step that makes two separate claims");
+      expect(prompt).toContain("world-class teacher");
+      expect(prompt).toContain("Feynman");
+      expect(prompt).toContain("smart, motivated beginner");
+      expect(prompt).toContain("DECOUPLE TEACHING FROM CITATION");
+      expect(prompt).toContain("Write the plain explanation FIRST");
+      expect(prompt).toContain("PROOF");
+      expect(prompt).toContain("must NOT drag your wording back to textbook register");
+      expect(prompt).toContain("VERBATIM, character-for-character");
+      expect(prompt).toContain("strikethrough");
       expect(prompt).toContain("GRAPH_DEFINED_CONCEPTS");
-      expect(prompt).toContain("defines the term inline in plain language");
       expect(prompt).toContain("multi-head attention");
+      expect(prompt).toContain("a stack of number-grids (a third-order tensor)");
     }
     expect(why).toContain("why does this concept exist");
     expect(how).toContain("what actually happens, step by step");
@@ -110,7 +110,7 @@ describe("build-time alternate renderings", () => {
 
   it("attaches a grounded response for each alternate question", async () => {
     const graph = oneConceptGraph();
-    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors));
+    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors, QUOTES.vectors, QUOTES.vectors));
 
     const set = await generateRenderings(graph, client);
 
@@ -131,7 +131,7 @@ describe("build-time alternate renderings", () => {
 
   it("spends exactly one 2xN request set for the artifact whose verdict it prints", async () => {
     const graph = oneConceptGraph();
-    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors));
+    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors, QUOTES.vectors, QUOTES.vectors));
     const directory = mkdtempSync(join(tmpdir(), "atomic-renderings-"));
     const renderingsPath = join(directory, "renderings.json");
     const runLogPath = join(directory, "renderings.run.json");
@@ -173,7 +173,7 @@ describe("build-time alternate renderings", () => {
 
   it("omits responseIds from the rendering run log without dropping other metadata", async () => {
     const graph = oneConceptGraph();
-    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors));
+    const client = new FakeClient(() => responseWithQuotes(QUOTES.vectors, QUOTES.vectors, QUOTES.vectors, QUOTES.vectors));
     const directory = mkdtempSync(join(tmpdir(), "atomic-renderings-private-"));
     const renderingsPath = join(directory, "renderings.json");
     const runLogPath = join(directory, "renderings.run.json");
@@ -215,7 +215,7 @@ describe("build-time alternate renderings", () => {
     const warnings: string[] = [];
     const client = new FakeClient((schemaName) =>
       schemaName === "rendering_why-it-exists"
-        ? responseWithQuotes(QUOTES.vectors, "fabricated span", QUOTES["dot-product"])
+        ? responseWithQuotes(QUOTES.vectors, "fabricated span", QUOTES["dot-product"], QUOTES.vectors)
         : new Error("isolate the why rendering"),
     );
 
@@ -226,16 +226,17 @@ describe("build-time alternate renderings", () => {
     expect(set.renderings[0]?.steps.map(({ citation }) => citation.quotedText)).toEqual([
       QUOTES.vectors,
       QUOTES["dot-product"],
+      QUOTES.vectors,
     ]);
     expect(warnings.some((warning) => warning.includes("dropped 1 ungrounded step"))).toBe(true);
     expect(invalidRenderingCitations(graph, set)).toEqual([]);
   });
 
-  it("drops the whole rendering when fewer than two groundable steps remain", async () => {
+  it("drops the whole rendering when fewer than four groundable steps remain", async () => {
     const graph = oneConceptGraph();
     const client = new FakeClient((schemaName) =>
       schemaName === "rendering_why-it-exists"
-        ? responseWithQuotes(QUOTES.vectors, "fabricated span")
+        ? responseWithQuotes(QUOTES.vectors, "fabricated span", "another fabricated span")
         : new Error("isolate the why rendering"),
     );
 
@@ -253,7 +254,7 @@ describe("build-time alternate renderings", () => {
     const client = new FakeClient((_schemaName, input) =>
       input.includes("CONCEPT_ID=vectors")
         ? new Error("rendering endpoint unavailable")
-        : responseWithQuotes(QUOTES["dot-product"], QUOTES["dot-product"]),
+        : responseWithQuotes(QUOTES["dot-product"], QUOTES["dot-product"], QUOTES["dot-product"], QUOTES["dot-product"]),
     );
 
     const set = await generateRenderings(graph, client, () => undefined);
