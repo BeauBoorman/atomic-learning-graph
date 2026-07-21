@@ -84,16 +84,35 @@ function renderSourceAttribution(source: Source): string {
   ].join("\n");
 }
 
-function renderReceipt(concept: Concept, source: Source): string {
+function renderReceipt(
+  concept: Concept,
+  source: Source,
+  lessonCitation: { quotedText: string; sourceId: string } | null = null,
+  sourceById: Map<string, Source> | null = null,
+): string {
+  // Use lesson step citation quote text to match rubric items (which are derived from lesson steps)
+  // If lesson citation is not available, fall back to concept's main provenance quote
+  const receiptQuote = lessonCitation?.quotedText ?? concept.provenance.quotedText;
+  const receiptSourceId = lessonCitation?.sourceId ?? concept.provenance.sourceId;
+  
+  // Look up the correct source using the citation source ID
+  let receiptSource = source;
+  if (sourceById && lessonCitation && lessonCitation.sourceId !== concept.provenance.sourceId) {
+    const lookedUpSource = sourceById.get(lessonCitation.sourceId);
+    if (lookedUpSource) {
+      receiptSource = lookedUpSource;
+    }
+  }
+  
   return [
-    mdQuote(concept.provenance.quotedText),
+    mdQuote(receiptQuote),
     "",
     [
-      `Source ID: ${source.id}`,
-      `Title: ${source.title}`,
-      `Author: ${source.author}`,
-      `License: ${licenseWithDeed(source.license)}`,
-      ...(source.url ? [`URL: ${source.url}`] : []),
+      `Source ID: ${receiptSource.id}`,
+      `Title: ${receiptSource.title}`,
+      `Author: ${receiptSource.author}`,
+      `License: ${licenseWithDeed(receiptSource.license)}`,
+      ...(receiptSource.url ? [`URL: ${receiptSource.url}`] : []),
     ].join("  \n"),
   ].join("\n");
 }
@@ -161,6 +180,12 @@ export function emitExamArtifact(graph: LearningGraph): string {
 
   const answerKeyA = conceptsWithSources.map(({ concept, source }, index) => {
     const rubric = buildRecallRubric(concept);
+    // Use first lesson step's citation quote text to match rubric items
+    const steps = Array.isArray(concept.lesson?.steps) ? concept.lesson.steps : [];
+    const firstStepCitation = steps.length > 0 && steps[0].citation ? {
+      quotedText: steps[0].citation.quotedText,
+      sourceId: steps[0].citation.sourceId
+    } : null;
     return [
       `### A${index + 1}. ${concept.title}`,
       "",
@@ -168,7 +193,7 @@ export function emitExamArtifact(graph: LearningGraph): string {
       "",
       "Source receipt:",
       "",
-      renderReceipt(concept, source),
+      renderReceipt(concept, source, firstStepCitation, sourceById),
       "",
       renderRecallRubric(rubric),
     ].join("\n");

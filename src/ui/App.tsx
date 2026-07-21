@@ -5,6 +5,7 @@ import { CompletionPage } from "./CompletionPage";
 import { Entry } from "./Entry";
 import { LessonPage } from "./LessonPage";
 import { ReceiptCard } from "./ReceiptCard";
+import { CostEstimatorCard } from "./CostEstimatorCard";
 import { MapToggle } from "./MapToggle";
 import { StepIndicator } from "./StepIndicator";
 import {
@@ -653,6 +654,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
             }}
           />
           {receipt && <ReceiptCard receipt={receipt} />}
+          <CostEstimatorCard />
         </>
       )}
 

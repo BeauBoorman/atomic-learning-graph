@@ -37,7 +37,7 @@ export function CompletionPage({
     <main className="completion-page" id="main-content" aria-labelledby="completion-title">
       <p className="completion-mark" aria-hidden="true">✓</p>
       <p className="eyebrow">You reached your goal</p>
-      <h1 id="completion-title">Course complete</h1>
+      <h1 id="completion-title">Nice work.</h1>
       <p className="completion-route">
         You can now approach {titleFor(goal)} because you worked through {routeTitles.join(" → ")}.
       </p>
@@ -56,9 +56,9 @@ export function CompletionPage({
         </details>
       )}
       {hasMore && (
-        <details className="explore-more">
-          <summary>{unexplored.length} more concept{unexplored.length === 1 ? "" : "s"} in this graph</summary>
-          <p>Pick a new goal and the route recomputes from what you already know.</p>
+        <details className="explore-more" open>
+          <summary>Keep going — {unexplored.length} more idea{unexplored.length === 1 ? "" : "s"} to explore</summary>
+          <p>Pick a new goal and the route recomputes from everything you just learned.</p>
           <ul className="explore-more-list">
             {unexplored.map((concept) => (
               <li key={concept.id}>

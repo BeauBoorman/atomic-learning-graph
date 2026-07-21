@@ -1,7 +1,6 @@
 import type { ConceptId, LearningGraph, PassionId } from "../types";
 import { PASSION_IDS } from "../types";
-import { CostEstimatorCard } from "./CostEstimatorCard";
-import { prerequisitesForGoal, courseFor, type Depth } from "./model";
+import { prerequisitesForGoal, courseFor, pathFor, type Depth } from "./model";
 import { titleFor } from "./titles";
 
 interface EntryProps {
@@ -48,6 +47,11 @@ export function Entry({
 
   const quickPageCount = courseFor(graph, goalId, "quick", known).length;
   const thoroughPageCount = courseFor(graph, goalId, "thorough", known).length;
+  const route = pathFor(graph, goalId, known);
+
+  const activeIds = route.filter((id) => !known.includes(id));
+  const firstActiveId = activeIds[0];
+  const lastActiveId = activeIds[activeIds.length - 1];
 
   return (
     <main className="entry" id="main-content">
@@ -55,6 +59,31 @@ export function Entry({
       <h1>What do you want to understand?</h1>
       <p className="entry-thesis">Compiled once from cited sources — no AI at read time.</p>
       <p className="lede">Choose a goal. We will start with the ideas you need first.</p>
+
+      <ol className="route-preview">
+        {route.flatMap((conceptId, index) => {
+          const concept = concepts.get(conceptId);
+          if (!concept) return [];
+          const isSkipped = known.includes(conceptId);
+          const isStart = conceptId === firstActiveId;
+          const isGoal = conceptId === lastActiveId;
+          const chipClass = `route-chip${isSkipped ? " is-skipped" : ""}${isStart ? " is-start" : ""}${isGoal ? " is-goal" : ""}`;
+          
+          const chip = (
+            <li key={conceptId} className={chipClass}>
+              {titleFor(concept)}
+            </li>
+          );
+
+          if (index < route.length - 1) {
+            return [
+              chip,
+              <li key={`${conceptId}-arrow`} className="route-arrow" aria-hidden="true">→</li>
+            ];
+          }
+          return [chip];
+        })}
+      </ol>
 
       <form
         className="entry-form"
@@ -170,8 +199,6 @@ export function Entry({
           <button className="primary-button" type="submit">Start learning</button>
         )}
       </form>
-
-      <CostEstimatorCard />
     </main>
   );
 }

@@ -83,7 +83,7 @@ A vector is a fixed-length array whose elements are scalars.
 
 Source receipt:
 
-> For current purposes, you can think of a vector as a fixed-length array of scalars.
+> When vectors represent examples from real-world datasets, their values hold some real-world significance.
 
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
@@ -126,7 +126,7 @@ The dot product sums the products of corresponding elements in two vectors.
 
 Source receipt:
 
-> Given two vectors $\mathbf{x}, \mathbf{y} \in \mathbb{R}^d$, their dot product $\mathbf{x}^\top \mathbf{y}$ (also known as inner product, $\langle \mathbf{x}, \mathbf{y}  \rangle$) is a sum over the products of the elements at the same position: $\mathbf{x}^\top \mathbf{y} = \sum_{i=1}^{d} x_i y_i$.
+> Dot products are useful in a wide range of contexts.
 
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
@@ -174,21 +174,7 @@ A matrix–vector product produces a vector whose elements are dot products betw
 
 Source receipt:
 
-> The matrix--vector product $\mathbf{A}\mathbf{x}$ is simply a column vector of length $m$, whose $i^\textrm{th}$ element is the dot product $\mathbf{a}^\top_i \mathbf{x}$: $$
-> \mathbf{A}\mathbf{x}
-> = \begin{bmatrix}
-> \mathbf{a}^\top_{1} \\
-> \mathbf{a}^\top_{2} \\
-> \vdots \\
-> \mathbf{a}^\top_m \\
-> \end{bmatrix}\mathbf{x}
-> = \begin{bmatrix}
->  \mathbf{a}^\top_{1} \mathbf{x}  \\
->  \mathbf{a}^\top_{2} \mathbf{x} \\
-> \vdots\\
->  \mathbf{a}^\top_{m} \mathbf{x}\\
-> \end{bmatrix}.
-> $$
+> We can think of multiplication with a matrix $\mathbf{A}\in \mathbb{R}^{m \times n}$ as a transformation that projects vectors from $\mathbb{R}^{n}$ to $\mathbb{R}^{m}$.
 
 Source ID: d2l-linear-algebra  
 Title: Dive into Deep Learning — 2.3 Linear Algebra  
@@ -274,7 +260,7 @@ Attention uses a query to determine compatibility with keys associated with stor
 
 Source receipt:
 
-> The attention mechanism computes a linear combination over values $\mathbf{v}_\mathit{i}$ via attention pooling, where weights are derived according to the compatibility between a query $\mathbf{q}$ and keys $\mathbf{k}_\mathit{i}$.
+> the actual "code" for executing on the set of keys and values, namely the query, can be quite concise, even though the space to operate on is significant.
 
 Source ID: d2l-queries-keys-values  
 Title: Dive into Deep Learning — 11.1 Queries, Keys, and Values  
@@ -360,7 +346,7 @@ Self-attention lets every token attend to every other token in the same sequence
 
 Source receipt:
 
-> Because every token is attending to each other token (unlike the case where decoder steps attend to encoder steps), such architectures are typically described as self-attention models , and elsewhere described as intra-attention model .
+> Because every token is attending to each other token
 
 Source ID: d2l-self-attention  
 Title: Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding  
@@ -451,7 +437,7 @@ Softmax preserves the ordering of its inputs, so the largest input identifies th
 
 Source receipt:
 
-> Moreover, because the softmax operation preserves the ordering among its arguments, we do not need to compute the softmax to determine which class has been assigned the highest probability.
+> we do not need to compute the softmax to determine which class has been assigned the highest probability.
 
 Source ID: d2l-softmax-regression  
 Title: Dive into Deep Learning — 4.1 Softmax Regression  

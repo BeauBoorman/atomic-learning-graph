@@ -9,6 +9,7 @@ import {
   ANKI_PATH,
   emitAnkiArtifact,
   escapeAnkiField,
+  getCardQuestion,
   verifyAnkiArtifact,
   writeAnkiArtifact,
 } from "./emit-anki";
@@ -58,7 +59,7 @@ describe("Anki build artifact", () => {
       GOLDEN_PATH.map((id) => {
         const concept = fixtureGraph.concepts.find((candidate) => candidate.id === id);
         if (!concept) throw new Error(`fixture lost ${id}`);
-        return `ALG :: What is ${concept.title}?`;
+        return `ALG :: ${getCardQuestion(concept.title)}`;
       }),
     );
   });
@@ -73,17 +74,25 @@ describe("Anki build artifact", () => {
       const source = graph.sources.find(({ id }) => id === concept.provenance.sourceId);
       if (!source) throw new Error(`committed concept ${concept.id} lost its source`);
       const row = rows.find((candidate) =>
-        candidate.startsWith(`ALG :: What is ${concept.title}?\t`),
+        candidate.startsWith(`ALG :: ${getCardQuestion(concept.title)}\t`),
       );
       expect(row).toBeDefined();
-      expect(row).toContain(concept.summary);
-      expect(row).toContain(escapeAnkiField(concept.provenance.quotedText));
-      expect(row).toContain(`Source ID: ${source.id}`);
-      expect(row).toContain(`Title: ${source.title}`);
-      expect(row).toContain(`Author: ${source.author}`);
-      expect(row).toContain(`License: ${source.license} (${deedUrl})`);
-      if (source.url) expect(row).toContain(`URL: ${source.url}`);
-      expect(row).toContain(
+
+      const fields = row!.split("\t");
+      expect(fields).toHaveLength(3);
+
+      const backField = fields[1];
+      const attrField = fields[2];
+
+      expect(backField).toContain(concept.summary);
+      expect(backField).toContain(escapeAnkiField(concept.provenance.quotedText));
+
+      expect(attrField).toContain(`Source ID: ${source.id}`);
+      expect(attrField).toContain(`Title: ${source.title}`);
+      expect(attrField).toContain(`Author: ${source.author}`);
+      expect(attrField).toContain(`License: ${source.license} (${deedUrl})`);
+      if (source.url) expect(attrField).toContain(`URL: ${source.url}`);
+      expect(attrField).toContain(
         `Adapted (translated to plain English; atomized into concept lessons) from ` +
           `${source.title} by ${source.author}, ${source.license} (${deedUrl}).`,
       );
@@ -132,12 +141,12 @@ describe("Anki build artifact", () => {
 
     const rows = cardRows(emitAnkiArtifact(graph));
     expect(rows).toHaveLength(graph.concepts.length);
-    expect(rows[0]).toContain("ALG :: What is Vectors&#9;and &lt;coordinates&gt;?");
+    expect(rows[0]).toContain("ALG :: What is vectors&#9;and &lt;coordinates&gt;?");
     expect(rows[0]).toContain("Line one<br>Line two &amp; more");
     expect(rows[0]).toContain(
       "A grounded quote&#9;with enough content words<br>for deterministic Anki escaping.",
     );
-    expect(rows.every((row) => row.split("\t").length === 2)).toBe(true);
+    expect(rows.every((row) => row.split("\t").length === 3)).toBe(true);
   });
 
   it("converts TeX delimiters before escaping card HTML for Anki MathJax", () => {

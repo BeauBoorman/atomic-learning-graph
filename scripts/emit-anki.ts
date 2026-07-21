@@ -28,7 +28,7 @@ const ANKI_HEADERS = [
   "#notetype:Basic",
   "#deck:Atomic Learning Graph",
   "#tags:atomic-learning-graph::d2l",
-  "#columns:Front\tBack",
+  "#columns:Front\tBack\tAttribution",
   "# This is a ready-to-study Anki deck: choose File > Import, select this .tsv file, keep the Basic note type, then choose Study Now. The file sets its own deck and tag.",
 ] as const;
 
@@ -98,14 +98,42 @@ function renderSourceAttribution(source: Source): string[] {
   ];
 }
 
+export function getCardQuestion(title: string): string {
+  const t = title.trim();
+  const lower = t.toLowerCase();
+  if (lower === "vectors") {
+    return "What are vectors?";
+  }
+  if (lower === "queries, keys, and values") {
+    return "What are queries, keys, and values?";
+  }
+  if (lower === "softmax preserves ordering") {
+    return "Why does softmax preserve ordering?";
+  }
+  if (lower === "dot product") {
+    return "What is a dot product?";
+  }
+  if (lower === "matrix–vector product") {
+    return "What is a matrix–vector product?";
+  }
+  if (lower === "vector norm") {
+    return "What is a vector norm?";
+  }
+  return `What is ${lower}?`;
+}
+
 function renderCard(concept: Concept, source: Source): string {
-  const front = escapeAnkiField(`${COURSE_PREFIX}What is ${concept.title}?`);
+  const front = escapeAnkiField(`${COURSE_PREFIX}${getCardQuestion(concept.title)}`);
   const back = escapeAnkiField(
     [
       concept.summary,
       "",
       "Source receipt",
       concept.provenance.quotedText,
+    ].join("\n"),
+  );
+  const attribution = escapeAnkiField(
+    [
       `Source ID: ${source.id}`,
       `Title: ${source.title}`,
       `Author: ${source.author}`,
@@ -114,7 +142,7 @@ function renderCard(concept: Concept, source: Source): string {
       `Modification notice: ${modificationNotice(source)}`,
     ].join("\n"),
   );
-  return `${front}\t${back}`;
+  return `${front}\t${back}\t${attribution}`;
 }
 
 /** Generate the artifact entirely in memory so a validation failure cannot partially write. */

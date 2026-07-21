@@ -313,26 +313,25 @@ export function LessonPage({
       </p>
 
       {onPassionChange && hasAnalogies && (
-        <div className="analogy-selector">
-          <label htmlFor="analogy-select" className="analogy-select-label">
-            Examples:
-          </label>
-          <select
-            id="analogy-select"
-            className="analogy-select"
-            value={passion ?? ""}
-            onChange={(event) => {
-              const value = event.target.value;
-              onPassionChange(value === "" ? undefined : value as PassionId);
-            }}
-          >
-            <option value="">Skip analogies</option>
-            {PASSION_IDS.map((id) => (
-              <option value={id} key={id}>
-                {passionLabels[id]}
-              </option>
-            ))}
-          </select>
+        <div className="analogy-selector" role="group" aria-label="See this idea in action">
+          <span className="analogy-select-label">
+            See this idea in action:
+          </span>
+          <div className="analogy-pills">
+            {PASSION_IDS.map((id) => {
+              const selected = passion === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`analogy-pill${selected ? " is-selected" : ""}`}
+                  onClick={() => onPassionChange(selected ? undefined : id)}
+                >
+                  {passionLabels[id]}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -357,7 +356,7 @@ export function LessonPage({
           ?.format ?? availableRenderings[0].format;
         return (
           <section className="rendering-summon" aria-label="Another route through this idea">
-            <p>Need another way into this idea?</p>
+            <p>Want to practice this differently?</p>
             <button
               className="text-button"
               type="button"
