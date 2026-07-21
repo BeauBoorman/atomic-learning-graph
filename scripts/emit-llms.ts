@@ -259,11 +259,15 @@ export function verifyLlmsArtifacts(
 }
 
 function currentArtifacts(): LlmsArtifacts {
-  return emitLlmsArtifacts(
+  const raw = emitLlmsArtifacts(
     loadGraph(),
     loadRenderingsForVerification(),
     readFileSync(README_PATH, "utf8"),
   );
+  return {
+    index: stripControlChars(raw.index),
+    full: stripControlChars(raw.full),
+  };
 }
 
 function main(): void {

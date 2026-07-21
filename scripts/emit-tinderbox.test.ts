@@ -11,6 +11,7 @@ import {
   verifyTinderboxArtifact,
   writeTinderboxArtifact,
 } from "./emit-tinderbox";
+import { stripControlChars } from "./emit-utils";
 
 describe("Tinderbox OPML artifact", () => {
   it("carries a complete one-shot Tinderbox presentation contract", () => {
@@ -123,8 +124,8 @@ describe("Tinderbox OPML artifact", () => {
       expect(emitted).toContain(xmlEscaped(concept.summary));
       expect(emitted).toContain(xmlEscaped(concept.provenance.quotedText));
       for (const step of concept.lesson.steps) {
-        expect(emitted).toContain(xmlEscaped(step.text));
-        expect(emitted).toContain(xmlEscaped(step.citation.quotedText));
+        expect(emitted).toContain(xmlEscaped(stripControlChars(step.text)));
+        expect(emitted).toContain(xmlEscaped(stripControlChars(step.citation.quotedText)));
       }
       expect(emitted).toContain(`ALGSourceId="${source.id}"`);
     }

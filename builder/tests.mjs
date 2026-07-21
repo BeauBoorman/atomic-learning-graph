@@ -440,7 +440,7 @@ test("reader packager explicitly strips any ambient API key", async () => {
     if (previous === undefined) delete process.env.OPENAI_API_KEY;
     else process.env.OPENAI_API_KEY = previous;
   }
-  assert.equal(environments.length, 3);
+  assert.equal(environments.length, 4);
   assert.ok(environments.every((environment) => environment.OPENAI_API_KEY === undefined));
 });
 

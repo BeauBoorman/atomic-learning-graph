@@ -497,7 +497,7 @@ export function emitTinderboxArtifact(graph: LearningGraph): string {
     2,
   );
 
-  return [
+  return stripControlChars([
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<opml version="2.0">',
     "  <head>",
@@ -508,7 +508,7 @@ export function emitTinderboxArtifact(graph: LearningGraph): string {
     "  </body>",
     "</opml>",
     "",
-  ].join("\n");
+  ].join("\n"));
 }
 
 export function writeTinderboxArtifact(

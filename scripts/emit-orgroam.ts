@@ -180,14 +180,14 @@ export function emitOrgRoamArtifact(graph: LearningGraph): string {
       }),
   ].join("\n\n");
 
-  return `${[
+  return stripControlChars(`${[
     ["#+title: Atomic Learning Graph", "#+startup: overview", "#+options: toc:2"].join("\n"),
     "This is a ready-to-use org-roam course: put this file in your org-roam folder, open it in " +
       "Emacs, run ~M-x org-roam-db-sync~ once, and begin at Learning Path.",
     renderLearningPath(orderedConcepts, goal),
     ...conceptSections,
     sourceAttributions,
-  ].join("\n\n")}\n`;
+  ].join("\n\n")}\n`);
 }
 
 export function writeOrgRoamArtifact(

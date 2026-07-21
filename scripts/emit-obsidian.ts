@@ -371,7 +371,7 @@ export function emitObsidianVault(graph: LearningGraph): ObsidianNote[] {
     { filename: OBSIDIAN_START_HERE, bytes: renderStartHere(orderedConcepts, goal, sortedSources) },
     ...conceptNotes,
     ...sourceNotes,
-  ];
+  ].map((note) => ({ ...note, bytes: stripControlChars(note.bytes) }));
 }
 
 function walkFiles(directory: string, base: string = directory): string[] {
