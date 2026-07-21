@@ -229,7 +229,7 @@ guarantees travel — not the headline.
   [OPML outline](atomic-learning-graph.opml) — the deterministic interchange artifact that drives the
   Tinderbox import — and a machine-checkable [course receipt](data/course.receipt.json) recording the
   work, authors, license, revision, and graph hash.
-  `pnpm verify:llms`, `verify:orgroam`, `verify:tinderbox`, `verify:obsidian`, `verify:anki`, `verify:exam`, `verify:receipt` gates them against the committed
+  `pnpm verify:llms`, `verify:orgroam`, `verify:tinderbox`, `verify:obsidian`, `verify:anki`, `verify:exam`, `verify:receipt` gate them against the committed
   graph. The Obsidian vault opens with a prerequisite-ordered **Start Here** note and carries the
   full cited lesson in every concept note; org-roam leads with the same learning path. The native
   Tinderbox document opens directly with styled concept/source/edge prototypes, a mapped learning
