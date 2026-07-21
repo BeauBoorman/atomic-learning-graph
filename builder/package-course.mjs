@@ -40,6 +40,11 @@ export function createCoursePackager({ runImpl = run, platform = process.platfor
         cwd,
         env: environment,
       });
+      await runImpl("node", ["scripts/emit-builder.mjs"], {
+        cwd,
+        env: environment,
+        stdio: "inherit",
+      });
     },
   };
 }

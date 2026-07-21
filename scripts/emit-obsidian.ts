@@ -19,6 +19,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
+import { stripControlChars, assertNoControlChars } from "./emit-utils";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -391,7 +392,7 @@ export function writeObsidianVault(
   for (const { filename, bytes } of notes) {
     const path = resolve(directory, filename);
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, bytes, "utf8");
+    writeFileSync(path, stripControlChars(bytes), "utf8");
   }
 }
 

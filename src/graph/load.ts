@@ -31,6 +31,10 @@ export function loadCourseReceipt(path: string = COURSE_RECEIPT_PATH): CourseRec
  */
 export function loadGraph(path: string = GRAPH_PATH): LearningGraph {
   if (!existsSync(path)) {
+    // When the builder sets BUILDER_GRAPH_PATH, trust it even if the file is not at the
+    // committed data/graph.json location (the builder writes its artifact to a temp dir).
+    const builderPath = process.env.BUILDER_GRAPH_PATH;
+    if (builderPath && existsSync(builderPath)) return JSON.parse(readFileSync(builderPath, "utf8")) as LearningGraph;
     throw new Error(
       `no graph at ${path} — run \`pnpm atomize\` to build it from data/oer/ first`,
     );

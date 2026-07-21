@@ -5,6 +5,7 @@
 // evolving TBX XML format never becomes the source of truth.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { stripControlChars, assertNoControlChars } from "./emit-utils";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -514,7 +515,7 @@ export function writeTinderboxArtifact(
   artifact: string,
   path: string = TINDERBOX_PATH,
 ): void {
-  writeFileSync(path, artifact, "utf8");
+  writeFileSync(path, stripControlChars(artifact), "utf8");
 }
 
 export function verifyTinderboxArtifact(

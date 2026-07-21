@@ -4,6 +4,7 @@
 // graph-validated source passage that grounds it — no claim without a receipt.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { stripControlChars, assertNoControlChars } from "./emit-utils";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -235,7 +236,7 @@ export function writeExamArtifact(
   artifact: string,
   path: string = EXAM_PATH,
 ): void {
-  writeFileSync(path, artifact, "utf8");
+  writeFileSync(path, stripControlChars(artifact), "utf8");
 }
 
 export function verifyExamArtifact(

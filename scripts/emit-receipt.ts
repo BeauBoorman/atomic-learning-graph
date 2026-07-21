@@ -3,6 +3,7 @@
 // Every receipt value is derived from the gated graph, run log, source manifest, and advisory report.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { stripControlChars } from "./emit-utils";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { LearningGraph } from "../src/types";
@@ -114,7 +115,7 @@ export function writeCourseReceipt(
   receipt: string,
   path: string = COURSE_RECEIPT_PATH,
 ): void {
-  writeFileSync(path, receipt, "utf8");
+  writeFileSync(path, stripControlChars(receipt), "utf8");
 }
 
 export function verifyCourseReceipt(

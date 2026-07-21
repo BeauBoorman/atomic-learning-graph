@@ -13,6 +13,7 @@ import {
   verifyAnkiArtifact,
   writeAnkiArtifact,
 } from "./emit-anki";
+import { assertNoControlChars } from "./emit-utils";
 
 function cardRows(artifact: string): string[] {
   return artifact
@@ -27,7 +28,6 @@ describe("Anki build artifact", () => {
     expect(emitted).toContain("#deck:Atomic Learning Graph");
     expect(emitted).toContain("#tags:atomic-learning-graph::d2l");
   });
-
   it("starts with plain-language Anki import directions that do not become a card", () => {
     const emitted = emitAnkiArtifact(fixtureGraph);
     expect(emitted).toContain(
@@ -35,14 +35,12 @@ describe("Anki build artifact", () => {
     );
     expect(cardRows(emitted)).toHaveLength(fixtureGraph.concepts.length);
   });
-
   it("is byte-deterministic for the same committed input", () => {
     const first = emitAnkiArtifact(fixtureGraph);
     const second = emitAnkiArtifact(fixtureGraph);
 
     expect(Buffer.from(first)).toEqual(Buffer.from(second));
   });
-
   it("uses prerequisite order rather than graph array order", () => {
     const shuffled: LearningGraph = {
       ...structuredClone(fixtureGraph),
@@ -63,7 +61,6 @@ describe("Anki build artifact", () => {
       }),
     );
   });
-
   it("emits one Basic card per atom with its source receipt", () => {
     const graph = loadGraph();
     const rows = cardRows(emitAnkiArtifact(graph));
@@ -98,7 +95,6 @@ describe("Anki build artifact", () => {
       );
     }
   });
-
   it("emits every used source attribution in leading comment lines", () => {
     const graph = loadGraph();
     const emitted = emitAnkiArtifact(graph);
@@ -126,7 +122,6 @@ describe("Anki build artifact", () => {
       }
     }
   });
-
   it("escapes tabs, newlines, and HTML-significant receipt text without adding card rows", () => {
     const graph = structuredClone(fixtureGraph);
     const concept = graph.concepts[0];
@@ -148,13 +143,11 @@ describe("Anki build artifact", () => {
     );
     expect(rows.every((row) => row.split("\t").length === 3)).toBe(true);
   });
-
   it("converts TeX delimiters before escaping card HTML for Anki MathJax", () => {
     expect(escapeAnkiField("Inline $x < y$ and $$z & w$$.")).toBe(
       "Inline \\(x &lt; y\\) and \\[z &amp; w\\].",
     );
   });
-
   it("fails loudly rather than dropping orphaned or dangling graph content", () => {
     const orphaned = structuredClone(fixtureGraph);
     orphaned.concepts.push({ ...structuredClone(orphaned.concepts[0]), id: "orphan" });
@@ -164,12 +157,10 @@ describe("Anki build artifact", () => {
     dangling.edges.push({ from: "vectors", to: "missing", type: "related" });
     expect(() => emitAnkiArtifact(dangling)).toThrow("1 dangling edge(s)");
   });
-
   it("matches the committed graph-derived bytes", () => {
     const expected = emitAnkiArtifact(loadGraph());
     expect(Buffer.from(readFileSync(ANKI_PATH, "utf8"))).toEqual(Buffer.from(expected));
   });
-
   it("makes verification fail on a one-character committed-file edit", () => {
     const directory = mkdtempSync(join(tmpdir(), "atomic-anki-"));
     const path = join(directory, "atomic-learning-graph-anki.tsv");
@@ -186,5 +177,11 @@ describe("Anki build artifact", () => {
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  });
+  it("emits no C0 control chars in card fields", () => {
+    const artifact = emitAnkiArtifact(loadGraph());
+    // assertNoControlChars is the authoritative check — it validates the full artifact
+    // for all C0 controls except the tab/newline/CR bytes that stripControlChars preserves.
+    assertNoControlChars(artifact, "Anki TSV");
   });
 });

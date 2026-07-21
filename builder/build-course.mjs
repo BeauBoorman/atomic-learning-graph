@@ -69,7 +69,7 @@ export function validateBuildInput(input) {
     }
   }
   if (input?.ownedContentAccepted !== true) {
-    throw new Error("Confirm that you own the text and may embed it in this CC0 course artifact.");
+    throw new Error("Confirm that you own the text and may embed it in this course under the chosen license.");
   }
   return {
     text,
@@ -105,7 +105,7 @@ export function createCourseBuilder({ atomizer, atomizerFactory, packager, makeT
       sources: [{
         id: `teacher-source-${randomUUID().slice(0, 8)}`,
         title: validated.title,
-        license: "CC0-1.0",
+        license: cleanField(input.license, "CC0-1.0", 50),
         author: validated.author,
         textPath: "source.txt",
       }],

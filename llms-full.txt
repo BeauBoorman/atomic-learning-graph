@@ -754,7 +754,7 @@ Source: `d2l-softmax-regression`
 
 > the softmax operation preserves the ordering among its arguments
 
-Formally, “argmax” means the position of the largest number, ŷⱼ is category j’s probability, and oⱼ is its original score. The equation says that the largest probability and the largest original score occur at the same position.
+Formally, “argmax” means the position of the largest number, ŷⱼ is category j’s probability, and oⱼ is its original score. The equation says that the largest probability and the largest original score occur at the same position.
 
 Source: `d2l-softmax-regression`
 

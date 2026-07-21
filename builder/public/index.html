@@ -112,7 +112,8 @@
               <input id="key" type="password" minlength="12" placeholder="sk-…" spellcheck="false" autocomplete="off" required />
               <div class="hint" id="key-hint">Sent only to this local Node server and OpenAI during this build, held in memory, then discarded. It is never logged, written to disk, or put in the course.</div>
             </div>
-            <label class="consent"><input id="owned" type="checkbox" required /><span>I own this pasted text and may embed it in the generated local course under CC0-1.0. This explicit affirmation is required by the existing fail-closed license gate.</span></label>
+            <div class="field"><label for="license">License</label><select id="license" required><option value="">Choose a license for your course</option><option value="CC0-1.0">CC0 1.0 (public domain)</option><option value="CC-BY-4.0">CC BY 4.0 (attribution)</option><option value="CC-BY-SA-4.0">CC BY-SA 4.0 (attribution, share-alike)</option><option value="MIT">MIT (permissive)</option><option value="custom">Custom / user-attested rights</option></select><small>The emitted course will carry this license. The demo graph always uses CC-BY-SA-4.0 from its pinned sources.</small></div>
+<label class="consent"><input id="owned" type="checkbox" required /><span>I own this text or have the right to embed it under the license I selected above.</span></label>
             <button id="build" type="submit">BUILD MY OFFLINE COURSE →</button>
             <div class="privacy">Loopback-only server · temporary files removed when it stops</div>
           </form>
@@ -297,6 +298,7 @@
           model: model.value,
           baseUrl: baseUrl.value,
           apiKey: key.value,
+          license: (document.querySelector("#license") || {}).value || "CC0-1.0",
           ownedContentAccepted: document.querySelector("#owned").checked,
         };
         try {

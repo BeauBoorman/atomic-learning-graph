@@ -3,6 +3,7 @@
 // lessons, quotes, and alternate renderings are emitted verbatim from their gated artifacts.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { stripControlChars, assertNoControlChars } from "./emit-utils";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -239,8 +240,8 @@ export function writeLlmsArtifacts(
   artifacts: LlmsArtifacts,
   paths: LlmsPaths = LLMS_PATHS,
 ): void {
-  writeFileSync(paths.index, artifacts.index, "utf8");
-  writeFileSync(paths.full, artifacts.full, "utf8");
+  writeFileSync(paths.index, stripControlChars(artifacts.index), "utf8");
+  writeFileSync(paths.full, stripControlChars(artifacts.full), "utf8");
 }
 
 export function verifyLlmsArtifacts(

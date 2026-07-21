@@ -11,6 +11,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
+import { stripControlChars, assertNoControlChars } from "./emit-utils";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -451,7 +452,7 @@ export function writeExportShowcase(
   for (const file of files) {
     const path = resolve(directory, file.path);
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, file.bytes, "utf8");
+    writeFileSync(path, stripControlChars(file.bytes), "utf8");
   }
 }
 

@@ -59,7 +59,7 @@ Picture a race in which softmax changes everyone’s finish time but not their f
 
 ### Step 5 · core
 
-Formally, “argmax” means the position of the largest number, ŷⱼ is category j’s probability, and oⱼ is its original score. The equation says that the largest probability and the largest original score occur at the same position.
+Formally, “argmax” means the position of the largest number, ŷⱼ is category j’s probability, and oⱼ is its original score. The equation says that the largest probability and the largest original score occur at the same position.
 
 **Source receipt — [[Sources/d2l-softmax-regression|Dive into Deep Learning — 4.1 Softmax Regression]]**
 
