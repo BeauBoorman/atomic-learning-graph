@@ -96,7 +96,7 @@ conditions. The next section states the claims the repository actually checks.
 
 - **Atomic steps:** one idea per page, never two.
 - **Prerequisite scaffolding:** a deterministic order, derived from the graph, not guessed.
-- **Optional analogies:** the same idea through cooking, sport, music, games, cars, gardening.
+- **Optional analogies:** the same idea through cooking, sports, music, video games, cars, gardening.
 - **Optional depth:** every step, or just the spine.
 
 Multiple representations, analogical transfer, cognitive-load management, interest-based motivation.
@@ -207,7 +207,7 @@ guarantees travel — not the headline.
 
 - **A build receipt.** The compile records a machine-checkable receipt in
   [`data/graph.run.json`](data/graph.run.json): the source corpus and pin, the model, token usage,
-  cost, and the graph's sha256 (`2bf3b9de…`) that `src/atomization/graph-run.test.ts` recomputes. It
+  cost, and the graph's sha256 (`bbcf8b33…`) that `src/atomization/graph-run.test.ts` recomputes. It
   distinguishes the human-specified structure from the model-generated prose, and records that the
   browser makes zero model calls.
 - **Six learning-content exports, attribution-clean.** The one graph emits six learning-content

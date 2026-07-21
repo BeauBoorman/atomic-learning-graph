@@ -70,6 +70,8 @@
   --t-quote: 19px;
   --t-title: clamp(30px, 1.4rem + 1.9vw, 38px);
   --t-hero: clamp(36px, 1.5rem + 3vw, 50px);
+  --t-small: 13px;
+  --t-h3: clamp(20px, 0.9rem + 1.2vw, 24px);
 
   --s1: 4px;
   --s2: 8px;
@@ -1657,6 +1659,66 @@ select {
   font-size: var(--t-body);
 }
 
+.completed-path-section {
+  margin: var(--s6) auto;
+  max-width: var(--measure);
+  text-align: left;
+}
+
+.path-section-title {
+  font-family: var(--font-ui);
+  font-size: var(--t-colophon);
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--s3);
+}
+
+.completed-path-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.completed-path-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  background: var(--surface);
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: var(--t-ui);
+}
+
+.completed-path-item.is-goal {
+  border-color: var(--primary);
+  font-weight: 600;
+  background: var(--surface-soft);
+}
+
+.completed-path-item .step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.completed-path-item.is-goal .step-num {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
 .completion-actions {
   display: flex;
   justify-content: center;
@@ -2232,4 +2294,8 @@ footer {
   font-weight: 600;
   width: 3rem;
   text-align: right;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
 }

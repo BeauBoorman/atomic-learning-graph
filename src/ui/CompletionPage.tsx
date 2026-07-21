@@ -70,18 +70,34 @@ export function CompletionPage({
   return (
     <main className="completion-page" id="main-content" aria-labelledby="completion-title">
       <p className="completion-mark" aria-hidden="true">✓</p>
-      <p className="eyebrow">You reached your goal</p>
-      <h1 id="completion-title">Nice work.</h1>
-      <p className="completion-route">
-        You can now approach {titleFor(goal)} because you worked through {routeTitles.join(" → ")}.
+      <p className="eyebrow">Course complete</p>
+      <h1 id="completion-title">You reached your goal.</h1>
+      <p className="completion-route-summary">
+        You have completed your learning path and are ready to apply <strong>{titleFor(goal)}</strong>.
       </p>
+      <div className="completed-path-section">
+        <h2 className="path-section-title">Your completed path</h2>
+        <ol className="completed-path-list">
+          {route.map((id, idx) => {
+            const isGoalConcept = id === goalId;
+            const c = concepts.get(id);
+            if (!c) return null;
+            return (
+              <li key={id} className={`completed-path-item${isGoalConcept ? " is-goal" : ""}`}>
+                <span className="step-num">{idx + 1}</span>
+                <span className="step-name">{titleFor(c)}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
       {writtenExplanations.length > 0 && (
         <details className="self-explanation-recap" open>
           <summary>What you wrote</summary>
-          <h2>The thread you wrote through these ideas</h2>
+          <h2>What you wrote at each step</h2>
           <dl>
-            {writtenExplanations.map(({ prompt, answer }) => (
-              <div key={prompt}>
+            {writtenExplanations.map(({ prompt, answer }, idx) => (
+              <div key={idx}>
                 <dt>{prompt}</dt>
                 <dd>{answer}</dd>
               </div>
@@ -92,7 +108,7 @@ export function CompletionPage({
       {hasMore && (
         <details className="explore-more" open>
           <summary>Keep going — {unexplored.length} more idea{unexplored.length === 1 ? "" : "s"} to explore</summary>
-          <p>Pick a new goal and the route recomputes from everything you just learned.</p>
+          <p>Pick a new goal and we will route to it from the prerequisites you need.</p>
           <ul className="explore-more-list">
             {unexplored.map((concept) => (
               <li key={concept.id}>

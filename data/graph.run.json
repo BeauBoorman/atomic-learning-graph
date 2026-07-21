@@ -5,7 +5,7 @@
   "analogyPromptVersion": "atomizer-v2-analogies-six-passions",
   "strictStructuredOutputs": true,
   "manifestSha256": "02498e4541c214d5f75d7e8e3f41531491e4c0614b11e1eb003faa3d35566a20",
-  "graphSha256": "2bf3b9de2f661f7f5bd2536d30a4db02a63c7272c61afbaa070378c30e808690",
+  "graphSha256": "bbcf8b33c8a03fac47e20387dc50b36718adf7ea16409821c9cb3f0d5ec249fb",
   "usageTokens": {
     "input": 30410,
     "output": 10245,

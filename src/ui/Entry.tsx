@@ -55,10 +55,9 @@ export function Entry({
 
   return (
     <main className="entry" id="main-content">
-      <p className="eyebrow">Build a short learning path</p>
+      <p className="eyebrow">A learning path, compiled from cited sources</p>
       <h1>What do you want to understand?</h1>
-      <p className="entry-thesis">Compiled once from cited sources — no AI at read time.</p>
-      <p className="lede">Choose a goal. We will start with the ideas you need first.</p>
+      <p className="lede">Pick a goal. We'll teach the prerequisites first, one idea per page.</p>
 
       <ol className="route-preview">
         {route.flatMap((conceptId, index) => {
@@ -128,7 +127,7 @@ export function Entry({
                   />
                   <span>
                     <strong>{titleFor(concept)}</strong>
-                    <small>Skip this prerequisite</small>
+                    <small>I already know this</small>
                   </span>
                 </label>
               );
@@ -190,8 +189,7 @@ export function Entry({
               Continue where I left off
             </button>
             <p className="resume-note">
-              This device already covered {resumePageCount} page{resumePageCount === 1 ? "" : "s"} of
-              this exact course.{" "}
+              You have progress saved: you already completed {resumePageCount} page{resumePageCount === 1 ? "" : "s"} on this path.{" "}
               <button type="button" className="text-button" onClick={onStartFresh}>
                 Start from the beginning instead
               </button>

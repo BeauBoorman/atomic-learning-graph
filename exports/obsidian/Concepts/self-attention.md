@@ -43,7 +43,7 @@ It is called “self-attention” because the tokens attend to, or consider, oth
 
 ### Step 3 · core
 
-Suppose three tokens have the simple number values 2, 4, and 6, and our toy rule averages all three for each result: (2 + 4 + 6) ÷ 3 = 4, so the output is 4, 4, 4.
+Suppose three tokens have the simple number values 2, 4, and 6. The first token might pay 50% attention to itself, 30% to the second, and 20% to the third: 0.5 × 2 + 0.3 × 4 + 0.2 × 6 = 1 + 1.2 + 1.2 = 3.4. A different token, with different attention weights, gets a different result — that is what makes it attention, not averaging.
 
 **Source receipt — [[Sources/d2l-self-attention|Dive into Deep Learning — 11.6 Self-Attention and Positional Encoding]]**
 

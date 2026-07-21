@@ -43,8 +43,8 @@ export function ReceiptCard({ receipt }: { receipt: CourseReceipt }) {
     <aside className="receipt-card" aria-labelledby="receipt-heading">
       <h2 id="receipt-heading" className="receipt-title">The build receipt</h2>
       <p className="receipt-lede">
-        Humans specify the intent; a model does the translation; deterministic evidence makes every
-        boundary visible. Each line below names the provenance tier it belongs to.
+        A human set the structure, a model wrote the prose, and deterministic checks prove the citations.
+        Each row says which of those it is.
       </p>
       <dl className="receipt-rows">
         {rows.map((row) => (
@@ -68,7 +68,7 @@ export function ReceiptCard({ receipt }: { receipt: CourseReceipt }) {
         </li>
         <li>
           <span className="receipt-fact-key">Graph hash</span>
-          <span><code>{verification.graphHash.slice(0, 10)}…</code></span>
+          <span><code>{verification.graphHash.slice(0, 8)}…</code></span>
         </li>
         <li className="receipt-headline">
           <span className="receipt-fact-key">Runtime model calls</span>

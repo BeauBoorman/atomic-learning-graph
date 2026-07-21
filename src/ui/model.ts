@@ -170,7 +170,7 @@ export function coveredConcepts(
 
 /** A domain-claim-free invitation computed only from the two concepts at a prerequisite edge. */
 export function selfExplanationPrompt(concept: Concept, prerequisite: Concept): string {
-  return `Before you continue — in your own words, why does ${titleFor(concept)} need ${titleFor(prerequisite)}?`;
+  return `You just read "${titleFor(prerequisite)}". Next is "${titleFor(concept)}" — in your own words, how does the second build on the first?`;
 }
 
 export function selfExplanationPromptId(

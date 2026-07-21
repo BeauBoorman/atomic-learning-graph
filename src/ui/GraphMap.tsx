@@ -499,6 +499,7 @@ export function GraphMap({
     // autoFit, which raises the flag around itself.
     cy.on("zoom pan", () => {
       if (!applyingProgrammaticView.current) userAdjustedView.current = true;
+      setHoveredConcept(null);
     });
 
     graphRef.current = cy;

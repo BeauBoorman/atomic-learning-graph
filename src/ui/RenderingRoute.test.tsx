@@ -53,7 +53,7 @@ describe("summoned rendering route", () => {
     // …but the visible colophon prints ONCE for the one source both steps cite. Printing the
     // identical attribution under all steps read as a stuck rubber stamp; the license
     // obligation is discharged by the single visible credit.
-    expect(markup.match(/Read the source ⟢/g)).toHaveLength(1);
+    expect(markup.match(/Read the source ↗/g)).toHaveLength(1);
     expect(markup.match(/Plain translation/g)).toHaveLength(1);
   });
 

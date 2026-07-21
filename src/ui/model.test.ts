@@ -170,7 +170,7 @@ describe("UI learning model", () => {
     if (!prerequisite || !concept) throw new Error("fixture concepts missing");
 
     expect(selfExplanationPrompt(concept, prerequisite)).toBe(
-      `Before you continue — in your own words, why does ${titleFor(concept)} need ${titleFor(prerequisite)}?`,
+      `You just read "${titleFor(prerequisite)}". Next is "${titleFor(concept)}" — in your own words, how does the second build on the first?`,
     );
   });
 

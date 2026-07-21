@@ -51,7 +51,7 @@ function DotProductVisualizer() {
   return (
     <div className="math-visualizer dot-product-viz" aria-label="Interactive dot product calculator">
       <h4>Interactive Dot Product Calculator</h4>
-      <p className="viz-intro">The lesson describes the dot product in words — here you can do it. Drag the sliders and watch each matching pair get multiplied, then summed into one number.</p>
+      <p className="viz-intro">Adjust the sliders to see how corresponding elements are multiplied and accumulated into a single value.</p>
       
       <div className="vector-section">
         <div className="vector-row">
@@ -124,7 +124,7 @@ function SoftmaxVisualizer() {
   return (
     <div className="math-visualizer softmax-viz" aria-label="Interactive softmax probability visualizer">
       <h4>Interactive Softmax Calculator</h4>
-      <p className="viz-intro">Try the softmax from the lesson yourself: drag the scores and watch how exponentiation stretches the gaps between them, then normalizes everything to 100%.</p>
+      <p className="viz-intro">Adjust the scores to see how exponentiation exaggerates differences, and how the sum normalizes them into a probability distribution.</p>
 
       <div className="softmax-inputs">
         {scores.map((score, idx) => (

@@ -95,7 +95,7 @@ export function MapToggle({
         aria-expanded={open}
         onClick={() => setOpen(true)}
       >
-        Show where I am
+        Open the concept map
       </button>
 
       {/* The apology is gone. It read "You are learning X. The map is optional." — a caption that

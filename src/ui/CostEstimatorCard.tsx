@@ -29,7 +29,7 @@ export function CostEstimatorCardView({
 
   const hasText = text.length > 0;
   const summary = hasText
-    ? `This would cost about ${usd.format(leadEstimate.estimatedUsdTotal)} to build with ${leadEstimate.model}, then run free forever.`
+    ? `About ${usd.format(leadEstimate.estimatedUsdTotal)} to build once with ${leadEstimate.model}. Reading the finished course needs no key and no network — that part is free.`
     : "Paste source text to see its build estimate.";
 
   return (

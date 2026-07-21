@@ -580,7 +580,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
 
   return (
     <>
-      <a className="skip-link" href="#main-content">Skip to the lesson</a>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="masthead">
         <button className="wordmark" type="button" onClick={chooseCourse}>
           <span className="wordmark-mark" aria-hidden="true">A·</span>
@@ -604,7 +604,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
                 the toggle feel reversed even though the colours were always correct. The
                 icon and text now both describe what the click will do, matching aria-label. */}
             <span aria-hidden="true">{nextThemeName === "light" ? "☀" : "☾"}</span>
-            <span className="theme-button-text">Switch to {nextThemeName}</span>
+            <span className="theme-button-text">{nextThemeName}</span>
           </button>
         </div>
       </header>
@@ -660,7 +660,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
       )}
 
       <p className="sr-only" aria-live="polite">{announcement}</p>
-      <footer>Built from an openly licensed graph. Lessons run without a request-time AI call.</footer>
+      <footer>Built from an openly licensed graph.</footer>
     </>
   );
 }

@@ -243,7 +243,7 @@ export function Citation({
         )}{" "}
         ·{" "}
         <button type="button" className="source-link" aria-haspopup="dialog" onClick={onOpen}>
-          Read the source ⟢
+          Read the source ↗
         </button>
       </p>}
 

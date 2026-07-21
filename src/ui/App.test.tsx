@@ -321,9 +321,9 @@ describe("Phase 5 learning flow", () => {
     );
 
     expect(html).toContain(
-      `You can now approach ${titleFor(goal)} because you worked through ${route.join(" → ")}.`,
+      `You have completed your learning path and are ready to apply <strong>${titleFor(goal)}</strong>.`,
     );
-    expect(html).not.toContain(`worked through ${progress.pages.map(coursePageKey).join(" → ")}`);
+    expect(html).toContain("completed-path-list");
   });
 
   it("recaps only written self-explanations at completion and renders nothing when none exist", () => {
@@ -359,12 +359,12 @@ describe("Phase 5 learning flow", () => {
     );
 
     expect(written).toContain("What you wrote");
-    expect(written).toContain("The thread you wrote through these ideas");
-    expect(written).toContain(prompts[0].prompt);
+    expect(written).toContain("What you wrote at each step");
+    expect(written).toContain(prompts[0].prompt.replace(/"/g, "&quot;"));
     expect(written).toContain("This is the thread I made.");
     expect(written).not.toContain(prompts[1].prompt);
     expect(empty).not.toContain("What you wrote");
-    expect(empty).not.toContain("The thread you wrote through these ideas");
+    expect(empty).not.toContain("What you wrote at each step");
     expect(empty).not.toContain("self-explanation-recap");
   });
 
@@ -392,7 +392,7 @@ describe("Phase 5 learning flow", () => {
       />,
     );
 
-    expect(html).toContain(selfExplanationPrompt(concept, prerequisite));
+    expect(html).toContain(selfExplanationPrompt(concept, prerequisite).replace(/"/g, "&quot;"));
     expect(html).toContain("<textarea");
     expect(html).toContain("Optional. Nothing grades this — your notes come back at the end.");
     expect(html).not.toContain("required");
@@ -549,7 +549,7 @@ describe("Phase 5 learning flow", () => {
     // Anchored to the text node, NOT the substring: the aria-label above already contains
     // "Switch to dark", so a bare toContain("Switch to dark") stays green even if the visible
     // span is deleted. ☾ is unique to the icon span.
-    expect(html).toContain(">Switch to dark<");
+    expect(html).toContain(">dark<");
     expect(html).toContain("☾");
   });
 });

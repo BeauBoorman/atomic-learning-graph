@@ -153,7 +153,7 @@ export function RenderingRoute({
       <button className="text-button route-return route-return-top" type="button" onClick={onReturn}>
         Back to the lesson
       </button>
-      <p className="eyebrow">Another route to {titleFor(concept)}</p>
+      <p className="eyebrow">Alternate route</p>
       <h1 id="rendering-title" ref={title} tabIndex={-1}>{rendering.plainTitle}</h1>
 
       <ol className="rendering-steps">
@@ -368,7 +368,7 @@ export function LessonPage({
           ?.format ?? availableRenderings[0].format;
         return (
           <section className="rendering-summon" aria-label="Another route through this idea">
-            <p>Want to practice this differently?</p>
+            <p>Explore this concept from another angle:</p>
             <button
               className="text-button"
               type="button"
