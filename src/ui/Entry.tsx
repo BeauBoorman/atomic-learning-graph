@@ -57,7 +57,8 @@ export function Entry({
     <main className="entry" id="main-content">
       <p className="eyebrow">A learning path, compiled from cited sources</p>
       <h1>What do you want to understand?</h1>
-      <p className="lede">Pick a goal. We'll teach the prerequisites first, one idea per page.</p>
+      <p className="lede">Pick a goal. We work back through the prerequisites and teach one idea per page — each one plain English, each one anchored to the sentence it came from.</p>
+      <p className="entry-thesis">Every step cites the exact passage it came from — and nothing is generated while you read.</p>
 
       <ol className="route-preview">
         {route.flatMap((conceptId, index) => {

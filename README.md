@@ -1,4 +1,11 @@
-# Atomic Learning — a compiler for inspectable curricula
+> **Atomic Learning Graph** — a plain-English edition of a real textbook: one idea per page, a receipt on every sentence, and no AI while you read (the build proves it against the shipped bytes).
+>
+> - **Who it's for:** learners who want AI's help but don't trust unverifiable output — and want a durable course they keep, not a chatbot thread they lose.
+> - **What to click:** the **[live demo](https://beauboorman.github.io/atomic-learning-graph/)** — it runs offline in your browser.
+> - **What makes it different:** Codex (GPT-5.6) wrote this repo under adversarial gates it couldn't talk past, then runs as the atomizer inside the product. One model, two jobs.
+> - **Built:** entirely during OpenAI Build Week 2026.
+
+# A plain-English edition of a real textbook — one idea per page, a receipt on every sentence, and no AI while you read.
 
 *Every lesson step has a receipt. Every claim has a gate.*
 **Give it an open textbook chapter. It produces an offline learning path where every lesson step

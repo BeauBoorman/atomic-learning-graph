@@ -1,4 +1,4 @@
-# Atomic Learning — a compiler for inspectable curricula
+# A plain-English edition of a real textbook — one idea per page, a receipt on every sentence, and no AI while you read.
 
 > *Every lesson step has a receipt. Every claim has a gate.* **Give it an open textbook chapter. It produces an offline learning path where every lesson step can be challenged against the exact source passage it cites.**
 

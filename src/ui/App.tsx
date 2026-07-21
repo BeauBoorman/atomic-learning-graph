@@ -660,7 +660,7 @@ export function App({ graph, renderings = { renderings: [] }, receipt }: AppProp
       )}
 
       <p className="sr-only" aria-live="polite">{announcement}</p>
-      <footer>Built from an openly licensed graph.</footer>
+      <footer>Built from openly licensed sources. Every step cites its passage — nothing is generated while you read.</footer>
     </>
   );
 }
