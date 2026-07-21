@@ -40,7 +40,7 @@ function parsedNodeStyle(): Record<string, ParsedProperty> {
   const cy = cytoscape({
     headless: true,
     styleEnabled: true,
-    elements: [{ data: { id: "vectors", displayLabel: "Vectors as fixed-length lists" } }],
+    elements: [{ data: { id: "vectors", displayLabel: "Vectors" } }],
     style: stylesFor("light"),
   });
   const node = cy.getElementById("vectors") as unknown as {

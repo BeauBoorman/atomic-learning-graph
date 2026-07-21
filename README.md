@@ -141,7 +141,7 @@ The model still proposes the grounded content inside those ten slots: titles, su
 ten concept-level quote selections, all lesson steps, and all analogies. The graph and citations then
 face deterministic gates; analogies remain optional illustrations.
 
-The shipped artifact: **10 concepts, 9 prerequisite relationships, 52 cited lesson steps** (40 core,
+The shipped artifact: **10 concepts, 9 prerequisite edges, 52 cited lesson steps** (40 core,
 12 deep) and **312 optional analogies** across 6 passions, plus the complete text of the four
 pinned sources, embedded so the receipt can be verified in the browser with no request.
 

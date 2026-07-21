@@ -512,8 +512,8 @@ describe("Phase 5 learning flow", () => {
     );
 
     expect(html.match(/type="checkbox"/g)).toHaveLength(2);
-    expect(html).toContain("Vectors as fixed-length lists");
-    expect(html).toContain("Multiply matching values, then add");
+    expect(html).toContain("Vectors");
+    expect(html).toContain("Dot product");
     expect(html).not.toContain('type="checkbox" value="qkv"');
     expect(html).not.toMatch(/<input[^>]*type="checkbox"[^>]*checked=/);
   });
