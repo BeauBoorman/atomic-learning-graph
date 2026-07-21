@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import cytoscape from "cytoscape";
 import dagre from "cytoscape-dagre";
-import type { ConceptId, LearningGraph } from "../types";
+import type { Concept, ConceptId, LearningGraph } from "../types";
 import { titleFor } from "./titles";
 
 cytoscape.use(dagre);
@@ -359,6 +359,8 @@ export function GraphMap({
   };
 
   const [showFullMap, setShowFullMap] = useState(false);
+  const [hoveredConcept, setHoveredConcept] = useState<Concept | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<cytoscape.Core | null>(null);
   const onSelectRef = useRef(onSelect);
@@ -472,9 +474,21 @@ export function GraphMap({
       const node = event.target;
       cy.elements().addClass("dimmed");
       node.closedNeighborhood().removeClass("dimmed").addClass("highlighted");
+      
+      const conceptId = node.id();
+      const concept = graph.concepts.find((c) => c.id === conceptId);
+      if (concept) {
+        setHoveredConcept(concept);
+        const renderedPos = node.renderedPosition();
+        setTooltipPos({
+          x: renderedPos.x,
+          y: renderedPos.y - 45,
+        });
+      }
     });
     cy.on("mouseout", "node", () => {
       cy.elements().removeClass("dimmed highlighted");
+      setHoveredConcept(null);
     });
 
     // A wheel, pinch, or drag fires these same events — so do our own fits, which is what
@@ -697,6 +711,33 @@ export function GraphMap({
           <button type="button" onClick={() => zoomBy(0.85)} aria-label="Zoom out">−</button>
           <button type="button" onClick={fit} aria-label="Fit visible concepts in view">Fit</button>
         </div>
+        {hoveredConcept && (
+          <div
+            className="map-tooltip"
+            style={{
+              position: "absolute",
+              left: `${tooltipPos.x}px`,
+              top: `${tooltipPos.y}px`,
+              transform: "translate(-50%, -100%)",
+              background: "var(--surface)",
+              color: "var(--ink)",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--radius)",
+              padding: "0.5rem 0.75rem",
+              fontSize: "var(--t-colophon)",
+              pointerEvents: "none",
+              zIndex: 1000,
+              boxShadow: "var(--shadow)",
+              maxWidth: "240px",
+              textAlign: "center"
+            }}
+          >
+            <strong>{titleFor(hoveredConcept)}</strong>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "4px" }}>
+              {hoveredConcept.summary}
+            </div>
+          </div>
+        )}
       </div>
 
       {selectedConcept && (

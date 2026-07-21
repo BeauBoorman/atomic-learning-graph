@@ -29,6 +29,40 @@ export function CompletionPage({
   });
   const writtenExplanations = selfExplanations.filter(({ answer }) => answer.trim().length > 0);
 
+  const handleExport = () => {
+    const goalTitle = goal ? titleFor(goal) : "Learning Goal";
+    let markdown = `# Learning Notes: ${goalTitle}\n\n`;
+    markdown += `*Path completed: ${routeTitles.join(" → ")}*\n\n`;
+    markdown += `## Concept Recollection & Reflection\n\n`;
+
+    route.forEach((id, index) => {
+      const c = concepts.get(id);
+      if (!c) return;
+      markdown += `### ${index + 1}. ${titleFor(c)}\n`;
+      markdown += `**Summary:** ${c.summary}\n\n`;
+
+      // Match written explanation if any
+      const matchingExplanation = selfExplanations.find((e) =>
+        e.prompt.toLowerCase().includes(titleFor(c).toLowerCase())
+      );
+      if (matchingExplanation) {
+        markdown += `**My Reflection:**\n> ${matchingExplanation.answer}\n\n`;
+      }
+
+      markdown += `---\n\n`;
+    });
+
+    markdown += `Generated offline by Atomic Learning.`;
+
+    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${goalId}-learning-notes.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Concepts not on this route — the rest of the graph the learner can explore.
   const unexplored = graph.concepts.filter((concept) => !routeSet.has(concept.id));
   const hasMore = unexplored.length > 0;
@@ -74,7 +108,14 @@ export function CompletionPage({
           </ul>
         </details>
       )}
-      <button className="text-button" type="button" onClick={onRestart}>Start over</button>
+      <div className="completion-actions">
+        <button className="primary-button export-notes-button" type="button" onClick={handleExport}>
+          Export my notes (.md)
+        </button>
+        <button className="text-button" type="button" onClick={onRestart}>
+          Start over
+        </button>
+      </div>
     </main>
   );
 }

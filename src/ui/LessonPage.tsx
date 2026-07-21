@@ -11,6 +11,7 @@ import { MathText } from "./MathText";
 import { Citation, FootnoteMark } from "./Citation";
 import type { ResolvedPassage } from "./model";
 import { titleFor } from "./titles";
+import { MathVisualizer } from "./MathVisualizer";
 
 interface LessonPageProps {
   concept: Concept;
@@ -342,6 +343,10 @@ export function LessonPage({
           </div>
           <p>{analogy}</p>
         </aside>
+      )}
+
+      {concept.lesson?.steps?.[0]?.text === step.text && (
+        <MathVisualizer conceptId={concept.id} />
       )}
 
       <Citation

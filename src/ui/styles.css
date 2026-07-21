@@ -313,7 +313,17 @@ a {
   line-height: 1.08;
 }
 
-.lesson-page h1,
+.lesson-page h1 {
+  max-width: 20ch;
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--t-title);
+  font-family: var(--font-text);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.14;
+}
+
 .completion-page h1 {
   max-width: 20ch;
   margin: 0;
@@ -380,7 +390,10 @@ a {
 .route-chip {
   display: inline-flex;
   align-items: center;
-  padding: 0.45rem 0.8rem;
+  justify-content: center;
+  min-height: 2.5rem;
+  min-width: 7.5rem;
+  padding: 0.4rem 1rem;
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -388,6 +401,7 @@ a {
   font-weight: 500;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  text-align: center;
 }
 
 .route-chip:hover:not(.is-skipped) {
@@ -648,6 +662,7 @@ select {
 
 .course {
   padding: var(--s6) 0 var(--s8);
+  position: relative;
 }
 
 /* ── The folio ────────────────────────────────────────────────────────────────
@@ -656,6 +671,7 @@ select {
    text is gone; the fill IS the percentage. */
 .step-indicator {
   margin-bottom: var(--s5);
+  transition: all 0.3s ease;
 }
 
 .folio {
@@ -664,12 +680,14 @@ select {
   gap: 1rem;
   margin: 0 0 var(--s2);
   color: var(--muted);
+  transition: all 0.3s ease;
 }
 
 .progress-track {
   height: 2px;
   overflow: hidden;
   background: var(--rule);
+  transition: all 0.3s ease;
 }
 
 .progress-track span {
@@ -677,6 +695,35 @@ select {
   height: 100%;
   background: var(--primary);
   transition: width 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (min-width: 60rem) {
+  .step-indicator {
+    position: absolute;
+    left: -6.5rem;
+    top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 5rem;
+    margin-bottom: 0;
+  }
+  .folio {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: var(--s1);
+    margin: 0 0 1.25rem 0;
+  }
+  .folio span {
+    white-space: nowrap;
+  }
+  .progress-track {
+    width: 5rem;
+    height: 3px;
+    margin-top: var(--s1);
+  }
 }
 
 /* ── The lesson ───────────────────────────────────────────────────────────────
@@ -690,9 +737,10 @@ select {
                                 measure DEGRADED as the window grew. */
   margin: var(--s6) 0 0;
   color: var(--ink);
+  font-family: var(--font-text);
   font-size: var(--t-body);
   letter-spacing: -0.003em;
-  line-height: 1.55;
+  line-height: 1.72;
 }
 
 /* An optional aid, not a warning callout. A pale slab with a 4px left rule in the
@@ -758,8 +806,12 @@ select {
 }
 
 .analogy-pill {
-  min-height: 2.2rem;
-  padding: 0.35rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  min-width: 7.5rem;
+  padding: 0.4rem 1rem;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -769,6 +821,7 @@ select {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
 }
 
 .analogy-pill:hover {
@@ -1570,6 +1623,24 @@ select {
   font-size: var(--t-body);
 }
 
+.completion-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--s4);
+  margin: var(--s5) auto var(--s7);
+  max-width: var(--measure);
+}
+
+.completion-actions .export-notes-button {
+  min-width: 12rem;
+}
+
+.completion-actions .start-over-button {
+  border-width: 0 0 1px;
+  padding: 0.35rem 0.75rem;
+}
+
 .self-explanation-recap {
   max-width: var(--measure);
   margin: 0 auto var(--s6);
@@ -1966,4 +2037,157 @@ footer {
   font-size: 1.4rem;
   color: var(--ink);
   line-height: 1;
+}
+
+/* Interactive Math Visualizers */
+.math-visualizer {
+  margin: var(--s6) 0;
+  padding: var(--s5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.math-visualizer h4 {
+  font-family: var(--font-header);
+  font-size: var(--t-h3);
+  margin: 0 0 0.5rem 0;
+  color: var(--ink);
+}
+
+.viz-intro {
+  font-size: var(--t-colophon);
+  color: var(--muted);
+  margin: 0 0 1.5rem 0;
+}
+
+.vector-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  margin-bottom: var(--s5);
+}
+
+.vector-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+
+.vector-name {
+  font-weight: 600;
+  min-width: 6.5rem;
+  font-size: var(--t-ui);
+}
+
+.vector-element {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: var(--bg);
+  padding: 0.5rem;
+  border-radius: calc(var(--radius) * 0.7);
+  border: 1px solid var(--rule);
+  min-width: 6.5rem;
+}
+
+.element-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.vector-element input[type="range"],
+.softmax-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--focus);
+  cursor: pointer;
+}
+
+.result-display {
+  margin-top: var(--s5);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--rule);
+  text-align: right;
+}
+
+.result-formula {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.result-equals {
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin-top: 0.2rem;
+}
+
+.result-value {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-top: 0.3rem;
+}
+
+.primary-color-text {
+  color: var(--focus);
+}
+
+/* Softmax specific */
+.softmax-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.softmax-row {
+  display: grid;
+  grid-template-columns: 10rem 1fr 6rem;
+  align-items: center;
+  gap: var(--s4);
+  background: var(--bg);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+}
+
+@media (max-width: 48rem) {
+  .softmax-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+.softmax-row-label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--t-ui);
+}
+
+.exp-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+.softmax-bar-container {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+}
+
+.softmax-bar {
+  height: 0.75rem;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--rule) 100%);
+  border-radius: 9999px;
+  min-width: 4px;
+}
+
+.softmax-percentage {
+  font-size: var(--t-ui);
+  font-weight: 600;
+  width: 3rem;
+  text-align: right;
 }

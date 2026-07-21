@@ -335,6 +335,7 @@ export function CourseScreen({
         initialPath={uniqueConcepts(progress.pages)}
         covered={covered}
         theme={theme}
+        onGoalChange={onGoalChange}
       />
       <div className="course-reset">
         <button className="text-button" type="button" onClick={onRestart}>Start over</button>

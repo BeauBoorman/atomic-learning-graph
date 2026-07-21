@@ -10,6 +10,7 @@ interface MapToggleProps {
   initialPath: ConceptId[];
   covered: ConceptId[];
   theme: "light" | "dark";
+  onGoalChange?: (goalId: ConceptId) => void;
 }
 
 /**
@@ -34,6 +35,7 @@ export function MapToggle({
   initialPath,
   covered,
   theme,
+  onGoalChange,
 }: MapToggleProps) {
   const [open, setOpen] = useState(false);
   // The map stays MOUNTED slightly past close: the plate animates out over 260ms (.sheet's
@@ -128,7 +130,12 @@ export function MapToggle({
               initialPath={initialPath}
               covered={covered}
               theme={theme}
-              onSelect={setSelectedId}
+              onSelect={(id) => {
+                setSelectedId(id);
+                if (onGoalChange) {
+                  onGoalChange(id);
+                }
+              }}
             />
           )}
         </div>
