@@ -75,7 +75,7 @@ export function SelfExplanation({
         onBlur={(event) => onAnswerChange(event.currentTarget.value)}
       />
       <p id="self-explanation-note">
-        Optional. Nothing grades this — your notes come back at the end.
+        Optional and ungraded — your answer returns on the final page.
       </p>
     </section>
   );
@@ -339,6 +339,7 @@ export function LessonPage({
       {analogy && passion && (
         <aside className="analogy" aria-label="Optional analogy">
           <div className="analogy-header">
+            <p className="analogy-passion">{passionLabels[passion]}</p>
             <p className="analogy-label">{analogyVoices[passion]}</p>
           </div>
           <p>{analogy}</p>
@@ -368,7 +369,7 @@ export function LessonPage({
           ?.format ?? availableRenderings[0].format;
         return (
           <section className="rendering-summon" aria-label="Another route through this idea">
-            <p>Explore this concept from another angle:</p>
+            <p>Another route through this idea:</p>
             <button
               className="text-button"
               type="button"

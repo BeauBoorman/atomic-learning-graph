@@ -394,7 +394,7 @@ describe("Phase 5 learning flow", () => {
 
     expect(html).toContain(selfExplanationPrompt(concept, prerequisite).replace(/"/g, "&quot;"));
     expect(html).toContain("<textarea");
-    expect(html).toContain("Optional. Nothing grades this — your notes come back at the end.");
+    expect(html).toContain("Optional and ungraded — your answer returns on the final page.");
     expect(html).not.toContain("required");
     expect(html).toContain(">Next idea<");
   });

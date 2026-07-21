@@ -807,11 +807,17 @@ select {
   color: var(--muted);
 }
 
+.analogy-passion {
+  font-weight: 700;
+  color: var(--ink);
+}
+
 .analogy-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--s2);
+  gap: var(--s3);
 }
 
 .analogy-selector {
@@ -920,6 +926,16 @@ select {
   margin-right: 0.3em;
   color: var(--primary);
   font-weight: 700;
+}
+
+.colophon-source {
+  color: var(--muted);
+}
+
+.colophon-meta {
+  display: block;
+  margin-top: 0.2em;
+  color: var(--muted);
 }
 
 .colophon cite {
@@ -1482,11 +1498,9 @@ select {
 }
 
 /* The three hues on the map: claret = your route and where you are; amber = the
-   destination; warm grey = everything else.
-   NOTE FOR THE MAP PASS: GraphMap.tsx carries its OWN hardcoded `palette` object
-   (it does not read these tokens), and it is still the old green/olive/orange. Until
-   that object is repainted from §4.1, these swatches and the nodes they describe
-   will disagree. The mapping is in this stage's report. */
+   destination; warm grey = everything else. GraphMap.tsx carries its OWN hardcoded
+   `palette` object (the canvas cannot read CSS custom properties), kept in step with
+   these swatches by hand — see the mapping in GraphMap.tsx. */
 .legend-swatch {
   display: inline-block;
   width: 1.3rem;
@@ -1506,6 +1520,14 @@ select {
 .legend-swatch.next {
   border-color: var(--primary);
   background: var(--surface);
+}
+
+/* Faint claret underlay matches node.selected in GraphMap.tsx: status by width +
+   underlay, never a fourth hue. */
+.legend-swatch.selected {
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 14%, transparent);
 }
 
 /* Double ring + deep brass, exactly as node.goal draws it in GraphMap.tsx: the double border
@@ -1576,6 +1598,29 @@ select {
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow: 0 5px 16px rgba(34, 32, 27, 0.1);
+}
+
+/* Position is set inline because the canvas drives the coordinates; the visual system
+   lives here. The summary is intentionally absent — the detail panel below the map
+   already carries it, so the tooltip would just duplicate. */
+.map-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--t-colophon);
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: var(--shadow);
+  max-width: 240px;
+  text-align: center;
+}
+
+.map-tooltip.is-below {
+  transform: translate(-50%, 0);
 }
 
 .graph-controls button {

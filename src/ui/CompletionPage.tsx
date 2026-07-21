@@ -1,11 +1,12 @@
 import type { ConceptId, LearningGraph } from "../types";
+import { pathFor } from "./model";
 import { titleFor } from "./titles";
 
 interface CompletionPageProps {
   graph: LearningGraph;
   goalId: ConceptId;
   route: ConceptId[];
-  selfExplanations?: Array<{ prompt: string; answer: string }>;
+  selfExplanations?: Array<{ id: string; prompt: string; answer: string }>;
   onRestart: () => void;
   onGoalChange: (goalId: ConceptId) => void;
 }
@@ -63,8 +64,15 @@ export function CompletionPage({
     URL.revokeObjectURL(url);
   };
 
-  // Concepts not on this route — the rest of the graph the learner can explore.
-  const unexplored = graph.concepts.filter((concept) => !routeSet.has(concept.id));
+  // Goals the learner could actually start from what they now know: every prerequisite
+  // (transitive, via getPath) must already be in the completed route. The old shape listed
+  // every off-spine concept and promised the route "recomputes from everything you just
+  // learned" — false for goals whose prereqs lie partly off-route.
+  const unexplored = graph.concepts.filter((concept) => {
+    if (routeSet.has(concept.id)) return false;
+    const ancestors = pathFor(graph, concept.id, []).filter((id) => id !== concept.id);
+    return ancestors.every((id) => routeSet.has(id));
+  });
   const hasMore = unexplored.length > 0;
 
   return (
@@ -96,8 +104,8 @@ export function CompletionPage({
           <summary>What you wrote</summary>
           <h2>What you wrote at each step</h2>
           <dl>
-            {writtenExplanations.map(({ prompt, answer }, idx) => (
-              <div key={idx}>
+            {writtenExplanations.map(({ id, prompt, answer }) => (
+              <div key={id}>
                 <dt>{prompt}</dt>
                 <dd>{answer}</dd>
               </div>
@@ -108,7 +116,7 @@ export function CompletionPage({
       {hasMore && (
         <details className="explore-more" open>
           <summary>Keep going — {unexplored.length} more idea{unexplored.length === 1 ? "" : "s"} to explore</summary>
-          <p>Pick a new goal and we will route to it from the prerequisites you need.</p>
+          <p>Pick a new goal and we'll route to it from what you just learned.</p>
           <ul className="explore-more-list">
             {unexplored.map((concept) => (
               <li key={concept.id}>

@@ -49,7 +49,7 @@ function DotProductVisualizer() {
   };
 
   return (
-    <div className="math-visualizer dot-product-viz" aria-label="Interactive dot product calculator">
+    <div className="math-visualizer" aria-label="Interactive dot product calculator">
       <h4>Interactive Dot Product Calculator</h4>
       <p className="viz-intro">Adjust the sliders to see how corresponding elements are multiplied and accumulated into a single value.</p>
       
@@ -122,7 +122,7 @@ function SoftmaxVisualizer() {
   };
 
   return (
-    <div className="math-visualizer softmax-viz" aria-label="Interactive softmax probability visualizer">
+    <div className="math-visualizer" aria-label="Interactive softmax probability visualizer">
       <h4>Interactive Softmax Calculator</h4>
       <p className="viz-intro">Adjust the scores to see how exponentiation exaggerates differences, and how the sum normalizes them into a probability distribution.</p>
 

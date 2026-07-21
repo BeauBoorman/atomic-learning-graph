@@ -269,7 +269,7 @@ export function CourseScreen({
     const recap = courseSelfExplanationPrompts(graph, progress.pages).flatMap((entry) => {
       const answer = selfExplanations[entry.id];
       return typeof answer === "string" && answer.trim().length > 0
-        ? [{ prompt: entry.prompt, answer }]
+        ? [{ id: entry.id, prompt: entry.prompt, answer }]
         : [];
     });
     return (

@@ -221,31 +221,38 @@ export function Citation({
       {/* Always visible (once per source on the page), and deliberately so: attribution is a
           LICENSE OBLIGATION, and an obligation you discharge only if the reader performs a
           gesture is not discharged. What is summoned is the source TEXT, never the credit. */}
-      {attribution && <p className="colophon">
-        <span className="colophon-mark" aria-hidden="true">ᵃ</span>
-        <strong>Plain translation</strong> based on{" "}
-        <cite>
-          <a href={source.url} target="_blank" rel="noreferrer">
-            {work}
-            <span className="sr-only"> (opens in a new tab)</span>
-            <span aria-hidden="true" className="external-link-icon">↗</span>
-          </a>
-        </cite>
-        {section ? ` §${section.number}, “${section.name}”` : ""} — {surnames(source.author)} ·{" "}
-        {licenseUrl ? (
-          <a href={licenseUrl} target="_blank" rel="noreferrer">
-            {licenseLabel(source.license)}
-            <span className="sr-only"> (opens in a new tab)</span>
-            <span aria-hidden="true" className="external-link-icon">↗</span>
-          </a>
-        ) : (
-          licenseLabel(source.license)
-        )}{" "}
-        ·{" "}
-        <button type="button" className="source-link" aria-haspopup="dialog" onClick={onOpen}>
-          Read the source ↗
-        </button>
-      </p>}
+      {attribution && (
+        <p className="colophon">
+          <span className="colophon-mark" aria-hidden="true">ᵃ</span>
+          <span className="colophon-source">
+            <cite>
+              <a href={source.url} target="_blank" rel="noreferrer">
+                {work}
+                <span className="sr-only"> (opens in a new tab)</span>
+                <span aria-hidden="true" className="external-link-icon">↗</span>
+              </a>
+            </cite>
+            {section ? ` §${section.number}, “${section.name}”` : ""} — {surnames(source.author)}
+          </span>
+          <span className="colophon-meta">
+            {licenseUrl ? (
+              <a href={licenseUrl} target="_blank" rel="noreferrer">
+                {licenseLabel(source.license)}
+                <span className="sr-only"> (opens in a new tab)</span>
+                <span aria-hidden="true" className="external-link-icon">↗</span>
+              </a>
+            ) : (
+              licenseLabel(source.license)
+            )}
+            {" · "}
+            <strong>Plain translation</strong>
+            {" · "}
+            <button type="button" className="source-link" aria-haspopup="dialog" onClick={onOpen}>
+              Read the source ↗
+            </button>
+          </span>
+        </p>
+      )}
 
       <dialog
         ref={sheet}

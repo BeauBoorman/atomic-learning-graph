@@ -163,7 +163,12 @@ export function Entry({
                 false on the judge's first screen. */}
             <span>
               <strong>Thorough</strong>
-              <small>Every step, including the details (~{thoroughPageCount} min / {thoroughPageCount} {thoroughPageCount === 1 ? "page" : "pages"})</small>
+              <small>
+                Every step, including the details
+                {thoroughPageCount > quickPageCount
+                  ? ` (~${thoroughPageCount} min / ${thoroughPageCount} ${thoroughPageCount === 1 ? "page" : "pages"}, +${thoroughPageCount - quickPageCount} vs Quick)`
+                  : ` (~${thoroughPageCount} min / ${thoroughPageCount} ${thoroughPageCount === 1 ? "page" : "pages"})`}
+              </small>
             </span>
           </label>
         </fieldset>

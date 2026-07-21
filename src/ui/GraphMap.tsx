@@ -693,6 +693,7 @@ export function GraphMap({
         )}
         <span><i className="legend-swatch covered" aria-hidden="true" /> Covered</span>
         <span><i className="legend-swatch next" aria-hidden="true" /> Next</span>
+        <span><i className="legend-swatch selected" aria-hidden="true" /> Selected</span>
         <span><i className="legend-swatch goal" aria-hidden="true" /> Goal</span>
       </div>
       <div
@@ -717,29 +718,13 @@ export function GraphMap({
         </div>
         {hoveredConcept && (
           <div
-            className="map-tooltip"
+            className={`map-tooltip${tooltipBelow ? " is-below" : ""}`}
             style={{
-              position: "absolute",
               left: `${tooltipPos.x}px`,
               top: `${tooltipPos.y}px`,
-              transform: tooltipBelow ? "translate(-50%, 0)" : "translate(-50%, -100%)",
-              background: "var(--surface)",
-              color: "var(--ink)",
-              border: "1px solid var(--line)",
-              borderRadius: "var(--radius)",
-              padding: "0.5rem 0.75rem",
-              fontSize: "var(--t-colophon)",
-              pointerEvents: "none",
-              zIndex: 1000,
-              boxShadow: "var(--shadow)",
-              maxWidth: "240px",
-              textAlign: "center"
             }}
           >
             <strong>{titleFor(hoveredConcept)}</strong>
-            <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "4px" }}>
-              {hoveredConcept.summary}
-            </div>
           </div>
         )}
       </div>
