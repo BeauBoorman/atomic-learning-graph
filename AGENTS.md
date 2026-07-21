@@ -40,9 +40,10 @@ chatbot.** The AI is allowed to BUILD the map; the map is not allowed to TRUST t
 - **Keep the demo scoped:** one subject (the linear-algebra and softmax substrate beneath
   self-attention — the math under one LLM mechanism, not an LLM survey), one goal
   (`self-attention`), one loop.
-- **Treat this repo as PUBLIC.** It is not published yet (the only remote is a private forgejo) and
-  it is about to be, irreversibly. Never commit `.env`, an API key, or any credential. Anything you
-  add now is something a stranger reads on 2026-07-21.
+- **Treat this repo as PUBLIC.** It is published (public GitHub + live GitHub Pages at
+  https://beauboorman.github.io/atomic-learning-graph/), and a stranger — including a hackathon
+  judge — can read every commit from 2026-07-21 onward. Never commit `.env`, an API key, or any
+  credential. Anything you add now is something a stranger reads.
 
 ## Commands
 

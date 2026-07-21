@@ -24,7 +24,7 @@ is wrong here, for four reasons in descending order of importance:
    call between us and a working deployment. An outage, a rate-limit, or a schema wobble at 16:55 on
    the 21st would take the demo down at exactly the moment it cannot be down. A committed JSON file
    cannot fail to respond.
-3. **Cost and speed.** `atomize` calls GPT-5.6 across the whole OER corpus. Vercel builds on every
+3. **Cost and speed.** `atomize` calls GPT-5.6 across the whole OER corpus. CI runs on every
    push; paying for a full re-atomization per push is pure waste on an 8-day budget, and it makes
    every deploy slow.
 4. **It is the artifact, not a byproduct.** The pitch is "an AI *built* this graph and it passes the
@@ -33,8 +33,8 @@ is wrong here, for four reasons in descending order of importance:
 
 ## What we rejected
 
-- **Run `atomize` in Vercel CI with `OPENAI_API_KEY` in env.** Rejected: introduces (1), (2) and (3)
-  above. This is the option the default `.gitignore` was quietly forcing us into.
+- **Run `atomize` in CI with `OPENAI_API_KEY` in env.** Rejected: introduces (1), (2) and (3)
+   above. This is the option the default `.gitignore` was quietly forcing us into.
 - **Atomize at runtime / on request.** Rejected outright because the README promises the deployed
   app makes no LLM call on the request path, and a per-request LLM call would be slow, costly, and
   non-deterministic.

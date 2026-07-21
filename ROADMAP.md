@@ -105,11 +105,14 @@ extra optional field never fails the gate). Do not build now; keep the seams:
   `ALLOWED_LICENSES`, but it remains a deliberate future call, never a default. Widening the
   allowlist is a human act, never an autonomous workaround.
 
-## 6. Deployment
+## 6. Deployment — SHIPPED
 
-A live URL (e.g. Vercel) is a backlog nice-to-have, **not** a submission gate. `done_means` requires a
-public repo + README + demo video + Codex Session ID, not a deploy. Ship the deploy after submission if
-time allows.
+**Status (2026-07-20): live.** A live URL is **not** a submission gate (the project's
+`done_means` requires a public repo + README + demo video + Codex Session ID), and the
+deploy is shipped anyway: https://beauboorman.github.io/atomic-learning-graph/ runs the
+committed reader via GitHub Pages, built from `main` on every push by
+`.github/workflows/deploy-pages.yml`. The Pages build runs `pnpm gate` first, so a red gate
+blocks the deploy. Treat the URL as the primary CTA.
 
 ## 7. Provenance Unicode-hardening (NFKC + punctuation fold): deferred, not dismissed
 
