@@ -26,6 +26,28 @@ function DotProductVisualizer() {
     }
   };
 
+  const formatStep = () => {
+    const term1 = vecA[0] * vecB[0];
+    const term2 = vecA[1] * vecB[1];
+    const term3 = vecA[2] * vecB[2];
+
+    let str = `= ${term1.toFixed(1)}`;
+    
+    if (term2 >= 0) {
+      str += ` + ${term2.toFixed(1)}`;
+    } else {
+      str += ` − ${Math.abs(term2).toFixed(1)}`;
+    }
+
+    if (term3 >= 0) {
+      str += ` + ${term3.toFixed(1)}`;
+    } else {
+      str += ` − ${Math.abs(term3).toFixed(1)}`;
+    }
+
+    return str;
+  };
+
   return (
     <div className="math-visualizer dot-product-viz" aria-label="Interactive dot product calculator">
       <h4>Interactive Dot Product Calculator</h4>
@@ -74,7 +96,7 @@ function DotProductVisualizer() {
           ({vecA[0].toFixed(1)} × {vecB[0].toFixed(1)}) + ({vecA[1].toFixed(1)} × {vecB[1].toFixed(1)}) + ({vecA[2].toFixed(1)} × {vecB[2].toFixed(1)})
         </div>
         <div className="result-equals">
-          = {vecA[0] * vecB[0]} + ({vecA[1] * vecB[1]}) + ({vecA[2] * vecB[2]})
+          {formatStep()}
         </div>
         <div className="result-value">
           = <strong className="primary-color-text">{dotProduct.toFixed(2)}</strong>

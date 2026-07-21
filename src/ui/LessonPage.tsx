@@ -345,9 +345,16 @@ export function LessonPage({
         </aside>
       )}
 
-      {concept.lesson?.steps?.[0]?.text === step.text && (
-        <MathVisualizer conceptId={concept.id} />
-      )}
+      {(() => {
+        const steps = concept.lesson?.steps ?? [];
+        const firstNumericIndex = steps.findIndex((s) => /[0-9]/.test(s.text));
+        const currentStepIndex = steps.indexOf(step);
+        const showVisualizer = (concept.id === "dot-product" || concept.id === "softmax") &&
+          firstNumericIndex !== -1 &&
+          currentStepIndex === firstNumericIndex;
+        
+        return showVisualizer ? <MathVisualizer conceptId={concept.id} /> : null;
+      })()}
 
       <Citation
         resolved={resolved}

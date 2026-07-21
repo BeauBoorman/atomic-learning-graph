@@ -361,6 +361,7 @@ export function GraphMap({
   const [showFullMap, setShowFullMap] = useState(false);
   const [hoveredConcept, setHoveredConcept] = useState<Concept | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [tooltipBelow, setTooltipBelow] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<cytoscape.Core | null>(null);
   const onSelectRef = useRef(onSelect);
@@ -480,9 +481,11 @@ export function GraphMap({
       if (concept) {
         setHoveredConcept(concept);
         const renderedPos = node.renderedPosition();
+        const shouldShowBelow = renderedPos.y < 85;
+        setTooltipBelow(shouldShowBelow);
         setTooltipPos({
           x: renderedPos.x,
-          y: renderedPos.y - 45,
+          y: renderedPos.y + (shouldShowBelow ? 45 : -45),
         });
       }
     });
@@ -718,7 +721,7 @@ export function GraphMap({
               position: "absolute",
               left: `${tooltipPos.x}px`,
               top: `${tooltipPos.y}px`,
-              transform: "translate(-50%, -100%)",
+              transform: tooltipBelow ? "translate(-50%, 0)" : "translate(-50%, -100%)",
               background: "var(--surface)",
               color: "var(--ink)",
               border: "1px solid var(--line)",

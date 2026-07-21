@@ -71,7 +71,9 @@ export function Entry({
           
           const chip = (
             <li key={conceptId} className={chipClass}>
-              {titleFor(concept)}
+              {isStart && <span className="chip-badge start-badge">Start</span>}
+              {isGoal && <span className="chip-badge goal-badge">Goal</span>}
+              <span className="chip-title">{titleFor(concept)}</span>
             </li>
           );
 

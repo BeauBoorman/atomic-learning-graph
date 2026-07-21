@@ -389,11 +389,12 @@ a {
 
 .route-chip {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 2.5rem;
-  min-width: 7.5rem;
-  padding: 0.4rem 1rem;
+  min-height: 3rem;
+  min-width: 8rem;
+  padding: 0.5rem 1rem;
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -412,22 +413,45 @@ a {
 
 .route-chip.is-start {
   border-color: var(--primary);
-  background: var(--surface-soft);
-  font-weight: 600;
-}
-
-.route-chip.is-goal {
-  border-color: var(--primary);
-  background: var(--surface-soft);
+  background: var(--surface);
   font-weight: 600;
   box-shadow: 0 0 0 1px var(--primary);
 }
 
+.route-chip.is-goal {
+  border-color: var(--primary);
+  background: var(--surface);
+  font-weight: 600;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
 .route-chip.is-skipped {
-  opacity: 0.55;
+  opacity: 0.45;
   text-decoration: line-through;
   border-color: var(--rule);
   background: var(--surface-soft);
+}
+
+.chip-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  margin-bottom: 0.25rem;
+  line-height: 1;
+}
+
+.start-badge {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.goal-badge {
+  background: var(--mark);
+  color: var(--mark-ink);
+  border: 1px solid var(--analogy-rule);
 }
 
 .route-arrow {
@@ -603,8 +627,19 @@ select {
   padding: 0.8rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 2px 8px -2px rgba(34, 32, 27, 0.04);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root[data-theme="dark"] .choice {
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.2);
+}
+
+.choice:focus-within {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .choice:hover:not(.is-selected) {
@@ -831,10 +866,9 @@ select {
 
 .analogy-pill.is-selected {
   border-color: var(--primary);
-  background: var(--surface-soft);
-  color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-ink);
   font-weight: 600;
-  box-shadow: 0 0 0 1px var(--primary);
 }
 
 /* ── The footnote mark ────────────────────────────────────────────────────────
@@ -2050,7 +2084,7 @@ footer {
 }
 
 .math-visualizer h4 {
-  font-family: var(--font-header);
+  font-family: var(--font-ui);
   font-size: var(--t-h3);
   margin: 0 0 0.5rem 0;
   color: var(--ink);
@@ -2102,8 +2136,16 @@ footer {
 .vector-element input[type="range"],
 .softmax-row input[type="range"] {
   width: 100%;
-  accent-color: var(--focus);
+  accent-color: var(--primary);
   cursor: pointer;
+  outline: none;
+  transition: outline 0.15s ease;
+}
+
+.vector-element input[type="range"]:focus-visible,
+.softmax-row input[type="range"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
 }
 
 .result-display {
@@ -2131,7 +2173,7 @@ footer {
 }
 
 .primary-color-text {
-  color: var(--focus);
+  color: var(--primary);
 }
 
 /* Softmax specific */
@@ -2180,7 +2222,7 @@ footer {
 
 .softmax-bar {
   height: 0.75rem;
-  background: linear-gradient(90deg, var(--primary) 0%, var(--rule) 100%);
+  background: var(--primary);
   border-radius: 9999px;
   min-width: 4px;
 }
