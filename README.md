@@ -5,7 +5,9 @@
 > - **What makes it different:** Codex (GPT-5.6) wrote this repo under adversarial gates it couldn't talk past, then runs as the atomizer inside the product. One model, two jobs.
 > - **Built:** entirely during OpenAI Build Week 2026.
 
-# A plain-English edition of a real textbook — one idea per page, a receipt on every sentence, and no AI while you read.
+# Atomic Learning Graph
+
+*A plain-English edition of a real textbook — one idea per page, a receipt on every sentence, and no AI while you read.*
 
 *Every lesson step has a receipt. Every claim has a gate.*
 **Give it an open textbook chapter. It produces an offline learning path where every lesson step
@@ -24,7 +26,7 @@ local builder →](#build-your-own-course)**
 
 **[Open the live demo →](https://beauboorman.github.io/atomic-learning-graph/)** — runs entirely in your browser; nothing is generated while you read.
 
-**[Watch the 60-second explainer →](https://youtu.be/CKGwKNdG6yE)** — a plain-language tour of what it does and why. Prefer the full version? Here's the [three-minute walkthrough](https://youtu.be/FZhGTl3CJTE).
+**[Watch the 60-second explainer →](https://youtu.be/CKGwKNdG6yE)** — a plain-language tour of what it does and why. Prefer the full version? Here's the [longer walkthrough](https://youtu.be/FZhGTl3CJTE).
 
 The whole project, in five steps:
 
@@ -227,7 +229,7 @@ guarantees travel — not the headline.
   [OPML outline](atomic-learning-graph.opml) — the deterministic interchange artifact that drives the
   Tinderbox import — and a machine-checkable [course receipt](data/course.receipt.json) recording the
   work, authors, license, revision, and graph hash.
-  `pnpm verify:llms|orgroam|tinderbox|obsidian|anki|exam|receipt` gates them against the committed
+  `pnpm verify:llms`, `verify:orgroam`, `verify:tinderbox`, `verify:obsidian`, `verify:anki`, `verify:exam`, `verify:receipt` gates them against the committed
   graph. The Obsidian vault opens with a prerequisite-ordered **Start Here** note and carries the
   full cited lesson in every concept note; org-roam leads with the same learning path. The native
   Tinderbox document opens directly with styled concept/source/edge prototypes, a mapped learning
@@ -275,7 +277,7 @@ short version.
 | [`llms.txt`](llms.txt) | A plain-text course index made for AI assistants; [`llms-full.txt`](llms-full.txt) contains the complete lessons and receipts. | Attach or paste `llms.txt` into an assistant for the overview. Add `llms-full.txt` when you want it to use the full course, and ask it to follow prerequisite order and show the source receipts. |
 
 **Retention is a handoff, not a rebuild.** This project compiles the inspectable artifact; long-term
-spaced review rides on Anki’s proven scheduler via the gated Anki export. We do not reimplement a
+spaced review rides on Anki's proven scheduler via the gated Anki export. We do not reimplement a
 forgetting-curve engine — we hand clean, cited cards to one that is already trusted.
 
 - **A single-file offline reader.** `pnpm build:single` emits one `dist-single/index.html` you can

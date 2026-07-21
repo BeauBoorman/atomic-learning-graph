@@ -272,7 +272,7 @@ export function Citation({
           <div className="parallel">
             <div className="parallel-col">
               <p className="parallel-label">This edition</p>
-              <p className="parallel-lesson">{stepText}</p>
+              <p className="parallel-lesson"><MathText text={stepText} /></p>
             </div>
             <div className="parallel-col">
               <p className="parallel-label">The source</p>

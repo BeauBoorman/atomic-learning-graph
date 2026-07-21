@@ -2180,6 +2180,13 @@ footer {
   line-height: 1;
 }
 
+.receipt-caption {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 /* Interactive Math Visualizers */
 .math-visualizer {
   margin: var(--s6) 0;
@@ -2190,7 +2197,7 @@ footer {
   box-shadow: var(--shadow);
 }
 
-.math-visualizer h4 {
+.math-visualizer h2 {
   font-family: var(--font-ui);
   font-size: var(--t-h3);
   margin: 0 0 0.5rem 0;

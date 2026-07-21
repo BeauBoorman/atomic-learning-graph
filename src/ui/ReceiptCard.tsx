@@ -74,6 +74,7 @@ export function ReceiptCard({ receipt }: { receipt: CourseReceipt }) {
           <span className="receipt-fact-key">Runtime model calls</span>
           <strong>{generation.runtimeModelCalls}</strong>
         </li>
+        <li className="receipt-caption">Zero. The course compiles once; reading it makes no model calls.</li>
       </ul>
     </aside>
   );

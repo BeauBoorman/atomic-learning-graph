@@ -1,6 +1,6 @@
-# A plain-English edition of a real textbook — one idea per page, a receipt on every sentence, and no AI while you read.
+# Atomic Learning Graph
 
-> *Every lesson step has a receipt. Every claim has a gate.* **Give it an open textbook chapter. It produces an offline learning path where every lesson step can be challenged against the exact source passage it cites.**
+> *A plain-English edition of a real textbook — one idea per page, a receipt on every sentence, and no AI while you read.*
 
 > This is a plain-text course index for AI assistants. Attach or paste this file for the overview; add `llms-full.txt` when the assistant needs the complete lessons and source receipts.
 
