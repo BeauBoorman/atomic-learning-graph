@@ -1,4 +1,5 @@
 {
+  "description": "Readability-grade advisories per concept. The file is named 'atomicity-report' for historical reasons (it was originally emitted by the atomicity reporter); its current contents are US-grade readability estimates produced at build time. These are advisory only — they never gate a build, never block a phase, and never appear in the hard invariant set. The 'atomicity' name is retained because the file path is byte-pinned in scripts/emit-receipt.ts and renaming it would require coordinated updates across the emitter, the run-receipt test, and ADR-001 references.",
   "advisoryOnly": true,
   "warnings": [
     {

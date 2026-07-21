@@ -171,6 +171,11 @@ describe("isSingleConcept — teeth", () => {
   // enumeration reporter rather than a proof gate: an enumeration detector is a real check, but it
   // is NOT proof of atomicity and must never be presented as such. This known limit is what
   // motivates the future embedding/LLM-judge scorer (see ROADMAP.md).
+  //
+  // INTENTIONALLY SKIPPED, NOT BROKEN OR FORGOTTEN. Atomicity is advisory by design across the
+  // whole project (`isSingleConcept` is in the build-time advisory family, never in the hard
+  // invariant gate set — see AGENTS.md and ROADMAP.md §3). This test asserts a property the
+  // advisory reporter is on record as not proving, so leaving it `it.skip` is the honest state.
   // -> Do not un-skip this test by weakening it; un-skip it only if a real, defensible definition of
   //    "one concept" is found — which is what the future scorer is for.
   it.skip("KNOWN LIMIT: cannot catch a multi-concept summary with no coordination", () => {
